@@ -275,7 +275,7 @@
           { kind: "text", q: "วาด state diagram ของ SR flip-flop", fsm: "sr",
             a: "มี 2 สถานะ · Q = 0 ไป Q = 1 เมื่อ SR = 10 · Q = 1 ไป Q = 0 เมื่อ SR = 01 · อยู่ที่ Q = 0 เมื่อ SR = 00 หรือ 01 · อยู่ที่ Q = 1 เมื่อ SR = 00 หรือ 10" },
           { kind: "text", q: "SR latch with Enable สร้างจาก S′R′ latch อย่างไร เขียนสมการของ S′ และ R′ ที่เข้า latch",
-            a: "เพิ่มเกต NAND 2 ตัวด้านหน้า: <span class='mono'>S′ = (S·E)′, R′ = (R·E)′</span> · E = 0 ได้ S′ = R′ = 1 จึง Hold · E = 1 ได้ S′ = S′, R′ = R′ จึงทำงานเหมือน SR latch แบบ active-high" },
+            a: "เพิ่มเกต NAND 2 ตัวด้านหน้า: <span class='mono'>S′ = (S·E)′, R′ = (R·E)′</span> · E = 0 ได้ S′ = R′ = 1 จึง Hold · E = 1 ได้ขา S′ = NOT S และขา R′ = NOT R จึงทำงานเหมือน SR latch แบบ active-high (S = 1 สั่ง Set, R = 1 สั่ง Reset)" },
           { kind: "text", q: "เปรียบเทียบ SR latch แบบ NOR กับแบบ NAND: ระดับที่ใช้สั่งงาน, กรณี Hold และสถานะห้ามใช้",
             a: "NOR: active-high, Hold ที่ SR = 00, ห้ามใช้ที่ 11 (ได้ Q = Q′ = 0) · NAND: active-low (S′, R′), Hold ที่ 11, ห้ามใช้ที่ 00 (ได้ Q = Q′ = 1)" },
           { kind: "text", q: "Master–slave SR flip-flop ทำงานอย่างไร และมีข้อควรระวังอะไร",
@@ -358,7 +358,7 @@
               return edgeDef(rows, [sig("CLK"), sig("J"), sig("K"), sig("D", "D", 1), sig("Q", "Q", 1)], ["D", "Q"], "CLK", "rise"); },
             pre: "D เป็นวงจร combinational จึงเปลี่ยนทันทีตาม J, K และ Q ส่วน Q จะรับ D ณ ขอบขาขึ้น",
             notes: edgeNotes("CLK", "rise", (r, p) => `JK = ${r.J}${r.K}, Q = ${p.Q} จึงได้ D = ${p.D} (${ACTION[r.J * 2 + r.K]}) ได้ Q = ${r.Q}`) },
-          { kind: "timing", q: "วงจรเดียวกัน (D = JQ′ + K′Q, ขอบขาขึ้น) ให้ Q มาแล้ว <b>หาสัญญาณ D</b>",
+          { kind: "timing", q: "วงจรเดียวกัน (D = JQ′ + K′Q, ขอบขาขึ้น) เริ่มต้น Q = 0 หา Q, Q′ และสัญญาณ D",
             build: () => { const rows = withD(simulate({ CLK: CLK28, J: pulses(28, [[4, 12], [16, 20], [24, 28]]), K: pulses(28, [[0, 4], [8, 20], [24, 28]]) }, jkEdge("CLK", "rise"), { Q: 0 }));
               return edgeDef(rows, [sig("CLK"), sig("J"), sig("K"), sig("Q", "Q", 1), sig("D", "D", 1)], ["D"], "CLK", "rise"); },
             pre: "Q = 0 ได้ D = J · Q = 1 ได้ D = K′ ไล่ทีละช่วงได้เลย",
@@ -404,13 +404,13 @@
             rows: [["0", "0", f("0"), f("1"), f("0")], ["0", "1", f("0"), f("1"), f("0")], ["1", "0", f("1"), f("0"), f("1")], ["1", "1", f("1"), f("0"), f("1")]],
             note: "Q⁺ = D ทุกแถว จึงเป็น D flip-flop" },
           { kind: "timing", q: "D flip-flop ที่สร้างจาก <b>JK flip-flop ขอบขาขึ้น</b> (J = D, K = D′) เริ่มต้น Q = 0 หาสัญญาณ J, K และ Q",
-            build: () => { const D = pulses(28, [[1, 5], [9, 10], [13, 20], [25, 28]]);
+            build: () => { const D = pulses(28, [[1, 5], [8, 9], [13, 20], [25, 28]]);
               const rows = simulate({ CLK: CLK28, D, J: D, K: invert(D) }, jkEdge("CLK", "rise"), { Q: 0 });
               return edgeDef(rows, [sig("CLK"), sig("D"), sig("J", "J", 1), sig("K", "K", 1), sig("Q", "Q", 1)], ["J", "K", "Q"], "CLK", "rise"); },
             pre: "J ตาม D ทันที และ K เป็นนิเสธของ D ทันที (combinational) ส่วน Q เปลี่ยนเฉพาะที่ขอบ",
             notes: edgeNotes("CLK", "rise", (r) => `D = ${r.D} ได้ JK = ${r.J}${r.K} (${ACTION[r.J * 2 + r.K]}) จึงได้ Q = ${r.Q}`) },
           { kind: "timing", q: "D flip-flop ที่สร้างจาก <b>JK flip-flop ขอบขาลง</b> (J = D, K = D′) เริ่มต้น Q = 0 หา Q",
-            build: () => { const D = pulses(28, [[0, 4], [6, 7], [8, 12], [20, 26]]);
+            build: () => { const D = pulses(28, [[0, 4], [5, 6], [8, 12], [20, 26]]);
               const rows = simulate({ Clock: FALL28, D, J: D, K: invert(D) }, jkEdge("Clock", "fall"), { Q: 0 });
               return edgeDef(rows, [sig("Clock"), sig("D"), sig("Q", "Q", 1)], ["Q"], "Clock", "fall"); },
             notes: edgeNotes("Clock", "fall", (r) => `D = ${r.D} ได้ JK = ${r.J}${r.K} จึงได้ Q = ${r.Q}`) },
@@ -656,13 +656,13 @@
           edgeTiming({ q: "JK จาก D FF ขอบขาขึ้น <b>เริ่มต้น Q = 1</b> หา D และ Q", edge: "rise", init: { Q: 1 },
             inputs: { J: [0, 1, 1, 0, 1, 0, 1], K: [1, 1, 0, 0, 1, 1, 0] }, model: jkEdge("CLK", "rise"), derive: withD,
             show: [S("CLK"), S("J"), S("K"), O("D"), O("Q")], hide: ["D", "Q"], fmt: djFmt }),
-          edgeTiming({ q: "JK จาก D FF <b>ขอบขาลง</b> ให้ Q มาแล้ว หาสัญญาณ D", clk: "Clock", edge: "fall",
+          edgeTiming({ q: "JK จาก D FF <b>ขอบขาลง</b> เริ่มต้น Q = 0 หา Q, Q′ และสัญญาณ D", clk: "Clock", edge: "fall",
             inputs: { J: [1, 0, 1, 1, 0, 0, 1], K: [0, 1, 1, 0, 0, 1, 1] }, model: jkEdge("Clock", "fall"), derive: withD,
             show: [S("Clock"), S("J"), S("K"), O("Q"), O("D")], hide: ["D"], fmt: djFmt, pre: "Q = 0 ได้ D = J · Q = 1 ได้ D = K′" }),
           edgeTiming({ q: "JK จาก D FF ขอบขาขึ้น เริ่มต้น Q = 0 (J, K มีพัลส์สั้นระหว่างขอบ) หา D และ Q", edge: "rise",
             inputs: { J: [1, 0, 0, 1, 1, 0, 0], K: [0, 0, 1, 1, 0, 0, 1] }, glitch: { J: [1], K: [4] }, model: jkEdge("CLK", "rise"), derive: withD,
             show: [S("CLK"), S("J"), S("K"), O("D"), O("Q")], hide: ["D", "Q"], fmt: djFmt, pre: "พัลส์สั้นของ J, K ทำให้ D กระตุกตาม แต่ไม่ตรงขอบ จึงไม่มีผลกับ Q" }),
-          edgeTiming({ q: "JK จาก D FF ขอบขาลง เริ่มต้น Q = 0 หา Q", clk: "Clock", edge: "fall",
+          edgeTiming({ q: "JK จาก D FF ขอบขาลง เริ่มต้น Q = 0 หา D และ Q", clk: "Clock", edge: "fall",
             inputs: { J: [0, 1, 1, 1, 0, 1, 0], K: [1, 0, 1, 1, 1, 0, 0] }, model: jkEdge("Clock", "fall"), derive: withD,
             show: [S("Clock"), S("J"), S("K"), O("Q")], hide: ["Q"], fmt: djFmt }),
           edgeTiming({ q: "JK จาก D FF ขอบขาขึ้น เริ่มต้น Q = 0 (มีช่วง J = K = 1 ต่อกันหลายลูก) หา D และ Q", edge: "rise",
@@ -690,15 +690,16 @@
             show: [S("CLK"), S("D"), O("J"), O("K"), O("Q")], hide: ["J", "K", "Q"], fmt: jdFmt,
             pre: "J, K เปลี่ยนตาม Q ด้วย (ช่วงที่ Q = D จะได้ JK = 00 คือ Hold) แต่ Q ที่ได้ยังเท่ากับ D ทุกขอบ" }),
           {
-            kind: "timing", q: "D ชุดเดียวกันป้อนเข้า 2 วงจร (JK ขอบขาขึ้น): <b>Qd</b> ต่อถูก (J = D, K = D′) และ <b>Qt</b> ลืม NOT (J = K = D) เริ่มต้น = 0",
-            pre: "Qd = D ณ ขอบ · Qt toggle เมื่อ D = 1 และ hold เมื่อ D = 0",
+            kind: "timing", q: "D ชุดเดียวกันป้อนเข้า 2 วงจร (JK ขอบขาขึ้น): วงจร d ต่อถูก (J = D, K = D′) และวงจร t ลืม NOT (J = K = D) เริ่มต้น Q = 0 ทั้งคู่ หา Jd, Kd, Qd และ Jt, Kt, Qt",
+            pre: "Jd = D, Kd = D′ จึงได้ Qd = D ณ ขอบ · Jt = Kt = D จึงได้ Qt toggle เมื่อ D = 1 และ hold เมื่อ D = 0",
             build: () => {
               const seq = { CLK: clkOf(7, "rise"), D: cyc([1, 1, 0, 1, 0, 1, 1]) };
               const a = simulate(seq, jdModel("ok", "CLK", "rise"), { Q: 0 }), b = simulate(seq, jdModel("noNot", "CLK", "rise"), { Q: 0 });
-              const rows = a.map((r, t) => ({ CLK: r.CLK, D: r.D, Qd: r.Q, Qt: b[t].Q }));
-              return edgeDef(rows, [sig("CLK"), sig("D"), sig("Qd", "Qd", 1), sig("Qt", "Qt", 1)], ["Qd", "Qt"], "CLK", "rise", 12);
+              const rows = a.map((r, t) => ({ CLK: r.CLK, D: r.D, Jd: r.D, Kd: 1 - r.D, Qd: r.Q, Jt: r.D, Kt: r.D, Qt: b[t].Q }));
+              return edgeDef(rows, [sig("CLK"), sig("D"), sig("Jd", "Jd", 1), sig("Kd", "Kd", 1), sig("Qd", "Qd", 1), sig("Jt", "Jt", 1), sig("Kt", "Kt", 1), sig("Qt", "Qt", 1)],
+                ["Jd", "Kd", "Qd", "Jt", "Kt", "Qt"], "CLK", "rise", 12);
             },
-            notes: edgeNotes("CLK", "rise", (r) => `D = ${r.D} ได้ Qd = ${r.Qd}, Qt = ${r.Qt}`),
+            notes: edgeNotes("CLK", "rise", (r, p) => `D = ${p.D}: วงจรถูก JK = ${p.Jd}${p.Kd} ได้ Qd = ${r.Qd} · วงจรลืม NOT JK = ${p.Jt}${p.Kt} ได้ Qt = ${r.Qt}`),
           },
           edgeTiming({ q: "D จาก JK ขอบขาขึ้น เริ่มต้น Q = 0 (D เปลี่ยนไปมาระหว่างขอบหลายครั้ง) หา Q", edge: "rise",
             inputs: { D: [0, 0, 1, 1, 0, 0, 1] }, glitch: { D: [0, 2, 4, 6] }, model: jdModel("ok", "CLK", "rise"), derive: withJK("ok"),
@@ -782,6 +783,47 @@
         ],
       };
       for (const [t, items] of Object.entries(EXTRA)) SUB[t].push(...items);
+
+      // Every drill with a single Q output also asks for Q′ (right under Q); both are always left for the student.
+      const QN_NOTE = "<li>Q′ เป็นนิเสธของ Q ทุกช่วง (ช่วงที่ Q ไม่แน่นอน Q′ ก็ไม่แน่นอนด้วย)</li>";
+      const withQn = (def) => {
+        const at = def.signals.findIndex((x) => x.key === "Q");
+        if (at < 0 || def.signals.some((x) => x.key === "Qn") || !def.rows.every((r) => "Qn" in r)) return def;
+        const signals = [...def.signals];
+        signals.splice(at + 1, 0, sig("Qn", "~Q", 1));
+        return { ...def, signals, hide: [...new Set([...def.hide, "Q", "Qn"])], qnAdded: true };
+      };
+      // JK → D drills always ask for J and K (right after D), even when the question only mentions Q.
+      const withJKRows = (def) => {
+        if (def.signals.some((x) => x.key === "J") || !def.rows.every((r) => "J" in r && "K" in r)) return def;
+        const signals = [...def.signals];
+        signals.splice(signals.findIndex((x) => x.key === "D") + 1, 0, sig("J", "J", 1), sig("K", "K", 1));
+        return { ...def, signals, hide: [...def.hide, "J", "K"] };
+      };
+      // D → JK drills always ask for D (the D FF input JQ′ + K′Q), placed right after K.
+      const withDRow = (def) => {
+        if (!def.rows.every((r) => "D" in r)) return def;
+        const signals = def.signals.filter((x) => x.key !== "D");
+        signals.splice(signals.findIndex((x) => x.key === "K") + 1, 0, sig("D", "D", 1));
+        return { ...def, signals, hide: [...new Set([...def.hide, "D"])] };
+      };
+      for (const item of SUB.dj) {
+        if (item.kind !== "timing") continue;
+        const build = item.build;
+        item.build = () => withDRow(build());
+      }
+      for (const item of SUB.jd) {
+        if (item.kind !== "timing" || /J, K|Jd/.test(item.q)) continue;
+        const build = item.build;
+        item.build = () => withJKRows(build());
+        item.q = item.q.replace("หา Q", "หา J, K และ Q");
+      }
+      for (const item of Object.values(SUB).flat()) {
+        if (item.kind !== "timing") continue;
+        const build = item.build;
+        item.build = () => withQn(build());
+      }
+      const notesOf = (it, def) => (it.notes ? it.notes(def.rows) : "") + (def.qnAdded ? QN_NOTE : "");
 
       // =====================================================================
       // Rendering
@@ -883,7 +925,7 @@
         for (const [id, it] of Object.entries(timing)) {
           const def = it.build();
           defs[id] = def;
-          panel.querySelector(`[data-notes="${id}"]`).innerHTML = it.notes ? it.notes(def.rows) : "";
+          panel.querySelector(`[data-notes="${id}"]`).innerHTML = notesOf(it, def);
         }
         exercises(defs);
         panel.querySelectorAll("[data-fsm]").forEach((svg) => twoState(svg, FSM[svg.dataset.fsm]));
@@ -1266,7 +1308,7 @@
             if (kind === "timing") {
               const def = defs.get(it) || defs.set(it, it.build()).get(it);
               body = printWave(def, reveal);
-              if (reveal) body += `${it.pre ? `<p class="p-note">${it.pre}</p>` : ""}<ul class="p-notes">${it.notes ? it.notes(def.rows) : ""}</ul>`;
+              if (reveal) body += `${it.pre ? `<p class="p-note">${it.pre}</p>` : ""}<ul class="p-notes">${notesOf(it, def)}</ul>`;
             }
             if (kind === "text") {
               body = reveal
