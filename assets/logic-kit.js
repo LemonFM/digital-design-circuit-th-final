@@ -359,6 +359,134 @@
     return `<svg class="schem" viewBox="-14 0 1170 470" role="img" aria-label="วงจร shifter 4 บิต MUX 4 ต่อ 1 สี่ตัว และ MUX 2 ต่อ 1 สองตัว">${s}</svg>`;
   }
 
+  // ---------- Karnaugh maps (variables D C B A, rows BA, columns DC) ----------
+
+  const KMAP_VARS = ["D", "C", "B", "A"];
+  const GRAY = { 0: [0], 1: [0, 1], 2: [0, 1, 3, 2] };
+  // Rows take the low bits, columns the high bits.
+  // n = 4: rows BA, columns DC · n = 3: rows BA, columns C · n = 2: rows A, columns B.
+  const kmapBits = (n) => ({ rowBits: n === 2 ? 1 : 2, colBits: n === 4 ? 2 : 1 });
+  const kmapNames = (n) => KMAP_VARS.slice(4 - n);
+
+  // A cube is { v, m }: the bits in m are free, the others equal v.
+  const inCube = (cube, i) => (i & ~cube.m) === cube.v;
+
+  const kmapLits = (n, c) => n - c.m.toString(2).replace(/0/g, "").length;
+
+  // Prime implicants: cubes of 1s and ×s that cover at least one 1 and cannot grow. Largest first.
+  function kmapPrimes(n, ones, dcs = []) {
+    const size = 1 << n, ok = new Set([...ones, ...dcs]);
+    const valid = (c) => { for (let i = 0; i < size; i++) if (inCube(c, i) && !ok.has(i)) return false; return true; };
+    const primes = [];
+    for (let m = 0; m < size; m++) {
+      for (let v = 0; v < size; v++) {
+        if (v & m) continue;
+        const c = { v, m };
+        if (!valid(c) || !ones.some((i) => inCube(c, i))) continue;
+        let prime = true;
+        for (let b = 1; b < size; b <<= 1) if (!(m & b) && valid({ v: v & ~b, m: m | b })) prime = false;
+        if (prime) primes.push(c);
+      }
+    }
+    return primes.sort((a, b) => kmapLits(n, a) - kmapLits(n, b) || a.v - b.v);
+  }
+
+  // Exact minimum cover: fewest terms, then fewest literals. Returns the terms largest first.
+  function kmapCover(n, ones, dcs = []) {
+    const primes = kmapPrimes(n, ones, dcs);
+    const lits = (c) => kmapLits(n, c);
+    let best = null;
+    const walk = (chosen, left) => {
+      const cost = chosen.reduce((a, c) => a + lits(c), 0);
+      if (best && (chosen.length > best.terms.length || (chosen.length === best.terms.length && cost >= best.cost))) return;
+      if (!left.length) { best = { terms: [...chosen], cost }; return; }
+      // Branch on the 1 with the fewest primes covering it.
+      let pick = null;
+      left.forEach((i) => { const c = primes.filter((p) => inCube(p, i)); if (!pick || c.length < pick.length) pick = c; });
+      [...pick].sort((a, b) => lits(a) - lits(b)).forEach((p) => walk([...chosen, p], left.filter((i) => !inCube(p, i))));
+    };
+    walk([], [...ones]);
+    return best.terms.sort((a, b) => lits(a) - lits(b) || a.v - b.v);
+  }
+
+  // Prime implicant analysis. essential: PIs that are the only cover of some 1 (alone maps PI index → those 1s).
+  // left: 1s the essentials miss. choices: every minimum way to cover them (one list of PIs each).
+  function kmapPrimeInfo(n, ones, dcs = []) {
+    const primes = kmapPrimes(n, ones, dcs), alone = new Map();
+    ones.forEach((i) => { const c = primes.filter((p) => inCube(p, i)); if (c.length === 1) alone.set(c[0], [...(alone.get(c[0]) || []), i]); });
+    const essential = primes.filter((p) => alone.has(p)), rest = primes.filter((p) => !alone.has(p));
+    const left = ones.filter((i) => !essential.some((p) => inCube(p, i)));
+    let choices = [];
+    if (rest.length <= 16) {
+      let best = Infinity;
+      for (let mask = 0; mask < 1 << rest.length; mask++) {
+        const pick = rest.filter((_, k) => mask & (1 << k));
+        if (!left.every((i) => pick.some((p) => inCube(p, i)))) continue;
+        const cost = pick.length * 100 + pick.reduce((a, c) => a + kmapLits(n, c), 0);
+        if (cost < best) { best = cost; choices = []; }
+        if (cost === best) choices.push(pick);
+      }
+    }
+    return { primes, essential, alone, left, choices };
+  }
+
+  // Power set of the PIs, smallest subsets first. `locked` PIs (normally the essentials) join every subset, so only
+  // the others are enumerated. Each row: { pick, covered, full, best }. Empty when there are too many PIs to list.
+  function kmapPowerSet(n, ones, dcs = [], locked = []) {
+    const pool = kmapPrimes(n, ones, dcs).filter((p) => !locked.includes(p) && !locked.some((q) => q.v === p.v && q.m === p.m));
+    if (pool.length > 16) return [];
+    const rows = [];
+    for (let mask = 0; mask < 1 << pool.length; mask++) {
+      const pick = [...locked, ...pool.filter((_, k) => mask & (1 << k))], covered = ones.filter((i) => pick.some((p) => inCube(p, i)));
+      rows.push({ pick, covered, full: covered.length === ones.length, cost: pick.length * 100 + pick.reduce((a, c) => a + kmapLits(n, c), 0) });
+    }
+    const least = Math.min(...rows.filter((r) => r.full).map((r) => r.cost));
+    rows.forEach((r) => (r.best = r.full && r.cost === least));
+    return rows.sort((a, b) => a.pick.length - b.pick.length);
+  }
+
+  const kmapTerm = (n, c) => {
+    const names = kmapNames(n), t = names.flatMap((x, k) => { const b = 1 << (n - 1 - k); return c.m & b ? [] : [c.v & b ? x : `${x}′`]; });
+    return t.join("") || "1";
+  };
+  const kmapSum = (n, c) => {
+    const names = kmapNames(n), t = names.flatMap((x, k) => { const b = 1 << (n - 1 - k); return c.m & b ? [] : [c.v & b ? `${x}′` : x]; });
+    return t.length > 1 ? `(${t.join(" + ")})` : t[0] || "0";
+  };
+  const kmapSOP = (n, terms) => (terms.length ? terms.map((c) => kmapTerm(n, c)).join(" + ") : "0");
+  const kmapPOS = (n, terms) => (terms.length ? terms.map((c) => kmapSum(n, c)).join("") : "1");
+
+  const KMAP_COLORS = ["#d9480f", "#2f4fd8", "#1b8a4b", "#a8329e", "#a87b00", "#0e8a9a", "#b3263a", "#5b5bd6"];
+  // cells: array of "0" | "1" | "×" by minterm number. groups: cubes to outline. live: cells are focusable buttons.
+  function kmapSvg(n, cells, { groups = [], live = false, numbers = true, scale = 1.05 } = {}) {
+    const { rowBits, colBits } = kmapBits(n), rows = GRAY[rowBits], cols = GRAY[colBits], names = kmapNames(n);
+    const code = (v, bits) => v.toString(2).padStart(bits, "0");
+    const size = 58, x0 = 74, y0 = 62, width = x0 + cols.length * size + 8, height = y0 + rows.length * size + 8;
+    let s = `<text class="km-axis" x="${x0 + (cols.length * size) / 2}" y="16" text-anchor="middle">${names.slice(0, colBits).join("")}</text>`;
+    s += `<text class="km-axis" x="14" y="${y0 + (rows.length * size) / 2 + 5}" text-anchor="middle">${names.slice(colBits).join("")}</text>`;
+    cols.forEach((c, j) => (s += `<text class="km-head" x="${x0 + j * size + size / 2}" y="${y0 - 12}" text-anchor="middle">${code(c, colBits)}</text>`));
+    rows.forEach((r, i) => (s += `<text class="km-head" x="${x0 - 12}" y="${y0 + i * size + size / 2 + 5}" text-anchor="end">${code(r, rowBits)}</text>`));
+    let marks = ""; // cell text goes last so group outlines never cover it
+    rows.forEach((r, i) => cols.forEach((c, j) => {
+      const id = (c << rowBits) | r, x = x0 + j * size, y = y0 + i * size, val = cells[id];
+      s += `<rect class="km-cell" x="${x}" y="${y}" width="${size}" height="${size}"${live ? ` data-cell="${id}" tabindex="0" role="button" aria-label="ช่อง ${id} ค่า ${val}"` : ""}/>`;
+      if (numbers) marks += `<text class="km-num" x="${x + size - 5}" y="${y + 13}" text-anchor="end">${id}</text>`;
+      marks += `<text class="km-val${val === "0" ? " zero" : ""}" x="${x + size / 2}" y="${y + size / 2 + 8}" text-anchor="middle">${val}</text>`;
+    }));
+    // A group that wraps around an edge is one rectangle per contiguous run of rows and columns.
+    const runs = (idx) => { const out = []; idx.forEach((v) => { const last = out.at(-1); if (last && last[1] === v - 1) last[1] = v; else out.push([v, v]); }); return out; };
+    groups.forEach((c, g) => {
+      const on = (i, j) => inCube(c, (cols[j] << rowBits) | rows[i]);
+      const useRows = rows.map((_, i) => i).filter((i) => cols.some((_, j) => on(i, j)));
+      const useCols = cols.map((_, j) => j).filter((j) => rows.some((_, i) => on(i, j)));
+      const inset = 5 + (g % 4) * 3, color = KMAP_COLORS[g % KMAP_COLORS.length];
+      runs(useRows).forEach(([r0, r1]) => runs(useCols).forEach(([c0, c1]) => {
+        s += `<rect class="km-group" x="${x0 + c0 * size + inset}" y="${y0 + r0 * size + inset}" width="${(c1 - c0 + 1) * size - 2 * inset}" height="${(r1 - r0 + 1) * size - 2 * inset}" rx="14" style="stroke:${color};fill:${color}"/>`;
+      }));
+    });
+    return `<svg class="kmap" viewBox="0 0 ${width} ${height}" style="max-width:${Math.round(width * scale)}px" role="img" aria-label="K-map ${names.join("")}">${s}${marks}</svg>`;
+  }
+
   // ---------- Exercises ----------
 
   // Timing-diagram drills: <svg data-exercise=id>, <button data-reveal=id>, <div data-answer=id hidden>.
@@ -499,6 +627,6 @@
 
   global.LK = {
     NOT, AND, OR, NAND, NOR, settle, label, gate, schematic, setLevels, wave, fitStep, tocSpy,
-    steps, pulses, isEdge, simulate, byQ, twoState, ffSymbol, shiftRegister, shifterCircuit, exercises, ffSim,
+    steps, pulses, isEdge, simulate, byQ, twoState, ffSymbol, shiftRegister, shifterCircuit, kmapPrimes, kmapPrimeInfo, kmapPowerSet, kmapCover, kmapTerm, kmapSOP, kmapPOS, kmapSvg, kmapNames, inCube, KMAP_COLORS, exercises, ffSim,
   };
 })(window);

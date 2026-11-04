@@ -261,6 +261,33 @@ a.topic .topic-no { color: var(--accent); }
 .toc a { display: block; padding: 5px 0 5px 14px; margin-left: -1px; color: var(--ink-2); text-decoration: none; border-left: 2px solid transparent; }
 .toc a:hover { color: var(--ink); }
 .toc a.active { color: var(--accent); border-left-color: var(--accent); font-weight: 500; }
+/* K-map */
+.kmap { display: block; width: 100%; max-width: 400px; height: auto; margin-inline: auto; }
+.kmap text { font-family: var(--mono); fill: var(--ink); pointer-events: none; }
+.kmap .km-axis { font-size: 15px; font-weight: 600; }
+.kmap .km-head { font-size: 13px; fill: var(--ink-2); }
+.kmap .km-num { font-size: 10px; fill: var(--ink-3); }
+.kmap .km-val { font-size: 20px; font-weight: 600; }
+.kmap .km-val.zero { fill: var(--ink-3); font-weight: 400; }
+.km-cell { fill: var(--surface); stroke: var(--line-2); stroke-width: 1; }
+.km-cell[data-cell] { cursor: pointer; }
+.km-cell[data-cell]:hover { fill: var(--accent-soft); }
+.km-cell:focus-visible { outline: none; stroke: var(--accent); stroke-width: 3; }
+.km-group { fill-opacity: 0.1; stroke-width: 2.5; pointer-events: none; }
+.km-trio { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; align-items: start; }
+.km-trio .figure, .km-quad .figure { margin: 0; }
+.km-quad { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.km-chart td:first-child { text-align: left; font-weight: 600; white-space: nowrap; }
+.km-result { font-family: var(--mono); font-weight: 600; text-align: center; margin: 10px 0 0; }
+.km-example { margin: 20px 0; }
+.km-steps { margin: 6px 0 0; padding-left: 0; list-style: none; }
+.km-steps li, .km-terms li { margin: 6px 0; }
+.km-dot { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 8px; }
+.km-sim-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.km-eq { display: flex; gap: 12px; align-items: baseline; margin: 0 0 8px; padding: 10px 14px; border-radius: 10px; background: #f1efe9; }
+.km-eq span { font-size: 13px; color: var(--ink-3); }
+.km-eq b { font-family: var(--mono); overflow-wrap: anywhere; }
+.km-terms { list-style: none; margin: 10px 0 0; padding: 0; font-size: 15px; }
 .exam-hint { display: inline-block; margin-left: 6px; padding: 0 8px; border-radius: 999px; background: var(--hi); color: #fff; font-size: 12px; font-weight: 600; line-height: 19px; vertical-align: 1px; white-space: nowrap; }
 
 .content > section { padding: 8px 0 40px; }
@@ -520,6 +547,7 @@ a.topic .topic-no { color: var(--accent); }
   .figure.wide { overflow-x: auto; }
   .figure.wide svg { min-width: 520px; }
   .figure.reg-fig svg { min-width: 760px; }
+  .km-sim-grid, .km-quad { grid-template-columns: minmax(0, 1fr); }
   .formula { padding: 18px 8px; }
 
   /* Diagrams scale down with the viewBox, so enlarge their text to stay readable */

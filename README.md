@@ -12,6 +12,7 @@
 4. [T Flip-Flop](topics/t-flipflop.html)
 5. [Asynchronous Inputs (Preset / Clear)](topics/async-inputs.html)
 6. [Register & Shift Register](topics/shift-registers.html)
+7. [Karnaugh Map (K-map)](topics/k-map.html)
 
 ## แท็บ
 

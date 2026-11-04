@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="บทพิเศษ Karnaugh map สูงสุด 4 ตัวแปร ใช้ตัวแปร DCBA แถว BA คอลัมน์ DC: การจับกลุ่ม don't care รูป SOP และ POS พร้อม K-map ที่กดลองได้และแบบฝึก">
+  <title>K-map · CPE 2423</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <nav class="topbar">
+    <div class="wrap">
+      <a href="../index.html">← CPE 2423 ครึ่งหลัง</a>
+      <span class="crumb">บทพิเศษ · K-map</span>
+    </div>
+  </nav>
+
+  <header class="page-head wrap">
+    <p class="eyebrow">บทพิเศษ</p>
+    <h1>Karnaugh Map (K-map)</h1>
+    <p class="lead">K-map คือตารางที่ช่วย<b>ลดรูปสมการลอจิก</b>ด้วยการจับกลุ่มช่องที่อยู่ติดกัน หน้านี้ใช้ตัวแปร <b>DCBA</b> โดย<b>แถวคือ BA</b> และ<b>คอลัมน์คือ DC</b> ตั้งแต่ 2 ถึง 4 ตัวแปร (ใหญ่สุด 4 × 4)</p>
+  </header>
+
+  <div class="wrap layout">
+    <details class="toc" open>
+      <summary>สารบัญ</summary>
+      <ol>
+        <li><a href="#what">K-map คืออะไร</a></li>
+        <li><a href="#layout">รูปแบบตาราง DCBA</a></li>
+        <li><a href="#rules">กฎการจับกลุ่ม</a></li>
+        <li><a href="#read">อ่านสมการจากกลุ่ม</a></li>
+        <li><a href="#prime">Prime implicant (PI)</a></li>
+        <li><a href="#examples">ตัวอย่างทีละขั้น</a></li>
+        <li><a href="#dontcare">Don't care (×)</a></li>
+        <li><a href="#pos">รูป POS (จับกลุ่ม 0)</a></li>
+        <li><a href="#sim">ลองกด K-map</a></li>
+        <li><a href="#practice">แบบฝึก</a></li>
+        <li><a href="#recap">สรุปก่อนสอบ</a></li>
+      </ol>
+    </details>
+
+    <main class="content">
+      <!-- 1 -->
+      <section id="what">
+        <h2><span class="num">1</span>K-map คืออะไร</h2>
+        <p>K-map คือ truth table ที่จัดเรียงใหม่ให้<b>ช่องที่อยู่ติดกันต่างกันแค่ 1 บิต</b> จึงมองเห็นคู่ที่ยุบรวมกันได้ทันที ตามกฎ <span class="mono">XA + XA′ = X</span></p>
+        <div class="callout tip">
+          <b>ตัวอย่างการยุบ</b>
+          ช่อง D′C′B′A กับ D′C′BA ต่างกันแค่ B: <span class="mono">D′C′B′A + D′C′BA = D′C′A(B′ + B) = D′C′A</span> ตัวแปรที่เปลี่ยนค่าจะหายไป
+        </div>
+        <p>ผลลัพธ์คือสมการที่ใช้เกตน้อยลง ซึ่งเป็นขั้นที่ใช้ตอนแปลง flip-flop และออกแบบวงจร</p>
+      </section>
+
+      <!-- 2 -->
+      <section id="layout">
+        <h2><span class="num">2</span>รูปแบบตาราง DCBA</h2>
+        <p>ตัวแปรเรียงเป็น D C B A โดย <b>D เป็นบิตสูงสุด</b> เลขในช่องคือ minterm: <span class="mono">เลขช่อง = 8D + 4C + 2B + A</span></p>
+        <div class="km-trio">
+          <figure class="figure" data-km-numbers="4"><figcaption>4 ตัวแปร DCBA: แถว BA, คอลัมน์ DC</figcaption></figure>
+          <figure class="figure" data-km-numbers="3"><figcaption>3 ตัวแปร CBA: แถว BA, คอลัมน์ C</figcaption></figure>
+          <figure class="figure" data-km-numbers="2"><figcaption>2 ตัวแปร BA: แถว A, คอลัมน์ B</figcaption></figure>
+        </div>
+        <div class="callout warn">
+          <b>หัวตารางเรียง 00, 01, 11, 10 ไม่ใช่ 00, 01, 10, 11</b>
+          ลำดับนี้คือ Gray code เปลี่ยนทีละ 1 บิต เลขช่องจึงไม่เรียงกัน: แถว BA = 00 คือ 0, 4, 12, 8 และแถว BA = 10 อยู่ล่างสุดคือ 2, 6, 14, 10
+        </div>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>ขนาด</th><th>ตัวแปร</th><th>แถว</th><th>คอลัมน์</th><th>จำนวนช่อง</th></tr></thead>
+            <tbody>
+              <tr><td>2 × 2</td><td>B A</td><td>A</td><td>B</td><td>4</td></tr>
+              <tr><td>4 × 2</td><td>C B A</td><td>B A</td><td>C</td><td>8</td></tr>
+              <tr><td>4 × 4</td><td>D C B A</td><td>B A</td><td>D C</td><td>16</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top: 10px;">ถ้าโจทย์ใช้ตารางคนละแบบ เช่นเรียงเป็น ABCD เลขช่องจะไม่ตรงกับหน้านี้ ให้ดูหัวตารางของโจทย์ก่อนเสมอ</p>
+      </section>
+
+      <!-- 3 -->
+      <section id="rules">
+        <h2><span class="num">3</span>กฎการจับกลุ่ม</h2>
+        <ol>
+          <li><b>จับเฉพาะ 1</b> (รูป SOP) ห้ามมี 0 ในกลุ่ม</li>
+          <li>ขนาดกลุ่มต้องเป็น <b>1, 2, 4, 8 หรือ 16</b> ช่องเท่านั้น</li>
+          <li>กลุ่มต้องเป็น<b>สี่เหลี่ยมผืนผ้า</b> ห้ามทแยงมุม ห้ามเป็นรูปตัว L</li>
+          <li>ทำกลุ่มให้<b>ใหญ่ที่สุด</b> กลุ่มใหญ่ได้ตัวแปรน้อยกว่า</li>
+          <li>ใช้<b>จำนวนกลุ่มน้อยที่สุด</b> ที่ครอบ 1 ได้ครบ (ดูวิธีเลือกใน<a href="#prime">หัวข้อ 5</a>)</li>
+          <li>กลุ่มซ้อนกันได้ ช่องเดียวอยู่ได้หลายกลุ่ม</li>
+          <li><b>ขอบตารางต่อกัน:</b> ซ้ายต่อขวา บนต่อล่าง และ 4 มุมเป็นกลุ่มเดียวกันได้</li>
+        </ol>
+        <div class="km-quad">
+          <figure class="figure" data-km='{"n":4,"ones":[0,2,4,6]}'><figcaption>บนต่อล่าง: 0, 2, 4, 6 ได้ D′A′</figcaption></figure>
+          <figure class="figure" data-km='{"n":4,"ones":[0,1,8,9]}'><figcaption>ซ้ายต่อขวา: 0, 1, 8, 9 ได้ C′B′</figcaption></figure>
+          <figure class="figure" data-km='{"n":4,"ones":[0,2,8,10]}'><figcaption>4 มุม: 0, 2, 8, 10 ได้ C′A′</figcaption></figure>
+          <figure class="figure" data-km='{"n":4,"ones":[5,7,13,15]}'><figcaption>ตรงกลาง: 5, 7, 13, 15 ได้ CA</figcaption></figure>
+        </div>
+      </section>
+
+      <!-- 4 -->
+      <section id="read">
+        <h2><span class="num">4</span>อ่านสมการจากกลุ่ม</h2>
+        <p>ดูทีละตัวแปรในกลุ่ม: <b>ตัวแปรที่เปลี่ยนค่าตัดทิ้ง</b> ตัวแปรที่คงที่ให้เก็บไว้ ถ้าคงที่เป็น 1 เขียนตัวแปรปกติ ถ้าคงที่เป็น 0 เขียนนิเสธ (′)</p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>ขนาดกลุ่ม</th><th>ตัดตัวแปร</th><th>เหลือ (K-map 4 ตัวแปร)</th></tr></thead>
+            <tbody>
+              <tr><td>1 ช่อง</td><td>0 ตัว</td><td>4 ตัวแปร</td></tr>
+              <tr><td>2 ช่อง</td><td>1 ตัว</td><td>3 ตัวแปร</td></tr>
+              <tr><td>4 ช่อง</td><td>2 ตัว</td><td>2 ตัวแปร</td></tr>
+              <tr><td>8 ช่อง</td><td>3 ตัว</td><td>1 ตัวแปร</td></tr>
+              <tr><td>16 ช่อง</td><td>4 ตัว</td><td class="txt">เหลือ F = 1</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout tip">
+          <b>ตัวอย่าง: กลุ่ม 0, 1, 8, 9</b>
+          เลขฐานสอง DCBA คือ 0000, 0001, 1000, 1001 · D เปลี่ยน ตัดทิ้ง · C = 0 คงที่ ได้ C′ · B = 0 คงที่ ได้ B′ · A เปลี่ยน ตัดทิ้ง · จึงได้ <span class="mono">C′B′</span>
+        </div>
+      </section>
+
+      <!-- 5 -->
+      <section id="prime">
+        <h2><span class="num">5</span>Prime implicant (PI)</h2>
+        <p>การจับกลุ่มให้ถูกวิธีคือหา <b>PI ทั้งหมด</b>ก่อน แล้วค่อยเลือกชุดที่น้อยที่สุด คำศัพท์ที่ต้องรู้มี 4 คำ</p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>คำ</th><th>ความหมาย</th><th>ต้องใส่ในคำตอบไหม</th></tr></thead>
+            <tbody>
+              <tr><td class="txt">Implicant</td><td class="txt">กลุ่ม 1, 2, 4, 8 หรือ 16 ช่องที่ไม่มี 0 จะเล็กแค่ไหนก็ได้</td><td class="txt">ไม่จำเป็น</td></tr>
+              <tr><td class="txt">Prime implicant (PI)</td><td class="txt">Implicant ที่<b>ขยายให้ใหญ่ขึ้นอีกไม่ได้</b> เพราะถ้าขยายจะไปโดน 0</td><td class="txt">เลือกจากชุดนี้เท่านั้น</td></tr>
+              <tr><td class="txt">Essential PI (EPI)</td><td class="txt">PI ที่เป็น<b>ตัวเดียว</b>ที่ครอบ 1 ช่องใดช่องหนึ่ง</td><td class="txt"><b>ต้องใส่เสมอ</b></td></tr>
+              <tr><td class="txt">Non-essential PI</td><td class="txt">PI ที่ทุกช่อง 1 ของมันมี PI อื่นครอบได้ด้วย</td><td class="txt">ใส่เท่าที่จำเป็น</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>ขั้นตอน</h3>
+        <ol>
+          <li><b>หา PI ทั้งหมด</b> (prime implicant set): ไล่ทีละช่อง 1 แล้วขยายกลุ่มจนขยายต่อไม่ได้</li>
+          <li><b>หา EPI:</b> ดูแต่ละช่อง 1 ถ้ามี PI ครอบตัวเดียว PI นั้นคือ EPI</li>
+          <li><b>ใส่ EPI ทุกตัว</b> แล้วขีดช่อง 1 ที่ครอบแล้วออก</li>
+          <li><b>เลือก PI ที่เหลือ</b>ให้น้อยที่สุดเพื่อครอบ 1 ที่ยังเหลือ</li>
+        </ol>
+        <h3>หาคำตอบด้วย power set ของ PI</h3>
+        <p>Power set คือเซตของ<b>สับเซตทั้งหมด</b> ถ้ามี PI n ตัว จะมี 2<sup>n</sup> สับเซต แต่ละสับเซตคือคำตอบที่เป็นไปได้ 1 แบบ เพราะคำตอบที่น้อยที่สุดต้องประกอบจาก PI เท่านั้น จึงไล่ได้ดังนี้</p>
+        <ol>
+          <li>เขียนสับเซตของ PI ทุกแบบ รวมเซตว่าง</li>
+          <li>เช็กว่าแต่ละสับเซตครอบ 1 ครบทุกช่องไหม (ช่อง × ไม่ต้องครอบ)</li>
+          <li>จากชุดที่ครบ เลือก<b>เทอมน้อยที่สุด</b> ถ้าเท่ากันเลือก<b>ตัวแปรน้อยที่สุด</b></li>
+        </ol>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>จำนวน PI</th><th>จำนวนสับเซต</th><th>ถ้าล็อก EPI ไว้ 2 ตัว</th></tr></thead>
+            <tbody>
+              <tr><td>3</td><td>2³ = 8</td><td>2¹ = 2</td></tr>
+              <tr><td>4</td><td>2⁴ = 16</td><td>2² = 4</td></tr>
+              <tr><td>6</td><td>2⁶ = 64</td><td>2⁴ = 16</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout tip">
+          <b>EPI ช่วยลดงาน</b>
+          วิธีนี้ไล่ครบทุกแบบจึงไม่พลาดคำตอบ แต่จำนวนสับเซตเพิ่มเท่าตัวทุกครั้งที่มี PI เพิ่ม 1 ตัว EPI ต้องอยู่ในคำตอบเสมอ จึงล็อกไว้แล้วหา power set เฉพาะ PI ที่เหลือก็พอ
+        </div>
+        <div class="callout tip">
+          <b>อ่านตาราง PI</b>
+          แถวคือ PI คอลัมน์คือช่อง 1 · ● คือ PI นั้นครอบช่องนั้น · ◉ คือมี PI นี้ครอบ<b>ตัวเดียว</b> จึงเป็น EPI · แถวที่ระบายคือ EPI · ช่อง × ไม่ต้องอยู่ในตาราง เพราะไม่ต้องครอบให้ครบ แต่ PI ใช้ × ขยายกลุ่มได้
+        </div>
+        <div data-km-pi='{"title":"ตัวอย่างที่ 1 · PI ที่ไม่ต้องใช้: F(C, B, A) = Σ(0, 1, 3, 7)","n":3,"ones":[0,1,3,7],"note":"C′A เป็น PI จริง แต่ทุกช่องของมันถูก EPI ครอบหมดแล้ว ถ้าใส่เข้าไปจะได้กลุ่มเกิน"}'></div>
+        <div data-km-pi='{"title":"ตัวอย่างที่ 2 · เลือกได้มากกว่าหนึ่งแบบ: F(D, C, B, A) = Σ(1, 3, 5, 7, 8, 12, 13)","n":4,"ones":[1,3,5,7,8,12,13],"note":"ช่อง 13 เหลืออยู่และมี PI ครอบ 2 ตัวขนาดเท่ากัน เลือกตัวไหนก็ถูก"}'></div>
+        <div data-km-pi='{"title":"ตัวอย่างที่ 3 · ไม่มี EPI เลย: F(C, B, A) = Σ(0, 1, 2, 5, 6, 7)","n":3,"ones":[0,1,2,5,6,7],"note":"ทุกช่องมี PI ครอบ 2 ตัว (cyclic) จึงต้องเลือก PI เองทั้งหมด ลองเริ่มจาก PI ตัวหนึ่งแล้วไล่ต่อเป็นวง"}'></div>
+      </section>
+
+      <!-- 6 -->
+      <section id="examples">
+        <h2><span class="num">6</span>ตัวอย่างทีละขั้น</h2>
+        <div data-km-example='{"title":"ตัวอย่างที่ 1 · 2 ตัวแปร F(B, A) = Σ(1, 2, 3)","n":2,"ones":[1,2,3]}'></div>
+        <div data-km-example='{"title":"ตัวอย่างที่ 2 · 3 ตัวแปร F(C, B, A) = Σ(0, 2, 4, 5, 6)","n":3,"ones":[0,2,4,5,6]}'></div>
+        <div data-km-example='{"title":"ตัวอย่างที่ 3 · 4 ตัวแปร F(D, C, B, A) = Σ(0, 2, 5, 7, 8, 10, 13, 15)","n":4,"ones":[0,2,5,7,8,10,13,15]}'></div>
+      </section>
+
+      <!-- 7 -->
+      <section id="dontcare">
+        <h2><span class="num">7</span>Don't care (×)</h2>
+        <p>× คือช่องที่ไม่สนใจค่า เพราะ input แบบนั้นไม่เกิดขึ้นหรือ output เป็นอะไรก็ได้ <b>เลือกนับ × เป็น 1 ได้เมื่อทำให้กลุ่มใหญ่ขึ้น</b> แต่ไม่ต้องครอบ × ทุกช่อง และไม่ต้องสร้างกลุ่มเพื่อครอบ × อย่างเดียว</p>
+        <div class="two-col">
+          <figure class="figure" data-km='{"n":4,"ones":[1,3,7,11,15],"eq":1}'><figcaption>ไม่มี ×</figcaption></figure>
+          <figure class="figure" data-km='{"n":4,"ones":[1,3,7,11,15],"dcs":[0,5],"eq":1}'><figcaption>มี × ที่ช่อง 0, 5</figcaption></figure>
+        </div>
+        <p>ใช้ × ช่อง 5 เป็น 1 กลุ่ม 1, 3, 5, 7 จึงเป็น 4 ช่อง สมการสั้นลง ส่วน × ช่อง 0 ไม่ได้ใช้ ปล่อยไว้ได้ · ตาราง excitation ของ JK และ SR ใน<a href="../summary.html#excitation">หน้าสรุป</a>ใช้ × แบบเดียวกันนี้</p>
+      </section>
+
+      <!-- 8 -->
+      <section id="pos">
+        <h2><span class="num">8</span>รูป POS (จับกลุ่ม 0)</h2>
+        <p>ถ้าต้องการรูปผลคูณของผลบวก (Product of Sums) ให้<b>จับกลุ่ม 0</b> แล้วอ่านกลับด้าน: ตัวแปรคงที่เป็น 0 เขียนตัวแปรปกติ คงที่เป็น 1 เขียนนิเสธ และแต่ละกลุ่มเป็นวงเล็บบวก</p>
+        <div class="two-col">
+          <figure class="figure" data-km='{"n":4,"ones":[0,1,2,5,8,9,10],"eq":1}'><figcaption>SOP: จับกลุ่ม 1</figcaption></figure>
+          <figure class="figure" data-km='{"n":4,"ones":[0,1,2,5,8,9,10],"pos":1,"eq":1}'><figcaption>POS: จับกลุ่ม 0</figcaption></figure>
+        </div>
+        <div class="callout tip">
+          <b>ที่มาของการอ่านกลับด้าน</b>
+          กลุ่ม 0 ให้สมการของ F′ แบบ SOP แล้วใช้ De Morgan: เทอม <span class="mono">DC</span> ใน F′ กลายเป็น <span class="mono">(D′ + C′)</span> ใน F
+        </div>
+      </section>
+
+      <!-- 9 -->
+      <section id="sim">
+        <h2><span class="num">9</span>ลองกด K-map</h2>
+        <p>กดช่องเพื่อเปลี่ยนค่า 0 → 1 → × → 0 ระบบจะจับกลุ่มที่ดีที่สุดและเขียนสมการให้ทันที</p>
+        <div class="sim" id="km-sim">
+          <div class="tabs" role="tablist" aria-label="จำนวนตัวแปร">
+            <button role="tab" type="button" data-n="2">2 ตัวแปร</button>
+            <button role="tab" type="button" data-n="3">3 ตัวแปร</button>
+            <button role="tab" type="button" data-n="4">4 ตัวแปร</button>
+          </div>
+          <div class="sim-grid km-sim-grid">
+            <div class="km-live"></div>
+            <div>
+              <p class="km-eq"><span>SOP</span><b data-sop></b></p>
+              <p class="km-eq"><span>POS</span><b data-pos></b></p>
+              <p class="km-eq"><span>PI</span><b data-pi></b></p>
+              <p class="km-eq"><span>EPI</span><b data-epi></b></p>
+              <p class="km-eq"><span>Power set</span><b data-ps></b></p>
+              <ul class="km-terms" data-terms></ul>
+              <div class="actions"><button class="btn" type="button" data-sample>ตัวอย่าง</button><button class="btn" type="button" data-clear>ล้าง</button></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 10 -->
+      <section id="practice">
+        <h2><span class="num">10</span>แบบฝึก</h2>
+        <p>จับกลุ่มเองในกระดาษก่อนแล้วค่อยกดดูเฉลย</p>
+        <div id="km-practice"></div>
+      </section>
+
+      <!-- 11 -->
+      <section id="recap">
+        <h2><span class="num">11</span>สรุปก่อนสอบ</h2>
+        <div class="keypoints">
+          <div class="kp"><div class="k">รูปแบบตาราง</div><div class="v">แถว BA · คอลัมน์ DC</div><p>เลขช่อง = 8D + 4C + 2B + A</p></div>
+          <div class="kp"><div class="k">หัวตาราง</div><div class="v">00, 01, 11, 10</div><p>Gray code เปลี่ยนทีละบิต</p></div>
+          <div class="kp"><div class="k">ขนาดกลุ่ม</div><div class="v">1, 2, 4, 8, 16</div><p>ใหญ่ที่สุด และน้อยกลุ่มที่สุด</p></div>
+          <div class="kp"><div class="k">PI</div><div class="v">กลุ่มที่ขยายต่อไม่ได้</div><p>EPI คือ PI ที่ครอบ 1 บางช่องตัวเดียว ต้องใส่เสมอ</p></div>
+          <div class="kp"><div class="k">Power set ของ PI</div><div class="v">PI n ตัว = 2ⁿ สับเซต</div><p>เลือกชุดที่ครอบครบและน้อยที่สุด</p></div>
+          <div class="kp"><div class="k">อ่านสมการ</div><div class="v">ตัวที่เปลี่ยนตัดทิ้ง</div><p>คงที่ 1 = ปกติ · คงที่ 0 = นิเสธ</p></div>
+        </div>
+        <div class="callout warn">
+          <b>จุดที่พลาดบ่อย</b>
+          <ul style="margin: 6px 0 0;">
+            <li>เรียงหัวตารางเป็น 00, 01, 10, 11 ทำให้ช่องติดกันต่างกัน 2 บิต</li>
+            <li>ใส่ค่าผิดช่อง: แถว BA = 11 อยู่ก่อน BA = 10 และคอลัมน์ DC = 11 อยู่ก่อน DC = 10</li>
+            <li>ลืมว่าขอบต่อกัน โดยเฉพาะกลุ่ม 4 มุม</li>
+            <li>จับกลุ่ม 3 หรือ 6 ช่อง</li>
+            <li>สร้างกลุ่มที่ทุกช่องถูกกลุ่มอื่นครอบหมดแล้ว (กลุ่มเกิน) ซึ่งมักเป็น non-essential PI</li>
+            <li>คิดว่า PI ทุกตัวต้องอยู่ในคำตอบ (ต้องมีเฉพาะ EPI ส่วน PI อื่นใส่เท่าที่จำเป็น)</li>
+            <li>นึกว่าคำตอบมีแบบเดียว บางฟังก์ชันมีคำตอบที่น้อยที่สุดหลายแบบ</li>
+            <li>นับ power set ผิดเพราะลืมเซตว่าง (PI 3 ตัวมี 8 สับเซต ไม่ใช่ 7)</li>
+            <li>สร้างกลุ่มเพื่อครอบ × อย่างเดียว</li>
+          </ul>
+        </div>
+        <nav class="pager" aria-label="หัวข้อก่อนหน้า">
+          <a href="shift-registers.html"><small>← ก่อนหน้า</small>Shift Registers</a>
+        </nav>
+      </section>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap"><a href="../index.html">← กลับหน้าแรก</a> · CPE 2423 ครึ่งหลัง</div>
+  </footer>
+
+  <script src="../assets/logic-kit.js"></script>
+  <script>
+    (function () {
+      "use strict";
+      const { kmapCover, kmapPrimeInfo, kmapPowerSet, kmapTerm, kmapSOP, kmapPOS, kmapSvg, kmapNames, inCube, KMAP_COLORS, tocSpy } = LK;
+
+      const cellsOf = (n, ones, dcs = []) => Array.from({ length: 1 << n }, (_, i) => (ones.includes(i) ? "1" : dcs.includes(i) ? "×" : "0"));
+      const zerosOf = (n, ones, dcs = []) => [...Array(1 << n).keys()].filter((i) => !ones.includes(i) && !dcs.includes(i));
+      const membersOf = (n, c) => [...Array(1 << n).keys()].filter((i) => inCube(c, i));
+      const fName = (n) => `F(${kmapNames(n).join(", ")})`;
+
+      // Line by line: which variables stay fixed in a group, and the term that leaves.
+      function explain(n, c) {
+        const names = kmapNames(n), parts = names.map((x, k) => {
+          const b = 1 << (n - 1 - k);
+          return c.m & b ? `${x} เปลี่ยน` : `${x} = ${c.v & b ? 1 : 0}`;
+        });
+        return `ช่อง ${membersOf(n, c).join(", ")}: ${parts.join(" · ")} ได้ <b class="mono">${kmapTerm(n, c)}</b>`;
+      }
+      const chip = (g) => `<span class="km-dot" style="background:${KMAP_COLORS[g % KMAP_COLORS.length]}"></span>`;
+
+      // Layout maps showing the minterm number of each cell.
+      document.querySelectorAll("[data-km-numbers]").forEach((el) => {
+        const n = +el.dataset.kmNumbers;
+        el.insertAdjacentHTML("afterbegin", kmapSvg(n, Array.from({ length: 1 << n }, (_, i) => String(i)), { numbers: false }));
+      });
+
+      // Static maps: the groups always come from the solver, so a drawing cannot disagree with its equation.
+      document.querySelectorAll("[data-km]").forEach((el) => {
+        const { n, ones, dcs = [], pos, eq } = JSON.parse(el.dataset.km);
+        const terms = pos ? kmapCover(n, zerosOf(n, ones, dcs), dcs) : kmapCover(n, ones, dcs);
+        const cap = eq ? `<p class="km-result">F = ${pos ? kmapPOS(n, terms) : kmapSOP(n, terms)}</p>` : "";
+        el.insertAdjacentHTML("afterbegin", kmapSvg(n, cellsOf(n, ones, dcs), { groups: terms, numbers: false }) + cap);
+      });
+
+      document.querySelectorAll("[data-km-example]").forEach((el) => {
+        const { title, n, ones } = JSON.parse(el.dataset.kmExample), terms = kmapCover(n, ones);
+        el.className = "km-example";
+        el.innerHTML = `<h3>${title}</h3><div class="two-col"><figure class="figure" style="margin:0;">${kmapSvg(n, cellsOf(n, ones), { groups: terms })}</figure><div>
+          <ol class="km-steps">${terms.map((c, g) => `<li>${chip(g)}${explain(n, c)}</li>`).join("")}</ol>
+          <p class="km-result">F = ${kmapSOP(n, terms)}</p></div></div>`;
+      });
+
+      // Prime implicant walk-through: all PIs on the map, the chart, then the choice left after the essentials.
+      function piSteps(n, ones, dcs = []) {
+        const info = kmapPrimeInfo(n, ones, dcs), T = (c) => `<b class="mono">${kmapTerm(n, c)}</b>`;
+        const pis = info.primes.map((c, g) => `<li>${chip(g)}${T(c)} ครอบช่อง ${membersOf(n, c).join(", ")}</li>`).join("");
+        const epi = info.essential.length
+          ? info.essential.map((c) => `${T(c)} (ช่อง ${info.alone.get(c).join(", ")} มีตัวนี้ครอบตัวเดียว)`).join(" · ")
+          : "ไม่มี เพราะทุกช่อง 1 มี PI ครอบมากกว่าหนึ่งตัว";
+        const left = info.left.length ? `เหลือช่อง ${info.left.join(", ")} ต้องเลือก PI เพิ่ม` : "EPI ครอบ 1 ครบทุกช่องแล้ว ไม่ต้องเลือกเพิ่ม";
+        const answers = info.choices.map((pick) => `<p class="km-result">F = ${kmapSOP(n, [...info.essential, ...pick])}</p>`).join("");
+        return `<p style="margin:0;"><b>PI ทั้งหมด ${info.primes.length} ตัว</b></p><ul class="km-steps">${pis}</ul>
+          <p style="margin:8px 0 0;"><b>EPI:</b> ${epi}</p>
+          <p style="margin:8px 0 0;">${left}${info.choices.length > 1 ? ` · คำตอบที่น้อยที่สุดมี ${info.choices.length} แบบ` : ""}</p>${answers}`;
+      }
+      function piChart(n, ones, dcs = []) {
+        const info = kmapPrimeInfo(n, ones, dcs), cols = [...ones].sort((a, b) => a - b);
+        return `<div class="table-scroll"><table class="tt km-chart"><thead><tr><th>PI</th>${cols.map((i) => `<th>${i}</th>`).join("")}</tr></thead><tbody>` +
+          info.primes.map((c) => `<tr${info.alone.has(c) ? ' class="on"' : ""}><td>${kmapTerm(n, c)}</td>${cols.map((i) => `<td>${!inCube(c, i) ? "" : (info.alone.get(c) || []).includes(i) ? "◉" : "●"}</td>`).join("")}</tr>`).join("") + "</tbody></table></div>";
+      }
+      // Power set of the PIs as a table; the winning rows are highlighted.
+      const subsetName = (n, pick) => (pick.length ? `{${pick.map((c) => kmapTerm(n, c)).join(", ")}}` : "{ }");
+      const psRows = (n, rows) => `<div class="table-scroll"><table class="tt km-chart"><thead><tr><th>สับเซต</th><th>ช่องที่ครอบ</th><th>ครอบครบไหม</th></tr></thead><tbody>` +
+        rows.map((r) => `<tr${r.best ? ' class="on"' : ""}><td>${subsetName(n, r.pick)}</td><td class="txt">${r.covered.join(", ") || "ไม่มี"}</td><td class="txt">${r.best ? "ครบ น้อยที่สุด" : r.full ? "ครบ แต่ไม่น้อยที่สุด" : "ไม่ครบ"}</td></tr>`).join("") + "</tbody></table></div>";
+      function powerSet(n, ones, dcs = []) {
+        const info = kmapPrimeInfo(n, ones, dcs), all = kmapPowerSet(n, ones, dcs), locked = kmapPowerSet(n, ones, dcs, info.essential);
+        const p = info.primes.length, r = p - info.essential.length, full = all.filter((x) => x.full).length;
+        let out = `<p class="fill-sub">Power set ของ PI</p><p style="margin:0 0 8px;">PI ${p} ตัว ได้ 2<sup>${p}</sup> = ${all.length} สับเซต · ครอบครบ ${full} ชุด · น้อยที่สุด ${all.filter((x) => x.best).length} ชุด</p>`;
+        if (p <= 3) return out + psRows(n, all);
+        if (info.essential.length) {
+          out += `<p style="margin:0 0 8px;">ล็อก EPI ${info.essential.length} ตัวแล้วเหลือ PI ${r} ตัว เช็กแค่ 2<sup>${r}</sup> = ${locked.length} สับเซต</p>` + psRows(n, locked);
+          return out + `<details class="review" style="margin-top:10px;"><summary>ดูครบทั้ง ${all.length} สับเซต</summary><div style="padding:0 12px 12px;">${psRows(n, all)}</div></details>`;
+        }
+        return out + `<p style="margin:0 0 8px;">ไม่มี EPI ให้ล็อก จึงลดไม่ได้ ตารางนี้แสดงเฉพาะชุดที่น้อยที่สุด</p>` + psRows(n, all.filter((x) => x.best));
+      }
+
+      document.querySelectorAll("[data-km-pi]").forEach((el) => {
+        const { title, n, ones, dcs = [], note } = JSON.parse(el.dataset.kmPi), info = kmapPrimeInfo(n, ones, dcs);
+        el.className = "km-example";
+        el.innerHTML = `<h3>${title}</h3><div class="two-col"><figure class="figure" style="margin:0;">${kmapSvg(n, cellsOf(n, ones, dcs), { groups: info.primes })}<figcaption>วาด PI ทุกตัว ไม่ใช่เฉพาะตัวที่เลือก</figcaption></figure>
+          <div>${piSteps(n, ones, dcs)}</div></div><p class="fill-sub">ตาราง PI</p>${piChart(n, ones, dcs)}${powerSet(n, ones, dcs)}<p style="margin-top:10px;">${note}</p>`;
+      });
+
+      // Exercises: the answer and its groups are computed when the page loads. Each function has exactly one minimal answer.
+      const PRACTICE = [
+        { n: 3, ones: [1, 3, 4, 6] },
+        { n: 3, ones: [0, 1, 2, 4, 5] },
+        { n: 4, ones: [0, 1, 4, 5, 10, 11, 14, 15] },
+        { n: 4, ones: [0, 1, 2, 3, 4, 6, 8, 12, 14] },
+        { n: 4, ones: [2, 3, 6, 7, 10, 12, 13, 14, 15] },
+        { n: 4, ones: [0, 1, 5, 7, 8, 9, 13, 15] },
+        { n: 4, ones: [0, 2, 8], dcs: [10, 5] },
+        { n: 4, ones: [1, 5, 9, 13, 3], dcs: [7, 15] },
+        { n: 4, ones: [0, 1, 2, 3, 5, 7, 10, 14], pi: true },
+        { n: 4, ones: [1, 3, 4, 5, 9, 11, 12, 13], pi: true },
+        { n: 4, ones: [0, 4, 5, 7, 15], dcs: [1, 13], pi: true },
+        { n: 3, ones: [0, 1, 5, 7], pi: true, ps: true },
+        { n: 4, ones: [0, 1, 2, 3, 5, 7, 10, 14], pi: true, ps: true },
+      ];
+      const sigma = ({ n, ones, dcs = [] }) => `${fName(n)} = Σ(${[...ones].sort((a, b) => a - b).join(", ")})${dcs.length ? ` + d(${[...dcs].sort((a, b) => a - b).join(", ")})` : ""}`;
+      const practice = document.getElementById("km-practice");
+      practice.innerHTML = PRACTICE.map((p, k) => {
+        const terms = kmapCover(p.n, p.ones, p.dcs);
+        return `<div class="exercise">
+          <p class="q-text"><b>ข้อ ${k + 1}</b> · ${sigma(p)} ${p.ps ? "หา PI แล้วไล่ power set เพื่อหาสมการ SOP" : p.pi ? "หา PI ทั้งหมด, EPI และสมการ SOP" : "ลดรูปแบบ SOP"}</p>
+          <figure class="figure km-q" data-q="${k}" style="margin-top:8px;">${kmapSvg(p.n, cellsOf(p.n, p.ones, p.dcs))}</figure>
+          <div class="actions"><button class="btn primary" type="button" data-show="${k}">ดูเฉลย</button></div>
+          <div class="answer callout ok" data-ans="${k}" hidden><b>เฉลยข้อ ${k + 1}</b>
+            ${p.pi ? piSteps(p.n, p.ones, p.dcs) + piChart(p.n, p.ones, p.dcs) + (p.ps ? powerSet(p.n, p.ones, p.dcs) : "") : `<ul class="km-steps">${terms.map((c, g) => `<li>${chip(g)}${explain(p.n, c)}</li>`).join("")}</ul>
+            <p class="km-result">F = ${kmapSOP(p.n, terms)}</p>`}</div>
+        </div>`;
+      }).join("");
+      practice.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-show]");
+        if (!btn) return;
+        const k = +btn.dataset.show, p = PRACTICE[k], ans = practice.querySelector(`[data-ans="${k}"]`);
+        ans.hidden = !ans.hidden;
+        btn.textContent = ans.hidden ? "ดูเฉลย" : "ซ่อนเฉลย";
+        practice.querySelector(`[data-q="${k}"]`).innerHTML = kmapSvg(p.n, cellsOf(p.n, p.ones, p.dcs), { groups: ans.hidden ? [] : p.pi ? kmapPrimeInfo(p.n, p.ones, p.dcs).primes : kmapCover(p.n, p.ones, p.dcs) });
+      });
+
+      // Interactive map.
+      {
+        const root = document.getElementById("km-sim"), $ = (s) => root.querySelector(s);
+        const SAMPLE = { 2: { ones: [1, 2, 3] }, 3: { ones: [0, 2, 4, 5, 6] }, 4: { ones: [1, 3, 7, 11, 15], dcs: [0, 5] } };
+        let n = 4, cells;
+        const load = ({ ones = [], dcs = [] } = {}) => { cells = cellsOf(n, ones, dcs); render(); };
+        function render(focus) {
+          const ones = cells.flatMap((v, i) => (v === "1" ? [i] : [])), dcs = cells.flatMap((v, i) => (v === "×" ? [i] : []));
+          const terms = kmapCover(n, ones, dcs);
+          root.querySelectorAll("[role=tab]").forEach((b) => b.setAttribute("aria-selected", +b.dataset.n === n));
+          $(".km-live").innerHTML = kmapSvg(n, cells, { groups: terms, live: true, scale: 1.25 });
+          $("[data-sop]").textContent = `F = ${kmapSOP(n, terms)}`;
+          $("[data-pos]").textContent = `F = ${kmapPOS(n, kmapCover(n, zerosOf(n, ones, dcs), dcs))}`;
+          const info = kmapPrimeInfo(n, ones, dcs), names = (list) => list.map((c) => kmapTerm(n, c)).join(", ") || "ไม่มี";
+          $("[data-pi]").textContent = names(info.primes);
+          $("[data-epi]").textContent = names(info.essential);
+          const sets = kmapPowerSet(n, ones, dcs), count = 2 ** info.primes.length;
+          $("[data-ps]").textContent = sets.length ? `${count} สับเซต · ครอบครบ ${sets.filter((r) => r.full).length} ชุด · น้อยที่สุด ${sets.filter((r) => r.best).length} ชุด` : `${count} สับเซต`;
+          $("[data-terms]").innerHTML = terms.map((c, g) => `<li>${chip(g)}${explain(n, c)}</li>`).join("") || `<li>ยังไม่มีช่องที่เป็น 1</li>`;
+          if (focus !== undefined) $(`[data-cell="${focus}"]`).focus();
+        }
+        const cycle = (id) => { cells[id] = { 0: "1", 1: "×", "×": "0" }[cells[id]]; render(id); };
+        root.addEventListener("click", (e) => {
+          const cell = e.target.closest("[data-cell]"), tab = e.target.closest("[role=tab]");
+          if (cell) return cycle(+cell.dataset.cell);
+          if (tab) { n = +tab.dataset.n; return load(SAMPLE[n]); }
+          if (e.target.closest("[data-sample]")) return load(SAMPLE[n]);
+          if (e.target.closest("[data-clear]")) load();
+        });
+        root.addEventListener("keydown", (e) => {
+          const cell = e.target.closest("[data-cell]");
+          if (cell && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); cycle(+cell.dataset.cell); }
+        });
+        load(SAMPLE[n]);
+      }
+
+      tocSpy(document.querySelector(".toc"));
+    })();
+  </script>
+</body>
+</html>
