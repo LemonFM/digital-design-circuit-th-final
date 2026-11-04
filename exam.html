@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <meta name="description" content="แนวข้อสอบ Latches and Flip-Flops, Shift register, 7-segment และ Multiplexer แยกปรนัย/อัตนัย และแยกเรื่อง พร้อมเฉลย">
+  <meta name="description" content="แนวข้อสอบ Latches and Flip-Flops, Shift register, 7-segment, Multiplexer และ Counter แยกปรนัย/อัตนัย และแยกเรื่อง พร้อมเฉลย">
   <title>แนวข้อสอบ · CPE 2423 ครึ่งหลัง</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,7 +24,7 @@
   </div>
 
   <header class="page-head wrap">
-    <p class="eyebrow">บท 06 Latches and Flip-Flops · บท 08 Combinational Components · บท 09 Shift Registers</p>
+    <p class="eyebrow">บท 06 Latches and Flip-Flops · บท 07 Counter · บท 08 Combinational Components · บท 09 Shift Registers</p>
     <h1>แนวข้อสอบ</h1>
     <p class="lead">เลือก <b>ปรนัย</b> หรือ <b>อัตนัย</b> แล้วเลือกเรื่องที่จะซ้อม ปรนัยจะตรวจทันทีที่ตอบ ส่วนอัตนัยให้ลองทำในกระดาษก่อนแล้วค่อยกดดูเฉลย</p>
     <div class="callout tip" style="max-width: 46em;">
@@ -35,6 +35,7 @@
         <li>D FF → JK FF</li>
         <li>Input synchronous</li>
         <li>BCD to 7-segment: ตารางความจริง → K-map → สมการ</li>
+        <li>Counter เรียงและเลขโดด นับขึ้นนับลง flip-flop ทุกแบบ: diagram → next state table → K-map → วงจร</li>
       </ul>
       <p style="margin: 10px 0 0; font-size: 15px;">"D FF → JK FF" ปกติหมายถึงใช้ D FF สร้าง JK (D = JQ′ + K′Q) แต่เผื่อไว้ว่าอาจหมายถึงทิศกลับ จึงมีแท็บ "JK FF → D FF" (J = D, K = D′) ให้ด้วย · "Input synchronous" ตีความว่าเป็นเรื่อง synchronous input (มีผลที่ขอบ clock) เทียบกับ asynchronous input (Preset/Clear) รวมถึง synchronous reset/enable · โจทย์ทั้งหมดแต่งขึ้นเองเพื่อซ้อม ไม่ใช่ข้อสอบจริง</p>
     </div>
@@ -70,7 +71,7 @@
   <script>
     (function () {
       "use strict";
-      const { NOT, NAND, NOR, settle, simulate, pulses, isEdge, exercises, gate, twoState, wave, schematic, ffSymbol, shiftRegister: shselFig, shifterCircuit, seg7, SEG7_HEX, SEG7_GLYPH, railCircuit, kmapRailOutput, kmapPrimeInfo, kmapTerm, kmapSOP, kmapSvg, kmapNames, muxArray, muxTree } = LK;
+      const { NOT, NAND, NOR, settle, simulate, pulses, isEdge, exercises, gate, twoState, wave, schematic, ffSymbol, shiftRegister: shselFig, shifterCircuit, seg7, SEG7_HEX, SEG7_GLYPH, railCircuit, kmapRailOutput, kmapPrimeInfo, kmapTerm, kmapSOP, kmapSvg, kmapNames, muxArray, muxTree, COUNTER_FF, counterDesign, counterUpDown, counterRing, counterFlipFlops, withFlipFlops, counterChain } = LK;
 
       const TOPICS = [
         ["sr", "SR flip-flop"],
@@ -82,6 +83,7 @@
         ["pipo", "Shift register 4 บิต"],
         ["seg7", "7-segment 4 บิต"],
         ["mux", "Multiplexer"],
+        ["cnt", "วงจรนับ (Counter)"],
       ];
       const TOPIC_NAME = Object.fromEntries(TOPICS);
 
@@ -185,6 +187,18 @@
         { t: "mux", q: "ใช้ MUX 4-to-1 สร้าง F(a, b, c) โดยให้ a, b เป็น select ถ้าแถว ab = 01 ได้ F = c′ ต้องต่อช่อง 1 กับอะไร", o: ["0", "1", "c", "c′"], a: 3, e: "ช่อง 1 ถูกเลือกเมื่อ ab = 01 จึงต่อตามค่า F ในแถวนั้น" },
         { t: "mux", q: "ใช้ MUX 8-to-1 สร้าง F(a, b, c) = Σm(1, 2) ต้องต่อขา data อย่างไร", o: ["d1 = d2 = 0 ที่เหลือ 1", "d1 = d2 = 1 ที่เหลือ 0", "ทุกขาเป็น c", "d0 = d3 = 1 ที่เหลือ 0"], a: 1, e: "ขา data ของ minterm ที่ F = 1 ต่อ 1" },
         { t: "mux", q: "DEMUX ต่างจาก MUX อย่างไร", o: ["DEMUX มีหลาย input ออก output เดียว", "DEMUX รับ input เดียวแล้วส่งไป output ที่เลือก", "DEMUX ต้องใช้ clock", "DEMUX ไม่มี select"], a: 1, e: "DEMUX ทำกลับกับ MUX" },
+        { t: "cnt", q: "วงจรนับลำดับ 0 → 5 → 3 → 7 → 4 ต้องใช้ flip-flop อย่างน้อยกี่ตัว", o: ["2", "3", "4", "5"], a: 1, e: "ค่าสูงสุดคือ 7 จึงต้องใช้ 3 บิต" },
+        { t: "cnt", q: "ลำดับ 0 → 5 → 3 → 7 → 4 มีสถานะที่ไม่ใช้คืออะไร", o: ["1, 2, 6", "1, 2, 4", "2, 4, 6", "6, 7"], a: 0, e: "จาก 0–7 ใช้ไป 0, 3, 4, 5, 7" },
+        { t: "cnt", q: "ลำดับ 0 → 5 → 3 → 7 → 4 นับขึ้น ที่สถานะ 101 ขอบถัดไปได้เท่าไร", o: ["111", "000", "011", "100"], a: 2, e: "5 ไปต่อที่ 3 คือ 011" },
+        { t: "cnt", q: "ลำดับเดียวกันแบบนับลง ที่สถานะ 011 ขอบถัดไปได้เท่าไร", o: ["111", "101", "100", "000"], a: 1, e: "นับลงคือกลับลูกศร 3 จึงย้อนไป 5" },
+        { t: "cnt", q: "T flip-flop เปลี่ยนจาก 101 ไป 011 ต้องใช้ TC TB TA เท่าไร", o: ["1 1 0", "0 1 1", "1 0 1", "1 1 1"], a: 0, e: "T = Q ⊕ Q⁺ บิตที่เปลี่ยนใส่ 1" },
+        { t: "cnt", q: "JK flip-flop ต้องการ Q 1 → 0 ต้องใช้ J K เท่าไร", o: ["0 ×", "1 ×", "× 0", "× 1"], a: 3, e: "K = 1 สั่ง reset หรือ toggle ก็ได้ J จึงเป็น ×" },
+        { t: "cnt", q: "SR flip-flop ต้องการ Q 1 → 1 ต้องใช้ S R เท่าไร", o: ["0 ×", "× 0", "1 0", "0 1"], a: 1, e: "R ต้องเป็น 0 ส่วน S เป็นอะไรก็ได้" },
+        { t: "cnt", q: "ออกแบบด้วย D flip-flop ค่า D ของแต่ละบิตคืออะไร", o: ["Q", "Q′", "Q⁺", "Q ⊕ Q⁺"], a: 2, e: "D = Q⁺ จึงไม่ต้องแปลง excitation" },
+        { t: "cnt", q: "สถานะที่ไม่อยู่ในลำดับ ควรใส่อะไรในตาราง next state", o: ["0", "1", "ค่าถัดไปเรียงเลข", "×"], a: 3, e: "ไม่เกิดในการใช้งานปกติ จึงเป็น don't care ช่วยลดสมการ" },
+        { t: "cnt", q: "Up/Down ตามสไลด์ 32 ที่ sw = 1 นับขึ้น สมการรวมมีรูปแบบใด", o: ["sw·ลง + sw′·ขึ้น", "ขึ้น + ลง", "sw·ขึ้น + sw′·ลง", "sw·ขึ้น·ลง"], a: 2, e: "sw เลือกว่าสมการชุดไหนทำงาน" },
+        { t: "cnt", q: "ตัวนับเลขเรียง 0–7 ด้วย T flip-flop มี TB เท่าไร", o: ["1", "A", "BA", "B"], a: 1, e: "B toggle เมื่อบิตต่ำกว่าเป็น 1 ทั้งหมด" },
+        { t: "cnt", q: "ลำดับมี 5 สถานะ และทุกสถานะไม่ซ้ำกัน วงจรนี้เป็น MOD เท่าไร", o: ["3", "5", "7", "8"], a: 1, e: "MOD เท่ากับจำนวนสถานะในวง" },
         { t: "seg7", q: "จอ common cathode ขีดติดเมื่อ output เป็นเท่าไร", o: ["1", "0", "×", "ขึ้นกับเลขที่แสดง"], a: 0, e: "common cathode ขั้วลบร่วม จึงติดเมื่อ output = 1 ส่วน common anode ติดเมื่อ output = 0" },
         { t: "seg7", q: "ขีด g ของจอ 7-segment อยู่ตำแหน่งใด", o: ["ขีดกลาง", "ขีดบนสุด", "ขีดล่างสุด", "ขีดขวาบน"], a: 0, e: "a–f ไล่ตามเข็มนาฬิกาจากขีดบน และ g คือขีดกลาง" },
         { t: "seg7", q: "เลข 7 ติดขีดใดบ้าง", o: ["a, b, c", "a, b, c, f", "b, c", "a, f, g"], a: 0, e: "7 = 1110000" },
@@ -246,6 +260,12 @@
         ["mux", "MUX 2-to-1 สร้างจาก AND 2 ตัว OR 1 ตัว และ NOT 1 ตัวได้", true, "y = s′d0 + sd1"],
         ["mux", "ช่องของ MUX ต่อค่าคงที่ 0 หรือ 1 ได้", true, "shifter ใช้เติม 0 ตอนเลื่อน"],
         ["mux", "Rotate ทำให้บิตหายเหมือน shift", false, "Rotate วนบิตกลับอีกด้าน"],
+        ["cnt", "เลขโดดในวงจรนับไม่ต้องใช้ K-map", false, "ใช้ขั้นตอนเดียวกับลำดับเรียง ต่างที่ตาราง next state"],
+        ["cnt", "ถ้าลำดับมีเลขซ้ำ เช่น 0 → 5 → 0 → 3 จะใช้ state เท่าเลขไม่ได้", true, "สถานะหนึ่งมีค่าถัดไปได้ค่าเดียว เลข 0 ทั้งสองครั้งจึงต้องเป็นคนละสถานะ"],
+        ["cnt", "นับลงของลำดับเดียวกันคือการกลับลูกศรใน state diagram", true, "สถานะเดิม แต่ทิศตรงข้าม"],
+        ["cnt", "T flip-flop ใส่ T = 1 เมื่อบิตนั้นไม่เปลี่ยน", false, "ใส่ 1 เมื่อบิตเปลี่ยน"],
+        ["cnt", "JK flip-flop มี × ในตารางมากกว่า D จึงมักได้สมการสั้นกว่า", true, "excitation ของ JK มี × ทุกแถว"],
+        ["cnt", "สถานะที่ไม่ใช้อาจกลับเข้าวงเองหรือไม่ก็ได้ ต้องตรวจจากสมการ", true, "× ถูกกำหนดค่าตอนจับกลุ่ม"],
         ["seg7", "แบบ 0–F ไม่มีช่อง × ใน K-map", true, "ใช้ครบ 16 รหัส"],
         ["seg7", "ถ้าแสดงแค่ A–F ค่า × จะมี 10 ช่อง", true, "รหัส 0–9 ไม่ได้ใช้"],
         ["seg7", "วงจรที่ห้ามใช้ exclusive หาสมการจาก K-map ไม่ได้", false, "K-map ให้รูป SOP ซึ่งใช้แค่ AND, OR, NOT อยู่แล้ว"],
@@ -1257,6 +1277,52 @@
           a: "select 2 เส้นแบ่งตารางเป็น 4 คู่ แต่ละคู่เหลือตัวแปรเดียว F ในคู่นั้นจึงเป็นได้แค่ 0, 1, c หรือ c′ ซึ่งต่อเข้าขา data ได้เลย" },
       ];
 
+      // ----- Counter design drills: tables, equations and circuits are all solved from the sequence -----
+      const seqText = (seq) => [...seq, seq[0]].join(" → ");
+      const nextOf = (seq) => Object.fromEntries(seq.map((v, i) => [v, seq[(i + 1) % seq.length]]));
+      const binOf = (v, n) => v.toString(2).padStart(n, "0");
+      // Every drill pairs the two directions: mode "pair" designs them separately, "updown" also joins them with sw.
+      function cntDrill({ seq, type, mode = "pair" }) {
+        const n = Math.max(...seq) > 7 ? 4 : 3, rev = [...seq].reverse(), upD = counterDesign(n, nextOf(seq), type), downD = counterDesign(n, nextOf(rev), type);
+        const sw = mode === "updown", parts = [[sw ? "sw = 1 นับขึ้น" : "นับขึ้น", upD], [sw ? "sw = 0 นับลง" : "นับลง", downD]], ud = sw ? counterUpDown(upD, downD) : null;
+        const head = [...upD.names, ...upD.names.map((b) => `${b}⁺`), ...upD.bits.flatMap(([b]) => upD.f.pins.map((p) => `${p}${b}`))];
+        const row = (r) => [...binOf(r.s, n), ...[...(r.next === null ? "×".repeat(n) : binOf(r.next, n))].map((v) => f(v, X)), ...(r.cells || upD.outputs.map(() => "×")).map((v) => f(v, X))];
+        return {
+          kind: "counter", seq, type, mode, n, parts, ud, ff: upD, rings: [[parts[0][0], seq], [parts[1][0], rev]],
+          tables: parts.map(([title, d]) => ({ title, head, rows: d.rows.map(row) })),
+          circuits: sw ? [["วงจรรวม: sw เลือกทิศ Q ป้อนกลับเข้าเกต ทุกตัวใช้ clock เดียวกัน", ud.circuit]] : parts.map(([title, d]) => [`${title}: Q ป้อนกลับเข้าเกต ทุกตัวใช้ clock เดียวกัน`, d.circuit]),
+          q: `ออกแบบวงจรนับลำดับ <b>${seqText(seq)}</b> ${sw ? "ให้นับได้ทั้งขึ้นและลงในวงจรเดียว โดย sw = 1 นับขึ้นตามลำดับ และ sw = 0 นับย้อนลำดับ" : "ทั้งแบบ<b>นับขึ้น</b>และ<b>นับลง</b> (นับลงคือย้อนลำดับ)"} ด้วย <b>${type} flip-flop</b> แสดง: state diagram → next state table → K-map หาสมการ → วาดวงจร`,
+        };
+      }
+      // Q → Q⁺ review: which inputs each flip-flop type needs for every transition.
+      const EX_TYPES = ["T", "D", "SR", "JK"], EX_ROWS = [[0, 0], [0, 1], [1, 0], [1, 1]];
+      const exPins = (types) => types.flatMap((t) => COUNTER_FF[t].pins);
+      const exCells = (types, q, nx) => types.flatMap((t) => [...COUNTER_FF[t].ex(q, nx)].map(String));
+      const exTable = (types) => `<div class="table-scroll"><table class="tt"><thead><tr><th>Q</th><th>Q⁺</th>${exPins(types).map((p) => `<th>${p}</th>`).join("")}</tr></thead><tbody>${EX_ROWS.map(([q, nx]) => `<tr><td>${q}</td><td>${nx}</td>${exCells(types, q, nx).map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+      const J = [0, 5, 3, 7, 4], ORDER8 = [0, 1, 2, 3, 4, 5, 6, 7], ALLFF = ["T", "SR", "JK", "D"];
+      SUB.cnt = [
+        { kind: "fill", q: "ทวนตาราง Q → Q⁺: เติม input ของ flip-flop ทุกชนิด (Q = ค่าเดิม)", head: ["Q", "Q⁺", ...exPins(EX_TYPES)], note: "T = Q ⊕ Q⁺ · D = Q⁺ · × คือเป็นอะไรก็ได้",
+          rows: EX_ROWS.map(([q, nx]) => [String(q), String(nx), ...exCells(EX_TYPES, q, nx).map((v) => f(v, X))]) },
+        ...ALLFF.map((type) => cntDrill({ seq: J, type })),
+        ...ALLFF.map((type) => cntDrill({ seq: J, type, mode: "updown" })),
+        ...ALLFF.map((type) => cntDrill({ seq: ORDER8, type })),
+        cntDrill({ seq: ORDER8, type: "T", mode: "updown" }),
+        cntDrill({ seq: [0, 1, 2, 3, 4], type: "JK", mode: "updown" }),
+        cntDrill({ seq: [1, 3, 7, 6, 2], type: "T" }),
+        cntDrill({ seq: [0, 3, 6, 1, 4, 7], type: "SR" }),
+        cntDrill({ seq: [0, 2, 4, 6], type: "D", mode: "updown" }),
+        cntDrill({ seq: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], type: "JK" }),
+        cntDrill({ seq: [0, 9, 3, 12, 6], type: "D" }),
+        { kind: "text", q: "ลำดับที่โจทย์ให้มีเลขซ้ำ เช่น 0 → 5 → 0 → 3 ออกแบบด้วย 3 บิตได้หรือไม่ ต้องทำอย่างไร",
+          a: "ถ้าให้ Q เป็นเลขตามโจทย์โดยตรงไม่ได้ เพราะสถานะ 0 มีค่าถัดไป 2 ค่า ต้องเพิ่มบิตเพื่อแยกเลข 0 ทั้งสองครั้ง แต่ถ้าใช้เกตแปลง output ได้ ลำดับนี้มีแค่ 4 สถานะ จึงใช้ flip-flop 2 ตัวนับ 4 สถานะ แล้วแปลงเป็น 0, 5, 0, 3 ก็พอ" },
+        { kind: "text", q: "วงจรนับ 0 → 5 → 3 → 7 → 4 ด้วย JK ถ้าเปิดเครื่องแล้วเริ่มที่สถานะที่ไม่ใช้ ต้องตรวจอย่างไร",
+          a: "แทนสถานะ 1, 2, 6 ลงในสมการ J, K แล้วหา Q⁺ ไล่ต่อจนเข้าวง ถ้าไม่เข้าวงต้องแก้ค่า × ที่เลือก หรือใช้ reset ให้เริ่มที่สถานะในวง" },
+        { kind: "text", q: "ลำดับทั่วไปที่เปลี่ยนจากนับขึ้นเป็นนับลง ทำไมต้องทำ K-map ใหม่ และมีกรณียกเว้นไหม",
+          a: "ตาราง next state เปลี่ยนทุกแถว ค่า input ของ flip-flop จึงเปลี่ยนตาม และลำดับทั่วไปไม่มีสูตรแปลงจากสมการนับขึ้น · ยกเว้นเลขเรียงที่ใช้ T หรือ JK แทน Q ด้วย Q′ ได้เลย เช่น JC = KC = BA เป็น B′A′" },
+        { kind: "text", q: "เทียบจำนวนช่อง × ของ T, SR, JK และ D ในตารางเดียวกัน แบบไหนมักได้สมการสั้นที่สุด",
+          a: "JK มี × ทุกแถว (ขาละครึ่งหนึ่ง) รองลงมาคือ SR ส่วน T และ D มี × เฉพาะสถานะที่ไม่ใช้ จึงมักได้สมการ JK สั้นที่สุด แต่แลกกับการมีสองขาต่อ flip-flop" },
+      ];
+
       // =====================================================================
       // Rendering
       // =====================================================================
@@ -1376,9 +1442,45 @@
           </div>`;
       }
 
+      // Answers of a counter drill, shared by the page and the PDF.
+      const cntRings = (it) => `<div class="cnt-rings">${it.rings.map(([cap, seq]) => `<figure>${counterRing(seq.map((v) => binOf(v, it.n)))}${cap ? `<figcaption>${cap}</figcaption>` : ""}</figure>`).join("")}</div>`;
+      const cntMaps = (it, cls, blank) => it.parts.map(([cap, d]) => (cap ? `<p class="fill-sub">${cap}</p>` : "") + `<div class="${cls}">${d.outputs.map((o) => `<figure>${blank ? kmapSvg(it.n, o.cells.map(() => "")) : kmapSvg(it.n, o.cells, { groups: o.terms })}<figcaption>${blank ? o.name : `${o.name} = ${o.eq}`}</figcaption></figure>`).join("")}</div>`).join("");
+      function cntEq(it) {
+        const [up, down] = it.parts.map(([, d]) => d), all = (o) => [o.eq, ...o.alts].join(" หรือ ");
+        return `<div class="table-scroll"><table class="tt"><thead><tr><th>ขา</th><th>นับขึ้น</th><th>นับลง</th>${it.ud ? "<th>สมการรวม</th>" : ""}</tr></thead><tbody>` +
+          up.outputs.map((o, i) => `<tr><td>${o.name}</td><td>${all(o)}</td><td>${all(down.outputs[i])}</td>${it.ud ? `<td>${it.ud.text(it.ud.outputs[i])}</td>` : ""}</tr>`).join("") + "</tbody></table></div>";
+      }
+      const cntCircuit = (it) => it.circuits.map(([cap, cfg]) => `<figure class="figure design-circuit">${railCircuit(withFlipFlops(cfg, it.ff))}<figcaption>${cap}</figcaption></figure>`).join("");
+
+      // Given with the question: the flip-flops and clock. The gates are what the student designs.
+      const cntGiven = (it) => `<figure class="figure wide cnt-given">${counterFlipFlops(it.ff)}<figcaption>ต่อ output ของวงจรเกตเข้าขาที่ชื่อตรงกัน ทุกตัวใช้ clock เดียวกัน${it.ud ? " · สัญญาณ sw เป็น input ของวงจรเกต" : ""}</figcaption></figure>`;
+
+      function counterCard(it, n, id) {
+        const step = (key, label, html) => `<div class="design-step"><button class="btn" type="button" data-show="${id}-${key}" data-label="${label}">${label}</button><div id="${id}-${key}" hidden>${html}</div></div>`;
+        return `
+          <div class="fill-card">
+            <div class="q-head"><span class="q-no">${n}</span><span class="q-text">${it.q}</span></div>
+            ${cntGiven(it)}
+            <details class="review"><summary>ทวนตาราง Q → Q⁺ ของ ${it.type} flip-flop</summary><div style="padding:0 12px 12px;">${exTable([it.type])}</div></details>
+            ${step("d", "เฉลยขั้น 1: State diagram", cntRings(it))}
+            <div data-fill data-note="">
+              <p class="fill-sub">ขั้นที่ 2: Next state table (สถานะที่ไม่ใช้ใส่ ×)</p>
+              <div class="cnt-tables">${it.tables.map((t) => `<p class="fill-sub">${t.title}</p>${fillGrid(t)}`).join("")}</div>
+              <div class="fill-actions">
+                <button class="btn primary" type="button" data-check>ตรวจ</button>
+                <button class="btn" type="button" data-solve>เฉลย</button>
+                <button class="btn" type="button" data-clear>ล้าง</button>
+                <span class="fill-result" aria-live="polite"></span>
+              </div>
+            </div>
+            ${step("k", "เฉลยขั้น 3: K-map และสมการ", cntMaps(it, "design-maps") + cntEq(it))}
+            ${step("c", "เฉลยขั้น 4: วงจร", cntCircuit(it))}
+          </div>`;
+      }
+
       function subPanel(t, panel) {
         const items = subOf(t);
-        const groups = [["design", "ออกแบบครบขั้นตอน"], ["fill", "เติมตาราง"], ["timing", "Timing diagram"], ["text", "เขียนตอบ / ออกแบบ / พิสูจน์"]];
+        const groups = [["counter", "ออกแบบวงจรนับ"], ["design", "ออกแบบครบขั้นตอน"], ["fill", "เติมตาราง"], ["timing", "Timing diagram"], ["text", "เขียนตอบ / ออกแบบ / พิสูจน์"]];
         const timing = {};
         let n = 0, sec = 0;
         panel.innerHTML = groups.map(([kind, title]) => {
@@ -1387,12 +1489,13 @@
           const body = list.map((it) => {
             const id = `x${++uid}`;
             n++;
+            if (kind === "counter") return counterCard(it, n, id);
             if (kind === "design") return designCard(it, n, id);
             if (kind === "fill") return fillCard(it, n, id);
             if (kind === "timing") { timing[id] = it; return timingCard(it, n, id); }
             return textCard(it, n, id);
           }).join("");
-          return `<section><h2><span class="num">${"กขคง"[sec++]}</span>${title} (${list.length} ข้อ)</h2>${body}</section>`;
+          return `<section><h2><span class="num">${"กขคงจ"[sec++]}</span>${title} (${list.length} ข้อ)</h2>${body}</section>`;
         }).join("");
 
         // Timing diagrams need the panel in the document to measure their width.
@@ -1609,6 +1712,11 @@
           ["Barrel shifter 4 บิต หมุนซ้าย 0–3 ตำแหน่ง (สไลด์ 29)", () => muxArray(wiringOf(ROT_L))],
           ["MUX 8-to-1 จาก MUX 2-to-1 เจ็ดตัว (สไลด์ 27)", () => muxTree({ sel: ["s0", "s1", "s2"], data: ["d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7"] })],
         ],
+        cnt: [
+          ["ตาราง Q → Q⁺ ของทุกชนิด เช่น Q = 0 → 0 ได้ S R = 0 × และ J K = 0 ×", () => exTable(EX_TYPES)],
+          ["State diagram ของลำดับ 0 → 5 → 3 → 7 → 4", () => counterRing(J.map((v) => binOf(v, 3)))],
+          ["Synchronous counter 4 บิต (สไลด์ 14) เทียบกับวงจรที่ออกแบบเอง", () => counterChain({ names: ["QA", "QB", "QC", "QD"], clock: "common", edge: "rise" })],
+        ],
         seg7: [
           ["ชื่อขีด a–g: a บนสุด ไล่ตามเข็มนาฬิกา และ g คือขีดกลาง", () => `<div style="text-align:center;">${seg7("0000000", { size: 96, names: true })}</div>`],
           ["รูปบนจอ 0–F (เลข 6 ติดขีด a และเลข 9 ติดขีด d)", () => `<div class="cc-digits small">${SEG7_HEX.map((row, k) => `<figure>${seg7(row, { size: 26 })}<figcaption>${SEG7_GLYPH[k]}</figcaption></figure>`).join("")}</div>`],
@@ -1618,7 +1726,7 @@
       const reviewHTML = (t) => `
         <details class="review">
           <summary>ดูวงจรทบทวน · ${TOPIC_NAME[t]} <span>(${REVIEW[t].length} รูป)</span></summary>
-          <div class="review-grid${t === "pipo" || t === "mux" ? " wide" : ""}">${REVIEW[t].map(([cap, draw]) => `<figure>${draw()}<figcaption>${cap}</figcaption></figure>`).join("")}</div>
+          <div class="review-grid${t === "pipo" || t === "mux" || t === "cnt" ? " wide" : ""}">${REVIEW[t].map(([cap, draw]) => `<figure>${draw()}<figcaption>${cap}</figcaption></figure>`).join("")}</div>
         </details>`;
 
       // ----- panel switching (hash: #obj-sr, #sub-dj …) -----
@@ -1745,7 +1853,7 @@
       printRoot.id = "print-root";
       document.body.appendChild(printRoot);
       const PRINT_WIDTH = 660; // px that fit an A4 page with margins
-      const GROUPS = [["design", "ออกแบบครบขั้นตอน"], ["fill", "เติมตาราง"], ["timing", "Timing diagram"], ["text", "เขียนตอบ / ออกแบบ / พิสูจน์"]];
+      const GROUPS = [["counter", "ออกแบบวงจรนับ"], ["design", "ออกแบบครบขั้นตอน"], ["fill", "เติมตาราง"], ["timing", "Timing diagram"], ["text", "เขียนตอบ / ออกแบบ / พิสูจน์"]];
       const TYPE_NAME = { obj: "ปรนัย", sub: "อัตนัย" };
 
       const svgOf = (fn, attrs = {}) => {
@@ -1787,11 +1895,17 @@
 
       function subPart(t, reveal, defs) {
         const list = numbered("sub", t);
-        return GROUPS.map(([kind, title]) => {
+        return (t === "cnt" && !reveal ? `<p class="p-sub">ตารางทวน Q → Q⁺</p>${exTable(EX_TYPES)}` : "") + GROUPS.map(([kind, title]) => {
           const group = list.filter(({ it }) => it.kind === kind);
           if (!group.length) return "";
           return `<h4 class="p-group">${title}</h4>` + group.map(({ it, n }) => {
             let body = "";
+            if (kind === "counter") {
+              const box = (title, html) => `<div class="p-keep"><p class="p-sub">${title}</p>${html}</div>`;
+              body = reveal
+                ? box("ขั้นที่ 1: State diagram", cntRings(it)) + it.tables.map((t) => box(`ขั้นที่ 2: Next state table · ${t.title}`, fillTable(t, true))).join("") + box("ขั้นที่ 3: K-map", cntMaps(it, "p-kmaps")) + box("สมการ", cntEq(it)) + box("ขั้นที่ 4: วงจร", cntCircuit(it))
+                : cntGiven(it) + box("ขั้นที่ 1: State diagram", `<div class="p-draw short"></div>`) + it.tables.map((t) => box(`ขั้นที่ 2: Next state table · ${t.title}`, fillTable(t, false))).join("") + box("ขั้นที่ 3: K-map", cntMaps(it, "p-kmaps", true)) + box("สมการ", `<div class="p-lines seven"></div>`) + box("ขั้นที่ 4: ออกแบบวงจรเกตที่ต่อเข้า flip-flop", `<div class="p-draw"></div>`);
+            }
             if (kind === "design") {
               const blank = `<div class="p-kmaps">${it.solved.map((x) => `<figure>${kmapSvg(it.n, x.cells.map(() => ""))}<figcaption>ขีด ${x.s}</figcaption></figure>`).join("")}</div>`;
               const block = (title, html) => `<div class="p-keep"><p class="p-sub">${title}</p>${html}</div>`;
@@ -1814,7 +1928,7 @@
                   (it.circuit ? svgOf((svg) => CIRCUITS[it.circuit].draw(svg), { class: "schem p-fig", viewBox: CIRCUITS[it.circuit].viewBox }) : "")
                 : `<div class="p-lines"></div>`;
             }
-            return `<div class="p-item${kind === "design" ? " p-long" : ""}"><p class="p-q"><b>${n}.</b> ${it.q}</p>${body}</div>`;
+            return `<div class="p-item${kind === "design" || kind === "counter" ? " p-long" : ""}"><p class="p-q"><b>${n}.</b> ${it.q}</p>${body}</div>`;
           }).join("");
         }).join("");
       }
@@ -1828,7 +1942,7 @@
         const part = (reveal) => parts.map(([type, t]) =>
           `<div class="p-topic-block"><h3 class="p-topic">${TOPIC_NAME[t]} · ${TYPE_NAME[type]}</h3>${type === "obj" ? objPart(t, reveal) : subPart(t, reveal, defs)}</div>`).join("");
         printRoot.innerHTML = `
-          <header class="p-head"><h1>แนวข้อสอบ CPE 2423 ครึ่งหลัง</h1><p>${label} · บท 06 Latches and Flip-Flops · บท 08 Combinational Components · บท 09 Shift Registers · โจทย์แต่งขึ้นเพื่อซ้อม ไม่ใช่ข้อสอบจริง</p></header>
+          <header class="p-head"><h1>แนวข้อสอบ CPE 2423 ครึ่งหลัง</h1><p>${label} · บท 06 Latches and Flip-Flops · บท 07 Counter · บท 08 Combinational Components · บท 09 Shift Registers · โจทย์แต่งขึ้นเพื่อซ้อม ไม่ใช่ข้อสอบจริง</p></header>
           <section class="p-section"><h2>ส่วนที่ 1 · โจทย์</h2>${part(false)}</section>
           <section class="p-section p-answers"><h2>ส่วนที่ 2 · เฉลย</h2>${part(true)}</section>`;
         document.body.classList.add("printing");

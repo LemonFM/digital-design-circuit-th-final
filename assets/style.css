@@ -301,7 +301,18 @@ a.topic .topic-no { color: var(--accent); }
 .design-maps figure { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px; }
 .design-maps svg { display: block; width: 100%; height: auto; }
 .design-maps figcaption { font-family: var(--mono); font-size: 14px; font-weight: 600; text-align: center; margin-top: 6px; }
-.design-circuit svg { max-width: 420px; }
+.design-circuit svg { max-width: 560px; }
+.cnt-given { margin: 10px 0; }
+.cnt-given svg { max-width: 640px; }
+.cnt-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.cnt-actions .sim-inputs { margin: 0; }
+.figure.cnt-fig svg.rail { max-width: 420px; }
+.cnt-rings { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
+.cnt-rings figure { margin: 0; text-align: center; }
+.cnt-rings svg { display: block; width: 100%; height: auto; }
+.cnt-rings figcaption { font-size: 14px; color: var(--ink-3); }
+.cnt-tables .tt.fill th, .cnt-tables .tt.fill td { padding: 5px 3px; }
+.cnt-tables .tt.fill select { min-width: 0; width: 52px; padding-left: 6px; padding-right: 2px; }
 .cc-sim-title { font-size: 16px; font-weight: 600; margin: 0; }
 .schem.rail text { font-size: 15px; }
 .schem.rail text.cc-not { font-size: 12px; }
@@ -410,7 +421,7 @@ a.topic .topic-no { color: var(--accent); }
 .schem .dot.hi { fill: var(--hi); }
 .schem .dot.lo { fill: var(--lo); }
 .schem .dot.x { fill: var(--x); }
-.schem .gate path, .schem .gate circle { fill: var(--surface); stroke: var(--ink); stroke-width: 2; }
+.schem .gate path, .schem .gate circle, .schem .gate rect { fill: var(--surface); stroke: var(--ink); stroke-width: 2; }
 .schem text { font-family: var(--mono); font-size: 16px; font-weight: 600; fill: var(--ink); }
 .schem text.val { font-size: 13px; font-weight: 500; fill: var(--ink-3); }
 .schem text.val.hi { fill: var(--hi); }
@@ -685,9 +696,13 @@ a.topic .topic-no { color: var(--accent); }
   .p-kmaps figure { margin: 0; break-inside: avoid; text-align: center; }
   .p-kmaps svg { display: block; width: 100%; height: auto; max-width: none !important; }
   .p-kmaps figcaption { font-size: 9pt; }
-  .p-draw { height: 80mm; border: 1px solid #999; }
+  .p-draw { box-sizing: border-box; height: 80mm; margin-right: 1px; border: 1px solid #999; }
+  .p-draw.short { height: 45mm; }
+  #print-root svg.rail-ff { display: block; width: 100%; height: auto; max-width: 150mm; margin: 0 auto; }
+  #print-root svg.cc-ring { width: 170px; }
+  .p-item.p-long .figure { border: 0; padding: 0; margin: 4px 0; }
   #print-root svg.rail { display: block; width: auto; max-width: 100%; max-height: 170mm; height: auto; margin: 6px auto; }
-  .p-sub { margin: 8px 0 4px; font-size: 10.5pt; font-weight: 600; }
+  .p-sub { margin: 2px 0 4px; padding-top: 6px; font-size: 10.5pt; font-weight: 600; }
   .p-circuit svg { display: block; width: 100%; height: auto; }
   #print-root .tt { width: auto; font-size: 10pt; background: #fff; }
   #print-root .tt th, #print-root .tt td { padding: 3px 9px; }

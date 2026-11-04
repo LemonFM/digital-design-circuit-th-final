@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="บท 07 Counter Circuits: asynchronous, synchronous, MOD-N, BCD counter, การออกแบบด้วย T, SR, JK, count down และ up/down พร้อมวงจรจำลอง">
+  <title>Counter · CPE 2423</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <nav class="topbar">
+    <div class="wrap">
+      <a href="../index.html">← CPE 2423 ครึ่งหลัง</a>
+      <span class="crumb">บท 07 · Counter Circuits</span>
+    </div>
+  </nav>
+
+  <header class="page-head wrap">
+    <p class="eyebrow">บท 07</p>
+    <h1>Counter Circuits</h1>
+    <p class="lead">วงจรนับใช้ flip-flop เก็บค่าและเปลี่ยนสถานะตาม clock หน้านี้ครบตั้งแต่ <b>asynchronous</b>, <b>synchronous</b>, MOD-N, BCD counter ไปจนถึงการ<b>ออกแบบตัวนับตามลำดับที่ต้องการ</b> ด้วย T, SR และ JK แล้วต่อยอดเป็น count down และ up/down</p>
+  </header>
+
+  <div class="wrap layout">
+    <details class="toc" open>
+      <summary>สารบัญ</summary>
+      <ol>
+        <li><a href="#basics">Counter คืออะไร</a></li>
+        <li><a href="#async">Asynchronous counter</a></li>
+        <li><a href="#ripple">Clock ripple</a></li>
+        <li><a href="#modn">MOD-N counter</a></li>
+        <li><a href="#bcd">BCD counter และ 7490</a></li>
+        <li><a href="#sync">Synchronous counter</a></li>
+        <li><a href="#syncmod">Synchronous MOD-10</a></li>
+        <li><a href="#compare">เทียบ async กับ sync</a></li>
+        <li><a href="#design">ออกแบบตามลำดับที่ต้องการ</a></li>
+        <li><a href="#down">Count down</a></li>
+        <li><a href="#updown">Up/Down counter</a></li>
+        <li><a href="#sim">วงจรจำลอง</a></li>
+        <li><a href="#apps">การใช้งาน</a></li>
+        <li><a href="#practice">แบบฝึก</a></li>
+        <li><a href="#slides">ตรวจสไลด์</a></li>
+        <li><a href="#recap">สรุปก่อนสอบ</a></li>
+      </ol>
+    </details>
+
+    <main class="content">
+      <!-- 1 -->
+      <section id="basics">
+        <h2><span class="num">1</span>Counter คืออะไร</h2>
+        <p>Counter เป็นวงจร <b>sequential</b> ที่เปลี่ยนค่าตามลำดับทุกครั้งที่มี clock ใช้ flip-flop 1 ตัวเก็บ 1 บิต</p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>คำ</th><th>ความหมาย</th></tr></thead>
+            <tbody>
+              <tr><td class="txt">จำนวนสถานะ</td><td class="txt">flip-flop n ตัวมีได้สูงสุด 2ⁿ สถานะ</td></tr>
+              <tr><td class="txt">MOD-N</td><td class="txt">นับครบ N สถานะแล้ววนกลับ เช่น MOD-10 นับ 0 ถึง 9</td></tr>
+              <tr><td class="txt">หารความถี่</td><td class="txt">บิตสูงสุดของ MOD-N มีความถี่ f/N เมื่อ clock มีความถี่ f</td></tr>
+              <tr><td class="txt">Toggle</td><td class="txt">J = K = 1 หรือ T = 1 ทำให้ Q กลับค่าทุกขอบ clock</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-scroll" style="margin-top:12px;">
+          <table class="tt">
+            <thead><tr><th>ชนิด</th><th>Clock ของ flip-flop</th><th>จุดเด่น</th></tr></thead>
+            <tbody>
+              <tr><td class="txt">Asynchronous (ripple)</td><td class="txt">ตัวแรกรับ clock ตัวถัดไปรับจาก output ตัวก่อน</td><td class="txt">วงจรง่าย แต่ delay สะสม</td></tr>
+              <tr><td class="txt">Synchronous</td><td class="txt">ทุกตัวรับ clock เดียวกัน</td><td class="txt">เปลี่ยนพร้อมกัน แต่ต้องมีเกตควบคุม</td></tr>
+              <tr><td class="txt">Decade, Up/Down</td><td class="txt">ขึ้นกับการออกแบบ</td><td class="txt">นับ 0–9 หรือเลือกนับขึ้นลงได้</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 2 -->
+      <section id="async">
+        <h2><span class="num">2</span>Asynchronous counter</h2>
+        <p>ทุกตัวต่อ J = K = 1 จึง toggle ทุกครั้งที่ขา clock ของตัวเองได้รับขอบ ตัวแรกรับ CLK ส่วนตัวถัดไปใช้ output ของตัวก่อนเป็น clock สัญญาณจึงไล่เป็นทอด ๆ จนเรียกว่า ripple counter</p>
+        <figure class="figure wide reg-fig" id="fig-ripple3"><figcaption>3 บิต ขอบขาลง: QA เป็นบิตต่ำสุด และ Q ต่อเข้า clock ตัวถัดไป</figcaption></figure>
+        <div class="wave-scroll"><svg id="wave-ripple" class="sim-wave" role="img" aria-label="timing diagram ของ ripple counter 3 บิต"></svg></div>
+        <p style="margin-top:10px;">QA เปลี่ยนทุกขอบขาลงของ CLK จึงได้ f/2 · QB เปลี่ยนทุกขอบขาลงของ QA จึงได้ f/4 · QC ได้ f/8</p>
+        <div class="callout tip">
+          <b>นับขึ้นหรือนับลงดูจาก 2 อย่าง</b>
+          ชนิดขอบของ flip-flop กับสายที่ต่อเข้า clock ตัวถัดไป
+        </div>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>ขอบ clock</th><th>ต่อจาก</th><th>ทิศการนับ</th></tr></thead>
+            <tbody>
+              <tr><td class="txt">ขาลง (มีวงกลม)</td><td>Q</td><td class="txt">นับขึ้น</td></tr>
+              <tr><td class="txt">ขาลง (มีวงกลม)</td><td>Q′</td><td class="txt">นับลง</td></tr>
+              <tr><td class="txt">ขาขึ้น (ไม่มีวงกลม)</td><td>Q</td><td class="txt">นับลง</td></tr>
+              <tr><td class="txt">ขาขึ้น (ไม่มีวงกลม)</td><td>Q′</td><td class="txt">นับขึ้น</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn">
+          <b>รูปในสไลด์ 5 ขัดกับ timing</b>
+          วงจรวาดขา CLK แบบขอบขาขึ้น แต่ timing เปลี่ยนที่ขอบขาลง ถ้าเป็นขอบขาขึ้นจริงและต่อจาก Q จะนับลง หน้านี้จึงวาดเป็นขอบขาลงให้ตรงกับ timing
+        </div>
+      </section>
+
+      <!-- 3 -->
+      <section id="ripple">
+        <h2><span class="num">3</span>Clock ripple</h2>
+        <p>flip-flop แต่ละตัวมี propagation delay (t<sub>pd</sub>) ตัวถัดไปจึงเปลี่ยนช้ากว่าตัวก่อน delay นี้สะสมตามจำนวนบิต เรียกว่า clock ripple</p>
+        <p class="mono" style="text-align:center;">delay ของบิตสุดท้าย = n × t<sub>pd</sub></p>
+        <p>ตัวอย่างในสไลด์ 7 คือจังหวะนับจาก 7 ไป 8 ซึ่งต้องเปลี่ยนทุกบิต output จึงผ่านค่าชั่วคราวก่อนถึงค่าจริง</p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>จังหวะ</th><th>Q3 Q2 Q1 Q0</th><th>ค่าที่อ่านได้</th><th>เกิดอะไร</th></tr></thead>
+            <tbody>
+              <tr><td>ก่อนขอบ</td><td>0 1 1 1</td><td>7</td><td class="txt">ค่าเดิม</td></tr>
+              <tr><td>หลัง 1 t<sub>pd</sub></td><td>0 1 1 0</td><td>6</td><td class="txt">Q0 เปลี่ยนจาก 1 เป็น 0</td></tr>
+              <tr><td>หลัง 2 t<sub>pd</sub></td><td>0 1 0 0</td><td>4</td><td class="txt">Q1 ตามมา</td></tr>
+              <tr><td>หลัง 3 t<sub>pd</sub></td><td>0 0 0 0</td><td>0</td><td class="txt">Q2 ตามมา</td></tr>
+              <tr class="on"><td>หลัง 4 t<sub>pd</sub></td><td>1 0 0 0</td><td>8</td><td class="txt">Q3 เปลี่ยน ได้ค่าจริง</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn">
+          <b>ทำไมถึงเป็นปัญหา</b>
+          ค่า 6, 4, 0 ไม่ใช่ค่าที่ต้องการ แต่เกิดขึ้นจริงชั่วขณะ ถ้าวงจรอื่นอ่านช่วงนี้จะได้ค่าผิด และ clock ต้องไม่เร็วเกินเวลาที่ทุกบิตนิ่ง เช่น 4 บิต t<sub>pd</sub> = 25 ns ต้องรอ 100 ns จึงใช้ clock ได้ไม่เกิน 10 MHz
+        </div>
+      </section>
+
+      <!-- 4 -->
+      <section id="modn">
+        <h2><span class="num">4</span>MOD-N counter</h2>
+        <p>ripple counter n บิตนับครบ 2ⁿ ถ้าต้องการนับแค่ N สถานะให้ <b>ตรวจจับค่า N แล้ว reset ทุกตัวทันที</b></p>
+        <ol>
+          <li>หาจำนวน flip-flop ที่ 2ⁿ ≥ N</li>
+          <li>เขียน N เป็นเลขฐานสอง</li>
+          <li>นำบิตที่เป็น 1 เข้าเกต: <b>AND</b> ถ้า reset เป็น active-high หรือ <b>NAND</b> ถ้าเป็น active-low</li>
+          <li>ต่อ output ของเกตเข้าขา reset ของทุกตัว</li>
+        </ol>
+        <h3>MOD-5 (สไลด์ 8)</h3>
+        <p>5 = 101 จึงใช้ AND ของ QC กับ QA วงจรนี้ใช้ D flip-flop ขอบขาขึ้น ต่อ D = Q′ ให้ toggle และต่อ Q′ เข้า clock ตัวถัดไปจึงนับขึ้น</p>
+        <figure class="figure wide reg-fig" id="fig-mod5"><figcaption>MOD-5: R เป็น active-high เมื่อ QC = QA = 1 จะ reset ทุกตัว</figcaption></figure>
+        <h3>MOD-10 (สไลด์ 9)</h3>
+        <p>10 = 1010 จึงใช้ NAND ของ QD กับ QB ต่อเข้า Clr′ ซึ่งเป็น active-low ใช้ JK ขอบขาลง (74LS73) กับ NAND (74LS00)</p>
+        <figure class="figure wide reg-fig" id="fig-mod10"><figcaption>MOD-10: เมื่อถึง 1010 เอาต์พุต NAND เป็น 0 จึงเคลียร์ทุกตัว</figcaption></figure>
+        <div class="callout warn">
+          <b>ค่า N ปรากฏชั่วขณะ</b>
+          วงจรต้องแตะค่า N ก่อนจึงจะ reset ได้ MOD-5 จึงเป็น 101 สั้น ๆ ก่อนกลับ 000 เป็น glitch ลำดับที่อ่านได้จริงคือ 0, 1, 2, 3, 4 แล้ววนกลับ
+        </div>
+        <div class="callout tip">
+          <b>ทำไมใช้แค่บิตที่เป็น 1</b>
+          ตอนนับขึ้น ครั้งแรกที่บิตเหล่านี้เป็น 1 พร้อมกันคือค่า N พอดี จึงไม่ต้องตรวจบิตที่เป็น 0
+        </div>
+      </section>
+
+      <!-- 5 -->
+      <section id="bcd">
+        <h2><span class="num">5</span>BCD counter และ 7490</h2>
+        <p>BCD counter หรือ decade counter นับ 0 ถึง 9 แล้ววนกลับ ชิปมาตรฐานคือ <b>7490</b> ภายในแบ่งเป็นตัวหาร 2 (CLKA → Qa) กับตัวหาร 5 (CLKB → Qb Qc Qd) ต้องต่อ Qa เข้า CLKB จึงจะนับ BCD 4 บิต</p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>ขา</th><th>เลขขา</th><th>การต่อในสไลด์ 11</th></tr></thead>
+            <tbody>
+              <tr><td class="txt">CLKA</td><td>14</td><td class="txt">รับ clock fin</td></tr>
+              <tr><td class="txt">CLKB</td><td>1</td><td class="txt">ต่อกับ Qa (ขา 12)</td></tr>
+              <tr><td class="txt">Qa, Qb, Qc, Qd</td><td>12, 9, 8, 11</td><td class="txt">BCD output โดย Qd คือ fin/10</td></tr>
+              <tr><td class="txt">R0(1), R0(2)</td><td>2, 3</td><td class="txt">ต่อกราวด์เพื่อให้นับ (สไลด์เขียน R1, R2)</td></tr>
+              <tr><td class="txt">R9(1), R9(2)</td><td>6, 7</td><td class="txt">ต่อกราวด์เพื่อให้นับ (สไลด์เขียน S1, S2)</td></tr>
+              <tr><td class="txt">VCC, GND</td><td>5, 10</td><td class="txt">+5 V และกราวด์</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-scroll" style="margin-top:12px;">
+          <table class="tt">
+            <thead><tr><th>R0(1) R0(2)</th><th>R9(1) R9(2)</th><th>Qd Qc Qb Qa</th></tr></thead>
+            <tbody>
+              <tr><td>1 1</td><td>ไม่ใช่ 1 1</td><td class="txt">รีเซ็ตเป็น 0000</td></tr>
+              <tr><td>×</td><td>1 1</td><td class="txt">ตั้งเป็น 1001 (เลข 9)</td></tr>
+              <tr><td>ไม่ใช่ 1 1</td><td>ไม่ใช่ 1 1</td><td class="txt">นับ</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn">
+          <b>ระวังรูปในสไลด์ 10</b>
+          รูปต่อ R3, R4 เข้าขา set ของทุก flip-flop ซึ่งจะได้ 1111 แต่ datasheet ของ 7490 บอกว่าขา R9 ตั้งค่าเป็น 1001 ถ้าโจทย์ถามให้ตอบตาม datasheet
+        </div>
+      </section>
+
+      <!-- 6 -->
+      <section id="sync">
+        <h2><span class="num">6</span>Synchronous counter</h2>
+        <p>ทุก flip-flop รับ clock เดียวกันจึงเปลี่ยนพร้อมกัน ส่วนเกตควบคุมจะกำหนดว่าขอบนี้บิตไหนต้อง toggle กฎคือ <b>บิตหนึ่ง toggle เมื่อบิตที่ต่ำกว่าทุกตัวเป็น 1</b></p>
+        <figure class="figure wide" id="fig-sync2"><figcaption>2 บิต (สไลด์ 13): J0 = K0 = 1, J1 = K1 = Q0</figcaption></figure>
+        <figure class="figure wide reg-fig" id="fig-sync4"><figcaption>4 บิต (สไลด์ 14): ใช้ AND ต่อเป็นทอดรวมบิตต่ำทั้งหมด</figcaption></figure>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>Flip-flop</th><th>J = K</th><th>Toggle เมื่อ</th></tr></thead>
+            <tbody>
+              <tr><td>FFA</td><td>1</td><td class="txt">ทุกขอบ</td></tr>
+              <tr><td>FFB</td><td>QA</td><td class="txt">QA = 1</td></tr>
+              <tr><td>FFC</td><td>QA QB</td><td class="txt">QA = QB = 1</td></tr>
+              <tr><td>FFD</td><td>QA QB QC</td><td class="txt">QA = QB = QC = 1</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout tip">
+          <b>"ไม่มี propagation delay" ไม่ได้แปลว่าไม่มีเลย</b>
+          flip-flop ยังมี t<sub>pd</sub> อยู่ แต่ทุกบิตเปลี่ยนในเวลาเดียวกัน delay จึง<b>ไม่สะสม</b> และไม่เกิดค่าชั่วคราวแบบ ripple
+        </div>
+      </section>
+
+      <!-- 7 -->
+      <section id="syncmod">
+        <h2><span class="num">7</span>Synchronous MOD-10</h2>
+        <p>วงจรสไลด์ 15 ไม่ใช้ reset แต่ใช้เกตบังคับให้จาก 9 กลับ 0 ที่ขอบ clock โดยตรง จึงไม่มี glitch แบบ MOD-N ในหัวข้อ 4 ถ้าเริ่มที่รหัส 10–15 ก็กลับเข้าวง 0–9 เองภายใน 2 clock</p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>Flip-flop</th><th>J = K</th><th>เหตุผล</th></tr></thead>
+            <tbody>
+              <tr><td>FFA</td><td>1</td><td class="txt">toggle ทุกขอบ</td></tr>
+              <tr><td>FFB</td><td>QA QD′</td><td class="txt">เหมือน binary แต่ห้าม toggle ตอน 9 (QD = 1)</td></tr>
+              <tr><td>FFC</td><td>QA QB</td><td class="txt">เหมือน binary</td></tr>
+              <tr><td>FFD</td><td>QA QB QC + QA QD</td><td class="txt">ขึ้นเป็น 1 ตอน 7 และกลับเป็น 0 ตอน 9</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <figure class="figure" id="fig-sync10"><figcaption>เกตควบคุมของ MOD-10: output แต่ละเส้นต่อเข้า J และ K ของ flip-flop นั้น</figcaption></figure>
+      </section>
+
+      <!-- 8 -->
+      <section id="compare">
+        <h2><span class="num">8</span>เทียบ async กับ sync</h2>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>หัวข้อ</th><th>Asynchronous</th><th>Synchronous</th></tr></thead>
+            <tbody>
+              <tr><td class="txt">Clock</td><td class="txt">เข้าตัวแรกตัวเดียว</td><td class="txt">เข้าทุกตัวพร้อมกัน</td></tr>
+              <tr><td class="txt">เกตเพิ่ม</td><td class="txt">ไม่ต้อง</td><td class="txt">ต้องมีเกตควบคุม</td></tr>
+              <tr><td class="txt">Delay</td><td class="txt">สะสม n × t<sub>pd</sub></td><td class="txt">ไม่สะสม</td></tr>
+              <tr><td class="txt">ค่าชั่วคราว</td><td class="txt">มี (ripple)</td><td class="txt">ไม่มีจาก ripple</td></tr>
+              <tr><td class="txt">ความเร็วสูงสุด</td><td class="txt">ลดลงเมื่อบิตเพิ่ม</td><td class="txt">สูงกว่า</td></tr>
+              <tr><td class="txt">ออกแบบลำดับอิสระ</td><td class="txt">ยาก</td><td class="txt">ทำได้ด้วย K-map</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 9 -->
+      <section id="design">
+        <h2><span class="num">9</span>ออกแบบตามลำดับที่ต้องการ</h2>
+        <p>ตัวนับไม่จำเป็นต้องนับเรียงเลข ตัวอย่างในสไลด์ 16–26 นับเป็นวง <b>000 → 100 → 111 → 010 → 011 → 000</b> ใช้วิธี 4 ขั้นเดียวกันทุกชนิด flip-flop</p>
+        <ol>
+          <li><b>State diagram:</b> วาดลำดับสถานะ</li>
+          <li><b>ตาราง next state:</b> สถานะปัจจุบัน C B A กับ C⁺ B⁺ A⁺ สถานะที่ไม่ใช้เป็น ×</li>
+          <li><b>K-map:</b> ใช้ excitation table แปลงเป็น input ของ flip-flop แล้วลดรูป</li>
+          <li><b>วาดวงจร:</b> ต่อ output ของเกตเข้าขา flip-flop และป้อน Q กลับมาเป็น input ของเกต</li>
+        </ol>
+        <figure class="figure" id="ring-up"><figcaption>State diagram (Figure 12-21) เขียนสถานะเป็น C B A</figcaption></figure>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>Q → Q⁺</th><th>T</th><th>S R</th><th>J K</th><th>D</th></tr></thead>
+            <tbody>
+              <tr><td>0 → 0</td><td>0</td><td>0 ×</td><td>0 ×</td><td>0</td></tr>
+              <tr><td>0 → 1</td><td>1</td><td>1 0</td><td>1 ×</td><td>1</td></tr>
+              <tr><td>1 → 0</td><td>1</td><td>0 1</td><td>× 1</td><td>0</td></tr>
+              <tr><td>1 → 1</td><td>0</td><td>× 0</td><td>× 0</td><td>1</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top:10px;">สูตรสำหรับ T คือ <span class="mono">T = Q⁺ ⊕ Q</span> K-map ใช้แถว BA คอลัมน์ C ตรงกับสไลด์และ<a href="k-map.html">บท K-map</a></p>
+        <div class="tabs" role="tablist" aria-label="ชนิด flip-flop" id="ff-tabs" style="margin-top:14px;">
+          <button role="tab" type="button" data-ff="T">T</button>
+          <button role="tab" type="button" data-ff="SR">SR</button>
+          <button role="tab" type="button" data-ff="JK">JK</button>
+          <button role="tab" type="button" data-ff="D">D</button>
+        </div>
+        <div id="ff-panel"></div>
+      </section>
+
+      <!-- 10 -->
+      <section id="down">
+        <h2><span class="num">10</span>Count down</h2>
+        <p>นับลงคือค่าลดลงทีละขั้น หรือย้อนลำดับที่ออกแบบไว้ หัวข้อนี้เริ่มจากตัวนับเลขเรียงก่อน แล้วค่อยเป็นลำดับเลขโดดของสไลด์</p>
+        <h3>Next state นับลงเลขเรียง 3 บิต</h3>
+        <p>นับถึง 000 แล้ววนกลับไป 111 ค่าถัดไปจึงเป็นค่าปัจจุบันลบ 1</p>
+        <div class="table-scroll" id="bin-pair"></div>
+        <h3>Asynchronous นับลง</h3>
+        <p>ใช้ flip-flop ขอบขาลงเหมือนเดิม แต่ต่อ <b>Q′</b> เข้า clock ตัวถัดไปแทน Q บิตถัดไปจึงเปลี่ยนเมื่อบิตนี้เปลี่ยนจาก 0 เป็น 1</p>
+        <figure class="figure wide reg-fig" id="fig-ripple-down"><figcaption>3 บิต ขอบขาลง: Q′ ต่อเข้า clock ตัวถัดไป จึงนับ 0, 7, 6, 5, 4, 3, 2, 1, 0</figcaption></figure>
+        <div class="wave-scroll"><svg id="wave-ripple-down" class="sim-wave" role="img" aria-label="timing diagram ของ ripple นับลง 3 บิต"></svg></div>
+        <h3>Synchronous นับลง</h3>
+        <p>ทุกตัวใช้ clock เดียวกัน กฎกลับกับนับขึ้นคือ <b>บิตหนึ่ง toggle เมื่อบิตที่ต่ำกว่าทุกตัวเป็น 0</b></p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>Flip-flop</th><th>นับขึ้น J = K</th><th>นับลง J = K</th></tr></thead>
+            <tbody>
+              <tr><td>FFA</td><td>1</td><td>1</td></tr>
+              <tr><td>FFB</td><td>QA</td><td>QA′</td></tr>
+              <tr><td>FFC</td><td>QA QB</td><td>QA′ QB′</td></tr>
+              <tr><td>FFD</td><td>QA QB QC</td><td>QA′ QB′ QC′</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <figure class="figure" id="fig-sync-down" style="margin-top:12px;"><figcaption>เกตควบคุมของ sync นับลง 4 บิต: output ต่อเข้า J และ K ของ flip-flop นั้น ส่วน FFA ใช้ J = K = 1</figcaption></figure>
+        <h3>BCD นับลง 9 → 0</h3>
+        <p>จาก 0 ต้องวนกลับไป 9 และรหัส 1010–1111 ไม่ใช้จึงเป็น ×</p>
+        <div class="table-scroll" id="bcd-pair"></div>
+        <div class="table-scroll" id="bcd-down-eq" style="margin-top:12px;"></div>
+        <h3>Next state นับลงของลำดับเลขโดด</h3>
+        <p>สไลด์ 29–31 มีแต่หัวข้อ ไม่มีเนื้อหา และรูปในสไลด์ 28 ยังเป็นลำดับนับขึ้นเดิม ส่วนนี้จึงทำให้ครบโดย<b>กลับลูกศรทุกเส้น</b> ได้ลำดับนับลง 000 → 011 → 010 → 111 → 100 → 000</p>
+        <figure class="figure" id="ring-down"><figcaption>State diagram แบบนับลง: ลำดับเดิมแต่กลับทิศ</figcaption></figure>
+        <p class="fill-sub">เทียบ next state นับขึ้นกับนับลง</p>
+        <div class="table-scroll" id="pair-table"></div>
+        <p style="margin-top:10px;">สไลด์ใช้ JK ส่วนชนิดอื่นใช้วิธีเดียวกัน กดเลือกได้</p>
+        <div class="tabs" role="tablist" aria-label="ชนิด flip-flop แบบนับลง" id="down-tabs" style="margin-top:6px;">
+          <button role="tab" type="button" data-ff="T">T</button>
+          <button role="tab" type="button" data-ff="SR">SR</button>
+          <button role="tab" type="button" data-ff="JK">JK</button>
+          <button role="tab" type="button" data-ff="D">D</button>
+        </div>
+        <div id="down-panel"></div>
+      </section>
+
+      <!-- 11 -->
+      <section id="updown">
+        <h2><span class="num">11</span>Up/Down counter</h2>
+        <p>เพิ่ม input <b>sw</b> เพื่อเลือกทิศ sw = 1 นับขึ้น และ sw = 0 นับลง วิธีตามสไลด์ 32 คือรวมสมการทั้งสองชุด</p>
+        <ol>
+          <li>นำสมการนับขึ้นทุกเส้น AND กับ sw</li>
+          <li>นำสมการนับลงทุกเส้น AND กับ sw′</li>
+          <li>OR ทั้งสองส่วน ได้สมการใหม่สำหรับวาดวงจร</li>
+        </ol>
+        <p class="mono" style="text-align:center;">สมการรวม = sw · (นับขึ้น) + sw′ · (นับลง)</p>
+        <p>สไลด์ 33–34 เว้นว่างไว้ ตารางนี้จึงทำให้ครบจากสมการ JK ของหัวข้อ 9 และ 10</p>
+        <div class="table-scroll" id="updown-eq"></div>
+        <figure class="figure" id="fig-updown" style="margin-top:12px;"><figcaption>วงจรเกตของ up/down: output ต่อเข้า J, K ของแต่ละ flip-flop ส่วน KA ต่อ 1</figcaption></figure>
+        <h3>แบบนับเลขฐานสอง 3 บิต</h3>
+        <p>หลักการเดียวกันใช้กับ binary ได้ นับขึ้น toggle เมื่อบิตต่ำเป็น 1 หมด ส่วนนับลง toggle เมื่อบิตต่ำเป็น 0 หมด</p>
+        <p class="mono" style="text-align:center;">TA = 1 · TB = sw·A + sw′·A′ · TC = sw·BA + sw′·B′A′</p>
+      </section>
+
+      <!-- 12 -->
+      <section id="sim">
+        <h2><span class="num">12</span>วงจรจำลอง</h2>
+        <p>เลือกวงจรแล้วกดส่ง clock ทีละลูก สายในรูปจะเปลี่ยนสีตามค่าจริง และ timing diagram ด้านล่างจะต่อยาวไปเรื่อย ๆ</p>
+        <div class="sim" id="cnt-sim">
+          <div class="tabs" role="tablist" aria-label="เลือกวงจร" id="cnt-tabs"></div>
+          <div class="cc-bits" id="cnt-bits"></div>
+          <p class="sim-status" id="cnt-status"></p>
+          <div class="actions cnt-actions"><div class="sim-inputs" id="cnt-inputs"></div><button class="btn primary" type="button" id="cnt-clock">ส่ง clock</button><button class="btn" type="button" id="cnt-reset">เริ่มใหม่</button></div>
+          <div class="sim-wave-head"><h4>Timing diagram</h4></div>
+          <div class="wave-scroll"><svg class="sim-wave" id="cnt-wave" role="img" aria-label="timing diagram ของวงจรที่เลือก"></svg></div>
+          <figure class="figure wide reg-fig cnt-fig" id="cnt-fig" style="margin:14px 0 0;"></figure>
+        </div>
+      </section>
+
+      <!-- 13 -->
+      <section id="apps">
+        <h2><span class="num">13</span>การใช้งาน</h2>
+        <ul>
+          <li><b>นาฬิกาดิจิทัล:</b> นับเวลาโดยเพิ่มค่าเป็นช่วงคงที่</li>
+          <li><b>Frequency counter:</b> นับจำนวน pulse ในช่วงเวลาที่กำหนดเพื่อวัดความถี่</li>
+          <li><b>ตัวหารความถี่:</b> ใช้บิตสูงสุดของ MOD-N ลดความถี่เป็น f/N</li>
+          <li><b>ไฟจราจรและระบบควบคุม:</b> ใช้นับจังหวะการทำงานตามลำดับ</li>
+          <li><b>Up/Down counter:</b> ใช้ใน digital-to-analog converter และระบบควบคุมดิจิทัล</li>
+        </ul>
+      </section>
+
+      <!-- 14 -->
+      <section id="practice">
+        <h2><span class="num">14</span>แบบฝึก</h2>
+        <p>ลองทำในกระดาษก่อนแล้วค่อยกดดูเฉลย</p>
+        <div id="cnt-practice"></div>
+      </section>
+
+      <!-- 15 -->
+      <section id="slides">
+        <h2><span class="num">15</span>ตรวจสไลด์</h2>
+        <p>ตรวจโดยแทนค่าใหม่ทุกตาราง คำนวณ K-map ซ้ำ และเทียบ datasheet ของ 7490 จากผู้ผลิต</p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>สไลด์</th><th>จุดที่ตรวจ</th><th>ผล</th></tr></thead>
+            <tbody>
+              <tr class="bad"><td>5</td><td class="txt">Async 2 บิต</td><td class="txt">รูปวาด CLK ขอบขาขึ้น แต่ timing เปลี่ยนที่ขอบขาลง ต้องมีวงกลมที่ขา CLK จึงจะนับขึ้นตาม timing</td></tr>
+              <tr class="bad"><td>10</td><td class="txt">วงจรภายใน 7490</td><td class="txt">รูปต่อ R3, R4 เข้า set ทุกตัว ได้ 1111 แต่ datasheet ให้ 1001</td></tr>
+              <tr class="bad"><td>28–31</td><td class="txt">Count down</td><td class="txt">รูปสไลด์ 28 ยังเป็นลำดับนับขึ้น และสไลด์ 29–31 ว่าง หน้านี้เติมให้ในหัวข้อ 10 รวมวงจรนับลงเลขเรียงและ BCD ซึ่งสไลด์ไม่มี</td></tr>
+              <tr class="bad"><td>33–34</td><td class="txt">Up/Down</td><td class="txt">สไลด์ว่าง หน้านี้เติมให้ในหัวข้อ 11</td></tr>
+              <tr><td>12–13</td><td class="txt">"no propagation delays"</td><td class="txt">พูดเกินจริง flip-flop ยังมี delay แต่ไม่สะสม</td></tr>
+              <tr><td>7</td><td class="txt">นิยาม clock ripple</td><td class="txt">เขียนกำกวม ความหมายคือ delay ที่สะสมผ่าน flip-flop แต่ละตัว ส่วนลำดับ 7, 6, 4, 0, 8 ถูกต้อง</td></tr>
+              <tr><td>11</td><td class="txt">ชื่อขา 7490</td><td class="txt">เขียน R1, R2, S1, S2 ส่วน datasheet เขียน R0(1), R0(2), R9(1), R9(2) เลขขาตรงกัน</td></tr>
+              <tr><td>12</td><td class="txt">รูปประกอบด้านขวา</td><td class="txt">เป็นภาพตกแต่ง ข้อความในรูปอ่านไม่เป็นคำ ไม่ใช่วงจรจริง</td></tr>
+              <tr><td>14</td><td class="txt">Timing 4 บิต</td><td class="txt">นับ pulse แรกเป็นจุดเริ่ม ค่าเปลี่ยนตั้งแต่ขอบของ pulse 2 จึงเลขช้ากว่า count 1 ลูก วงจรถูกต้อง</td></tr>
+              <tr><td>20–22</td><td class="txt">สถานะที่ไม่ใช้ของแบบ SR</td><td class="txt">สไลด์ไม่ได้พูดถึง ถ้าเริ่มที่ 001 หรือ 101 จะเกิด S = R = 1 ตอนใช้งานปกติไม่เกิด แต่ควรรีเซ็ตก่อนเริ่มนับ</td></tr>
+              <tr><td>8, 9</td><td class="txt">MOD-5, MOD-10</td><td class="txt">ถูกต้อง ตรวจ 101 และ 1010</td></tr>
+              <tr><td>15</td><td class="txt">Sync MOD-10</td><td class="txt">ไล่สายแล้วตรงกับตารางในหัวข้อ 7 นับ 0–9 ถูกต้อง</td></tr>
+              <tr><td>16–26</td><td class="txt">ออกแบบ T, SR, JK</td><td class="txt">ตารางทุกแถวและสมการทุกเส้นถูกต้อง ทั้ง Table 12-3 ถึง 12-8</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 16 -->
+      <section id="recap">
+        <h2><span class="num">16</span>สรุปก่อนสอบ</h2>
+        <div class="keypoints">
+          <div class="kp"><div class="k">Asynchronous</div><div class="v">Q ตัวก่อนเป็น clock ตัวถัดไป</div><p>delay สะสม n × t<sub>pd</sub></p></div>
+          <div class="kp"><div class="k">Synchronous</div><div class="v">clock เดียวกันทุกตัว</div><p>J = K = AND ของบิตต่ำทั้งหมด</p></div>
+          <div class="kp"><div class="k">MOD-N</div><div class="v">ตรวจบิต 1 ของ N แล้ว reset</div><p>AND หรือ NAND ตามชนิด reset</p></div>
+          <div class="kp"><div class="k">Sync นับลง</div><div class="v">J = K = AND ของ Q′ บิตต่ำ</div><p>toggle เมื่อบิตต่ำเป็น 0 หมด</p></div>
+          <div class="kp"><div class="k">ทิศนับ async</div><div class="v">ขาลง + Q = นับขึ้น</div><p>เปลี่ยนอย่างใดอย่างหนึ่งจะกลับทิศ</p></div>
+          <div class="kp"><div class="k">ออกแบบ</div><div class="v">State → ตาราง → K-map → วงจร</div><p>สถานะที่ไม่ใช้เป็น ×</p></div>
+          <div class="kp"><div class="k">T จากตาราง</div><div class="v">T = Q⁺ ⊕ Q</div><p>บิตเปลี่ยนใส่ 1 ไม่เปลี่ยนใส่ 0</p></div>
+          <div class="kp"><div class="k">Up/Down</div><div class="v">sw·ขึ้น + sw′·ลง</div><p>sw = 1 นับขึ้น</p></div>
+          <div class="kp"><div class="k">7490</div><div class="v">ต่อ Qa เข้า CLKB</div><p>R0 = 0000 · R9 = 1001</p></div>
+        </div>
+        <div class="callout warn">
+          <b>จุดที่พลาดบ่อย</b>
+          <ul style="margin: 6px 0 0;">
+            <li>ดูทิศการนับโดยไม่ดูชนิดขอบ clock</li>
+            <li>ต่อ MOD-N ที่ค่า N − 1 (ต้องตรวจค่า N)</li>
+            <li>ใช้ AND กับ reset ที่เป็น active-low</li>
+            <li>นับ MOD-N ว่า N เป็นสถานะที่อ่านได้</li>
+            <li>อ่านลำดับ C B A กลับด้าน</li>
+            <li>ลืมใส่ × ให้สถานะที่ไม่ใช้ ทำให้สมการยาว</li>
+            <li>ใช้ excitation ผิดชนิด โดยเฉพาะ SR กับ JK</li>
+            <li>ลืมตรวจสถานะที่ไม่ใช้ ว่าจะกลับเข้าวงหรือไม่</li>
+          </ul>
+        </div>
+        <nav class="pager" aria-label="หัวข้อก่อนหน้า">
+          <a href="combinational-components.html"><small>← ก่อนหน้า</small>Combinational Components</a>
+        </nav>
+      </section>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap"><a href="../index.html">← กลับหน้าแรก</a> · CPE 2423 ครึ่งหลัง</div>
+  </footer>
+
+  <script src="../assets/logic-kit.js"></script>
+  <script>
+    (function () {
+      "use strict";
+      const { wave, fitStep, setLevels, counterChain, railCircuit, circuitLevels, kmapSvg, COUNTER_FF: FF, counterDesign, counterUpDown, counterRing: ring, tocSpy } = LK;
+      const $id = (id) => document.getElementById(id);
+      const addFig = (id, html) => $id(id).insertAdjacentHTML("afterbegin", html);
+      const bitsOf = (s, n) => s.toString(2).padStart(n, "0");
+
+      // ---------- Fixed figures ----------
+
+      const CHAIN = {
+        ripple3: { names: ["QA", "QB", "QC"] },
+        mod5: { names: ["QA", "QB", "QC"], type: "d", edge: "rise", reset: { gate: "and", from: [0, 2], pin: "R" } },
+        mod10: { names: ["QA", "QB", "QC", "QD"], reset: { gate: "nand", from: [1, 3], pin: "Clr′" } },
+        sync2: { names: ["Q0", "Q1"], clock: "common", edge: "rise" },
+        sync4: { names: ["QA", "QB", "QC", "QD"], clock: "common", edge: "rise" },
+      };
+      addFig("fig-ripple3", counterChain(CHAIN.ripple3));
+      addFig("fig-mod5", counterChain(CHAIN.mod5));
+      addFig("fig-mod10", counterChain(CHAIN.mod10));
+      addFig("fig-sync2", counterChain(CHAIN.sync2));
+      addFig("fig-sync4", counterChain(CHAIN.sync4));
+
+      const AND = (...x) => ["and", ...x];
+      const SYNC10 = { inputs: ["QA", "QB", "QC", "QD"], pitch: 26, outputs: [
+        { name: "JB=KB", terms: [AND("QA", "QD′")] }, { name: "JC=KC", terms: [AND("QA", "QB")] },
+        { name: "JD=KD", terms: [AND("QA", "QD"), AND("QA", "QB", "QC")] } ] };
+      addFig("fig-sync10", railCircuit(SYNC10));
+
+      // ---------- Design by flip-flop type: everything is solved from the next-state map ----------
+
+      const UP = { 0: 4, 2: 3, 3: 0, 4: 7, 7: 2 };
+      const DOWN = Object.fromEntries(Object.entries(UP).map(([a, b]) => [b, +a]));
+      const BITS = [["C", 2], ["B", 1], ["A", 0]];
+      // Where a K-map has several minimal answers, use the slide's.
+      const SLIDE = { TC: "C′B′ + CB", TB: "C′A + CB′", SA: "CA′ + BA′", RC: "A", KC: "A", DA: "BA′ + CA′" };
+      const solveFF = (seq, type) => counterDesign(3, seq, type, SLIDE);
+      const b3 = (s) => bitsOf(s, 3).split("").join(" ");
+      const headFF = (f) => BITS.flatMap(([b]) => f.pins.map((p) => `<th>${p}${b}</th>`)).join("");
+      const tableFF = (d) => `<div class="table-scroll"><table class="tt cc-truth"><thead><tr><th>C B A</th><th>C⁺ B⁺ A⁺</th>${headFF(d.f)}</tr></thead><tbody>` +
+        d.rows.map((r) => `<tr><td>${b3(r.s)}</td><td>${r.next === null ? "× × ×" : b3(r.next)}</td>${(r.cells || BITS.flatMap(() => d.f.pins.map(() => "×"))).map((c) => `<td>${c}</td>`).join("")}</tr>`).join("") + "</tbody></table></div>";
+      const mapsFF = (d) => `<div class="design-maps" style="margin-top:12px;">${d.outputs.map((o) => `<figure>${kmapSvg(3, o.cells, { groups: o.terms })}<figcaption>${o.name} = ${o.eq}</figcaption></figure>`).join("")}</div>`;
+      const altsFF = (d) => { const list = d.outputs.filter((o) => o.alts.length); return list.length ? `<p style="margin-top:10px;">มีคำตอบอื่นที่น้อยเท่ากัน: ${list.map((o) => `<span class="mono">${o.name} = ${o.alts.join(" หรือ ")}</span>`).join(" · ")}</p>` : ""; };
+      const unusedFF = (d, seq) => { const list = [...Array(8).keys()].filter((s) => !(s in seq));
+        return `<p class="fill-sub">สถานะที่ไม่ใช้จะไปไหน</p><div class="table-scroll"><table class="tt"><thead><tr><th>สถานะ</th><th>ถัดไป</th><th>ผล</th></tr></thead><tbody>` +
+          list.map((s) => { const { next, clash } = d.step(s); return `<tr><td>${b3(s)}</td><td>${clash ? "ไม่แน่นอน" : b3(next)}</td><td class="txt">${clash ? "เกิด S = R = 1 ซึ่งห้ามใช้" : next in seq ? "กลับเข้าวงทันที" : "ผ่านสถานะที่ไม่ใช้ก่อน"}</td></tr>`; }).join("") + "</tbody></table></div>"; };
+      const panelFF = (d, seq, note = "") => `<p class="fill-sub">ตาราง next state และ input ของ flip-flop</p>${tableFF(d)}<p class="fill-sub">K-map (แถว BA คอลัมน์ C)</p>${mapsFF(d)}${altsFF(d)}
+        <p class="fill-sub">วงจรเกตที่ป้อนเข้า flip-flop</p><figure class="figure" style="margin-top:0;">${railCircuit(d.circuit)}<figcaption>input C, B, A คือ Q ของ flip-flop ที่ป้อนกลับมา ทุกตัวใช้ clock เดียวกัน</figcaption></figure>${unusedFF(d, seq)}${note}`;
+
+      const NOTE = { D: `<div class="callout tip"><b>สไลด์ไม่มีแบบ D</b> ใส่ไว้เทียบ เพราะ D = Q⁺ จึงไม่ต้องแปลง excitation</div>` };
+      const designs = Object.fromEntries(Object.keys(FF).map((t) => [t, solveFF(UP, t)]));
+      const showFF = (t) => {
+        $id("ff-tabs").querySelectorAll("[role=tab]").forEach((b) => b.setAttribute("aria-selected", b.dataset.ff === t));
+        $id("ff-panel").innerHTML = panelFF(designs[t], UP, NOTE[t] || "");
+      };
+      $id("ff-tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-ff]"); if (b) showFF(b.dataset.ff); });
+      showFF("T");
+
+      // Straight binary and BCD counting down, next to counting up.
+      const pairTable = (n, up, dn) => { const name = (s) => s.toString(2).padStart(n, "0").split("").join(" ");
+        return `<table class="tt"><thead><tr><th>ค่า</th><th>${["D", "C", "B", "A"].slice(4 - n).join(" ")}</th><th>นับขึ้น ถัดไป</th><th>นับลง ถัดไป</th></tr></thead><tbody>` +
+          [...Array(1 << n).keys()].map((s) => `<tr><td>${s in up ? s : "ไม่ใช้"}</td><td>${name(s)}</td><td>${s in up ? name(up[s]) : "× ".repeat(n)}</td><td>${s in dn ? name(dn[s]) : "× ".repeat(n)}</td></tr>`).join("") + "</tbody></table>"; };
+      const binUp = Object.fromEntries([...Array(8).keys()].map((s) => [s, (s + 1) % 8])), binDown = Object.fromEntries([...Array(8).keys()].map((s) => [s, (s + 7) % 8]));
+      const bcdUp = Object.fromEntries([...Array(10).keys()].map((s) => [s, (s + 1) % 10])), bcdDown = Object.fromEntries([...Array(10).keys()].map((s) => [s, (s + 9) % 10]));
+      $id("bin-pair").innerHTML = pairTable(3, binUp, binDown);
+      $id("bcd-pair").innerHTML = pairTable(4, bcdUp, bcdDown);
+      const bcdDownJK = counterDesign(4, bcdDown, "JK");
+      $id("bcd-down-eq").innerHTML = `<table class="tt"><thead><tr><th>ขา (JK)</th><th>สมการ BCD นับลง</th></tr></thead><tbody>${bcdDownJK.outputs.map((o) => `<tr><td>${o.name}</td><td>${[o.eq, ...o.alts].join(" หรือ ")}</td></tr>`).join("")}</tbody></table>`;
+      const RIPPLE_DOWN = { names: ["QA", "QB", "QC"], tap: "Qn" };
+      addFig("fig-ripple-down", counterChain(RIPPLE_DOWN));
+      const SYNC_DOWN = { inputs: ["QA", "QB", "QC"], pitch: 26, outputs: [
+        { name: "JB=KB", terms: ["QA′"] }, { name: "JC=KC", terms: [AND("QA′", "QB′")] }, { name: "JD=KD", terms: [AND("QA′", "QB′", "QC′")] } ] };
+      addFig("fig-sync-down", railCircuit(SYNC_DOWN));
+
+      addFig("ring-up", ring(["000", "100", "111", "010", "011"]));
+      addFig("ring-down", ring(["000", "011", "010", "111", "100"]));
+      const downs = Object.fromEntries(Object.keys(FF).map((t) => [t, solveFF(DOWN, t)])), down = downs.JK;
+      const showDown = (t) => {
+        $id("down-tabs").querySelectorAll("[role=tab]").forEach((b) => b.setAttribute("aria-selected", b.dataset.ff === t));
+        $id("down-panel").innerHTML = panelFF(downs[t], DOWN);
+      };
+      $id("down-tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-ff]"); if (b) showDown(b.dataset.ff); });
+      showDown("JK");
+      $id("pair-table").innerHTML = `<table class="tt"><thead><tr><th>C B A</th><th>นับขึ้น C⁺ B⁺ A⁺</th><th>นับลง C⁺ B⁺ A⁺</th></tr></thead><tbody>` +
+        [...Array(8).keys()].map((s) => `<tr><td>${b3(s)}</td><td>${s in UP ? b3(UP[s]) : "× × ×"}</td><td>${s in DOWN ? b3(DOWN[s]) : "× × ×"}</td></tr>`).join("") + "</tbody></table>";
+
+      // Up/Down: sw·up + sw′·down, term by term.
+      const up = designs.JK, UD = counterUpDown(up, down), UPDOWN = UD.circuit, udOutputs = UD.outputs, udText = UD.text;
+      $id("updown-eq").innerHTML = `<table class="tt"><thead><tr><th>ขา</th><th>นับขึ้น</th><th>นับลง</th><th>สมการรวม</th></tr></thead><tbody>` +
+        up.outputs.map((o, i) => `<tr><td>${o.name}</td><td>${o.eq}</td><td>${down.outputs[i].eq}</td><td>${udText(udOutputs[i])}</td></tr>`).join("") + "</tbody></table>";
+      addFig("fig-updown", railCircuit(UPDOWN));
+
+      // ---------- Timing diagram of the ripple counter ----------
+
+      const rippleStep = (q, n) => { let s = q, k = 0; while (k < n) { const was = (s >> k) & 1; s ^= 1 << k; if (!was) break; k++; } return s; };
+      const SIG = (names) => [{ key: "CLK", name: "CLK" }, ...names.map((n) => ({ key: n, name: n, out: 1 }))];
+      {
+        const names = CHAIN.ripple3.names, rows = []; let s = 0;
+        for (let i = 0; i < 9; i++) { const row = (clk) => ({ CLK: clk, QA: s & 1, QB: (s >> 1) & 1, QC: (s >> 2) & 1 }); rows.push(row(1)); s = rippleStep(s, 3); rows.push(row(0)); }
+        const svg = $id("wave-ripple"), draw = () => wave(svg, SIG(names), rows, { step: fitStep(svg.parentElement, rows.length, 14) });
+        draw(); window.addEventListener("resize", draw);
+      }
+
+      const rippleDown = (q, n) => { let s = q, k = 0; while (k < n) { const was = (s >> k) & 1; s ^= 1 << k; if (was) break; k++; } return s; };
+      {
+        const rows = []; let s = 0;
+        for (let i = 0; i < 9; i++) { const row = (clk) => ({ CLK: clk, QA: s & 1, QB: (s >> 1) & 1, QC: (s >> 2) & 1 }); rows.push(row(1)); s = rippleDown(s, 3); rows.push(row(0)); }
+        const svg = $id("wave-ripple-down"), draw = () => wave(svg, SIG(RIPPLE_DOWN.names), rows, { step: fitStep(svg.parentElement, rows.length, 14) });
+        draw(); window.addEventListener("resize", draw);
+      }
+
+      // ---------- Clock-by-clock simulator ----------
+
+      const bit = (s, k) => (s >> k) & 1;
+      const qLevels = (names, s) => { const lv = { 1: 1 }; names.forEach((n, k) => { lv[n] = bit(s, k); lv[`${n}′`] = 1 - bit(s, k); }); return lv; };
+      const syncT = (s) => [1, bit(s, 0), bit(s, 0) & bit(s, 1), bit(s, 0) & bit(s, 1) & bit(s, 2)];
+      const toggle = (s, t) => t.reduce((acc, v, k) => acc ^ (v << k), s);
+      const t10 = (s) => { const [A, B, C, D] = [0, 1, 2, 3].map((k) => bit(s, k)); return [1, A & (1 - D), A & B, (A & D) | (A & B & C)]; };
+      const seqNames = ["A", "B", "C"];
+      const jkStep = (cfg, s, extra = {}) => { const lv = circuitLevels(cfg, { ...extra, C: bit(s, 2), B: bit(s, 1), A: bit(s, 0) }); let out = 0;
+        BITS.forEach(([b, p]) => { out |= FF.JK.next(bit(s, p), { J: lv[`J${b}`], K: lv[`K${b}`] }) << p; }); return out; };
+      const SIMS = {
+        ripple3: { tab: "Ripple 3 บิต", fall: true, names: CHAIN.ripple3.names, fig: () => counterChain(CHAIN.ripple3), next: (s) => ({ to: rippleStep(s, 3) }) },
+        rippleDown: { tab: "Ripple นับลง", fall: true, names: RIPPLE_DOWN.names, fig: () => counterChain(RIPPLE_DOWN), next: (s) => ({ to: rippleDown(s, 3) }) },
+        sync4: { tab: "Sync 4 บิต", names: CHAIN.sync4.names, fig: () => counterChain(CHAIN.sync4), next: (s) => ({ to: toggle(s, syncT(s)) }),
+          levels: (s, lv) => ({ ...lv, C2: bit(s, 0) & bit(s, 1), C3: bit(s, 0) & bit(s, 1) & bit(s, 2) }) },
+        syncDown: { tab: "Sync นับลง", names: ["QA", "QB", "QC", "QD"], fig: () => railCircuit(SYNC_DOWN), next: (s) => ({ to: toggle(s, [1, 1 - bit(s, 0), (1 - bit(s, 0)) & (1 - bit(s, 1)), (1 - bit(s, 0)) & (1 - bit(s, 1)) & (1 - bit(s, 2))]) }), rail: SYNC_DOWN },
+        mod5: { tab: "MOD-5", names: CHAIN.mod5.names, fig: () => counterChain(CHAIN.mod5), next: (s) => { const t = rippleStep(s, 3); return t === 5 ? { to: 0, glitch: 5 } : { to: t }; } },
+        mod10: { tab: "MOD-10", fall: true, names: CHAIN.mod10.names, fig: () => counterChain(CHAIN.mod10), next: (s) => { const t = rippleStep(s, 4); return t === 10 ? { to: 0, glitch: 10 } : { to: t }; } },
+        sync10: { tab: "Sync MOD-10", names: ["QA", "QB", "QC", "QD"], fig: () => railCircuit(SYNC10), next: (s) => ({ to: toggle(s, t10(s)) }), rail: SYNC10 },
+        seq: { tab: "ตามลำดับ (JK)", fall: true, names: seqNames, msb: "C B A", fig: () => railCircuit(up.circuit), next: (s) => ({ to: jkStep(up.circuit, s) }), rail: up.circuit, start: 0 },
+        updown: { tab: "Up/Down", fall: true, names: seqNames, msb: "C B A", fig: () => railCircuit(UPDOWN), next: (s, sw) => ({ to: jkStep(UPDOWN, s, { sw }) }), rail: UPDOWN, sw: true, start: 0 },
+      };
+      {
+        const svgBox = $id("cnt-fig"), waveSvg = $id("cnt-wave"); let key = "ripple3", s = 0, sw = 1, rows = [];
+        $id("cnt-tabs").innerHTML = Object.entries(SIMS).map(([k, m]) => `<button role="tab" type="button" data-sim="${k}">${m.tab}</button>`).join("");
+        const row = (clk, v) => ({ CLK: clk, ...Object.fromEntries(SIMS[key].names.map((n, k) => [n, bit(v, k)])) });
+        const label = (v) => [...SIMS[key].names].reverse().map((_, k, a) => bit(v, a.length - 1 - k)).join("");
+        function draw() {
+          const m = SIMS[key], names = m.names, svg = svgBox.querySelector("svg");
+          let lv = qLevels(names, s); if (m.levels) lv = m.levels(s, lv);
+          if (m.rail) { const inp = names[0] === "QA" ? Object.fromEntries(names.map((n, k) => [n, bit(s, k)])) : { sw, C: bit(s, 2), B: bit(s, 1), A: bit(s, 0) }; lv = circuitLevels(m.rail, inp); }
+          setLevels(svg, lv);
+          $id("cnt-bits").innerHTML = [...names].reverse().map((n, k) => { const v = bit(s, names.length - 1 - k); return `<span><i>${n}</i><b class="${v ? "hi" : ""}">${v}</b></span>`; }).join("") + `<span><i>ค่า</i><b class="hi">${s}</b></span>`;
+          const shown = rows.slice(-36);
+          wave(waveSvg, SIG(names), shown, { step: fitStep(waveSvg.parentElement, Math.max(shown.length, 12), 12), ticks: false });
+        }
+        function load(k) {
+          key = k; s = 0; rows = [row(0, 0)];
+          $id("cnt-tabs").querySelectorAll("[role=tab]").forEach((b) => b.setAttribute("aria-selected", b.dataset.sim === k));
+          svgBox.innerHTML = SIMS[k].fig();
+          $id("cnt-inputs").innerHTML = SIMS[k].sw ? `<button class="sw" type="button" id="cnt-sw"><span class="sw-name">sw</span><span class="sw-val"></span></button>` : "";
+          $id("cnt-status").textContent = SIMS[k].msb ? `เริ่มที่ ${SIMS[k].msb} = 000` : "เริ่มที่ 0";
+          syncSw(); draw();
+        }
+        function syncSw() { const b = $id("cnt-sw"); if (b) { b.setAttribute("aria-pressed", sw === 1); b.querySelector(".sw-val").textContent = sw; } }
+        $id("cnt-tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-sim]"); if (b) load(b.dataset.sim); });
+        $id("cnt-reset").addEventListener("click", () => load(key));
+        $id("cnt-inputs").addEventListener("click", (e) => { if (e.target.closest("#cnt-sw")) { sw = 1 - sw; syncSw(); draw(); } });
+        $id("cnt-clock").addEventListener("click", () => {
+          const r = SIMS[key].next(s, sw);
+          // Outputs move on the circuit's own active edge; a MOD-N reset shows its short glitch first.
+          const hit = r.glitch !== undefined ? [r.glitch, r.to] : [r.to];
+          if (SIMS[key].fall) { rows.push(row(1, s)); hit.forEach((v) => rows.push(row(0, v))); }
+          else { hit.forEach((v) => rows.push(row(1, v))); rows.push(row(0, r.to)); }
+          $id("cnt-status").textContent = r.glitch !== undefined ? `ชั่วขณะเป็น ${label(r.glitch)} (${r.glitch}) แล้วถูก reset กลับ 0` : `${label(s)} → ${label(r.to)}`;
+          s = r.to; draw();
+        });
+        window.addEventListener("resize", draw);
+        load("ripple3");
+      }
+
+      // ---------- Practice ----------
+
+      const PRACTICE = [
+        { q: "ใช้ flip-flop กี่ตัวสร้าง MOD-12 และควรตรวจบิตไหนเพื่อ reset", a: `12 = 1100 ใช้ 4 ตัวเพราะ 2⁴ ≥ 12 และตรวจ <b class="mono">QD QC</b>` },
+        { q: "MOD-6 แบบ reset เป็น active-low ใช้เกตอะไร ต่อบิตไหน", a: `6 = 110 ใช้ <b>NAND</b> ของ <b class="mono">QC QB</b> ต่อเข้า Clr′ ทุกตัว` },
+        { q: "Ripple counter 4 บิต ขอบขาลง clock 16 kHz บิต QD มีความถี่เท่าไร", a: "แต่ละบิตหารสอง QD คือ 16 kHz ÷ 16 = <b>1 kHz</b>" },
+        { q: "Ripple counter 3 บิตจาก 011 ไป 100 จะผ่านค่าชั่วคราวอะไร", a: `Q0 เปลี่ยนก่อนได้ <b class="mono">010</b> แล้ว Q1 ได้ <b class="mono">000</b> สุดท้าย Q2 ได้ <b class="mono">100</b>` },
+        { q: "Flip-flop ขอบขาขึ้นต่อ Q เข้า clock ตัวถัดไป วงจรนับทิศไหน", a: "<b>นับลง</b> ถ้าต้องการนับขึ้นให้ต่อจาก Q′" },
+        { q: "Sync 4 บิตนับถึง 0111 ที่ขอบถัดไปบิตไหน toggle และได้ค่าอะไร", a: `QA = QB = QC = 1 ทุกบิต toggle จึงได้ <b class="mono">1000</b> พร้อมกัน` },
+        { q: "T flip-flop ลำดับ 00 → 10 → 11 → 01 → 00 (เขียน B A) หา TB และ TA", a: `บิต B เปลี่ยนตอนออกจาก 00 และ 11 ส่วนบิต A เปลี่ยนตอนออกจาก 10 และ 01 จึงได้ <b class="mono">TB = BA + B′A′</b> และ <b class="mono">TA = BA′ + B′A</b>` },
+        { q: "จากตาราง JK แถว C B A = 100 → 111 หา JC KC JB KB JA KA", a: `C คงเป็น 1 ได้ × 0 · B 0 → 1 ได้ 1 × · A 0 → 1 ได้ 1 × จึงได้ <b class="mono">× 0 1 × 1 ×</b>` },
+        { q: "ทำไมสมการ KA ในหัวข้อ 9 จึงเป็น 1", a: `A เปลี่ยนจาก 1 เป็น 0 ทุกครั้งที่ A = 1 ในวงนี้ จึงมีแต่ 1 กับ × แล้วจับกลุ่มได้ทั้งตาราง: <b class="mono">KA = ${designs.JK.outputs[5].eq}</b>` },
+        { q: "Up/Down ในหัวข้อ 11 ที่ sw = 0 และ C B A = 111 ขอบถัดไปได้เท่าไร", a: `sw = 0 คือนับลง ลำดับนับลงจาก 111 ไปคือ <b class="mono">${b3(DOWN[7])}</b>` },
+        { q: "7490 ต่อ R9(1) = R9(2) = 1 จะได้ Qd Qc Qb Qa เท่าไร", a: `ได้ <b class="mono">1001</b> คือเลข 9` },
+        { q: "Sync MOD-10 ที่ 1001 ขอบถัดไปแต่ละบิตทำอะไร", a: "QA toggle เป็น 0 · JB = QA QD′ = 0 คงค่า · JC = QA QB = 0 คงค่า · JD = QA QD = 1 toggle เป็น 0 จึงได้ <b class=\"mono\">0000</b>" },
+      ];
+      const practice = $id("cnt-practice");
+      practice.innerHTML = PRACTICE.map((p, k) => `<div class="exercise"><p class="q-text"><b>ข้อ ${k + 1}</b> · ${p.q}</p>
+        <div class="actions"><button class="btn primary" type="button" data-show="${k}">ดูเฉลย</button></div>
+        <div class="answer callout ok" data-ans="${k}" hidden><b>เฉลยข้อ ${k + 1}</b> ${p.a}</div></div>`).join("");
+      practice.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-show]");
+        if (!btn) return;
+        const ans = practice.querySelector(`[data-ans="${btn.dataset.show}"]`);
+        ans.hidden = !ans.hidden;
+        btn.textContent = ans.hidden ? "ดูเฉลย" : "ซ่อนเฉลย";
+      });
+
+      tocSpy(document.querySelector(".toc"));
+    })();
+  </script>
+</body>
+</html>

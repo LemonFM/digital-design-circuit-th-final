@@ -24,9 +24,9 @@
   </div>
 
   <header class="page-head wrap">
-    <p class="eyebrow">บท 06 Latches and Flip-Flops · บท 08 Combinational Components · บท 09 Shift Registers</p>
+    <p class="eyebrow">บท 06 Latches and Flip-Flops · บท 07 Counter · บท 08 Combinational Components · บท 09 Shift Registers</p>
     <h1>สรุปรวมก่อนสอบ</h1>
-    <p class="lead">ทุกตาราง สมการ และวิธีคิดที่ต้องใช้ รวมไว้ในหน้าเดียว ถ้าข้อไหนยังไม่เข้าใจ กดลิงก์ "อ่านเพิ่ม" เพื่อไปที่หน้าเนื้อหาของหัวข้อนั้น · เรื่อง shift register แบบ PIPO เริ่มที่ <a href="#sr-basics">หัวข้อ 11</a></p>
+    <p class="lead">ทุกตาราง สมการ และวิธีคิดที่ต้องใช้ รวมไว้ในหน้าเดียว ถ้าข้อไหนยังไม่เข้าใจ กดลิงก์ "อ่านเพิ่ม" เพื่อไปที่หน้าเนื้อหาของหัวข้อนั้น · เรื่อง shift register แบบ PIPO เริ่มที่ <a href="#sr-basics">หัวข้อ 11</a> · Multiplexer เริ่มที่ <a href="#mux-basics">หัวข้อ 21</a> · Counter เริ่มที่ <a href="#cnt-basics">หัวข้อ 26</a></p>
   </header>
 
   <div class="wrap layout">
@@ -53,6 +53,17 @@
         <li><a href="#seg7-steps">วิธีทำข้อสอบ 7-segment <span class="exam-hint">เน้น</span></a></li>
         <li><a href="#seg7-eq">สมการสำเร็จรูป <span class="exam-hint">เน้น</span></a></li>
         <li><a href="#seg7-pitfalls">จุดที่พลาดบ่อยของ 7-segment <span class="exam-hint">เน้น</span></a></li>
+        <li><a href="#mux-basics">พื้นฐาน Multiplexer</a></li>
+        <li><a href="#mux-build">สร้าง MUX ขนาดใหญ่</a></li>
+        <li><a href="#mux-shifter">Shifter จาก MUX</a></li>
+        <li><a href="#mux-steps">วิธีทำข้อสอบ Multiplexer</a></li>
+        <li><a href="#mux-pitfalls">จุดที่พลาดบ่อยของ MUX</a></li>
+        <li><a href="#cnt-basics">พื้นฐาน Counter</a></li>
+        <li><a href="#cnt-async">Asynchronous และ MOD-N</a></li>
+        <li><a href="#cnt-sync">Synchronous counter</a></li>
+        <li><a href="#cnt-design">ออกแบบ Counter ตามลำดับ <span class="exam-hint">ออกสอบ</span></a></li>
+        <li><a href="#cnt-updown">Up/Down counter <span class="exam-hint">ออกสอบ</span></a></li>
+        <li><a href="#cnt-pitfalls">จุดที่พลาดบ่อยของ Counter <span class="exam-hint">ออกสอบ</span></a></li>
       </ol>
     </details>
 
@@ -625,6 +636,325 @@
         </div>
         <p>ฝึกทำได้ที่<a href="exam.html#sub-seg7">แนวข้อสอบ 7-segment</a></p>
       </section>
+
+      <!-- 21 -->
+      <section id="mux-basics">
+        <h2><span class="num">21</span>พื้นฐาน Multiplexer <a class="ref" href="topics/combinational-components.html#mux">อ่านเพิ่ม</a></h2>
+        <p>MUX เลือก input 1 เส้นจากหลายเส้นส่งไป output เหมือนสวิตช์หลายทาง เป็นวงจร <b>combinational</b> ไม่มี clock ถ้ามี select n เส้นจะเลือกได้ <b>2ⁿ</b> input ค่า select อ่านเป็นเลขฐานสองก็คือหมายเลขช่อง</p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>ขนาด</th><th>Select</th><th>สมการ</th></tr></thead>
+            <tbody>
+              <tr><td>2-to-1</td><td>1</td><td>y = s′d0 + sd1</td></tr>
+              <tr><td>4-to-1</td><td>2</td><td>out = s1′s0′w + s1′s0x + s1s0′y + s1s0z</td></tr>
+              <tr><td>8-to-1</td><td>3</td><td>y = Σ mᵢ dᵢ (mᵢ คือ minterm ของ s2 s1 s0)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="two-col" style="margin-top:12px;">
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th>s1</th><th>s0</th><th>ช่อง</th><th>out</th></tr></thead>
+              <tbody>
+                <tr><td>0</td><td>0</td><td>0</td><td>w</td></tr>
+                <tr><td>0</td><td>1</td><td>1</td><td>x</td></tr>
+                <tr><td>1</td><td>0</td><td>2</td><td>y</td></tr>
+                <tr><td>1</td><td>1</td><td>3</td><td>z</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <p><b>อ่านช่องจาก select</b></p>
+            <p class="mono">ช่อง = 4·s2 + 2·s1 + s0</p>
+            <p>เช่น MUX 8-to-1 ที่ s2 s1 s0 = 1 0 1 คือช่อง 5 จึงเลือก d5</p>
+            <p><b>DEMUX</b> ทำกลับกัน: รับ input เดียวแล้วส่งไป output ที่ select เลือก</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 22 -->
+      <section id="mux-build">
+        <h2><span class="num">22</span>สร้าง MUX ขนาดใหญ่</h2>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>วิธีสร้าง 8-to-1</th><th>อุปกรณ์</th></tr></thead>
+            <tbody>
+              <tr><td class="txt">AND-OR ตรง ๆ</td><td class="txt">AND 8 ตัว ตัวละ 4 input (select 3 เส้น + data 1 เส้น) แล้ว OR 8 input</td></tr>
+              <tr><td class="txt">Decoder 3-to-8</td><td class="txt">decoder ให้ minterm ของ select แล้ว AND กับ data ทีละเส้น แล้ว OR</td></tr>
+              <tr><td class="txt">MUX 2-to-1</td><td class="txt">7 ตัว: ชั้นแรก 4 ตัวใช้ s0 ชั้นสอง 2 ตัวใช้ s1 ชั้นสุดท้าย 1 ตัวใช้ s2</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <figure class="figure wide reg-fig" id="sum-mux-tree" style="margin-top:12px;"><figcaption>s0 เลือกในคู่ · s1 เลือกคู่ · s2 เลือกครึ่งบนหรือครึ่งล่าง</figcaption></figure>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>ต้องการ N-to-1</th><th>select</th><th>ใช้ 2-to-1</th><th>ใช้ 4-to-1</th></tr></thead>
+            <tbody>
+              <tr><td class="txt">สูตร</td><td>log₂ N</td><td>N − 1</td><td>(N − 1) / 3</td></tr>
+              <tr><td>16-to-1</td><td>4</td><td>15</td><td>5</td></tr>
+              <tr><td>64-to-1</td><td>6</td><td>63</td><td>21</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top:10px;">สูตร 4-to-1 ใช้ได้เมื่อ N เป็นกำลังของ 4 เพราะ MUX 4-to-1 แต่ละตัวลดจำนวนเส้นลง 3 เส้น</p>
+      </section>
+
+      <!-- 23 -->
+      <section id="mux-shifter">
+        <h2><span class="num">23</span>Shifter จาก MUX</h2>
+        <p>ใช้ MUX 4-to-1 หนึ่งตัวต่อบิต และ select ชุดเดียวคุมทุกตัว เรียกว่า multi-bit MUX ไม่มี flip-flop จึงไม่ใช้ clock output เปลี่ยนทันทีที่ input หรือ select เปลี่ยน ต่างจาก shift register ที่เก็บค่าและเลื่อนทีละ clock</p>
+        <p>ทุก MUX เลือกช่องเลขเดียวกันพร้อมกัน ค่าที่ออกต่างกันเพราะแต่ละช่องต่อสายไว้ไม่เหมือนกัน คำว่าหมุนหรือเลื่อนคือผลที่เห็นเมื่อดู output รวมกัน</p>
+        <p class="fill-sub">Barrel shifter</p>
+        <div class="table-scroll">
+          <table class="tt" style="white-space:nowrap;">
+            <thead><tr><th>s1 s0</th><th>เลือกช่อง</th><th>out3 out2 out1 out0</th><th>ผลที่เห็น</th></tr></thead>
+            <tbody>
+              <tr><td>00</td><td>0</td><td>in3 in2 in1 in0</td><td class="txt">ไม่หมุน</td></tr>
+              <tr><td>01</td><td>1</td><td>in2 in1 in0 in3</td><td class="txt">หมุนซ้าย 1</td></tr>
+              <tr><td>10</td><td>2</td><td>in1 in0 in3 in2</td><td class="txt">หมุนซ้าย 2</td></tr>
+              <tr><td>11</td><td>3</td><td>in0 in3 in2 in1</td><td class="txt">หมุนซ้าย 3</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="fill-sub">4-bit shifter</p>
+        <div class="table-scroll">
+          <table class="tt" style="white-space:nowrap;">
+            <thead><tr><th>s1 s0</th><th>เลือกช่อง</th><th>out3 out2 out1 out0</th><th>ผลที่เห็น</th></tr></thead>
+            <tbody>
+              <tr><td>00</td><td>0</td><td>in3 in2 in1 in0</td><td class="txt">ผ่านตรง</td></tr>
+              <tr><td>01</td><td>1</td><td>in2 in1 in0 0</td><td class="txt">เลื่อนซ้าย เติม 0</td></tr>
+              <tr><td>10</td><td>2</td><td>0 in3 in2 in1</td><td class="txt">เลื่อนขวา เติม 0</td></tr>
+              <tr><td>11</td><td>3</td><td>in0 in3 in2 in1</td><td class="txt">หมุนขวา</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <figure class="figure wide reg-fig" id="sum-mux-array" style="margin-top:12px;"><figcaption>Barrel shifter: ไล่แต่ละ MUX จากช่อง 0 ถึง 3 ว่าต่อกับสายไหน ก็ได้ตารางด้านบน</figcaption></figure>
+      </section>
+
+      <!-- 24 -->
+      <section id="mux-steps">
+        <h2><span class="num">24</span>วิธีทำข้อสอบ Multiplexer <a class="ref" href="exam.html#sub-mux">ฝึกในแนวข้อสอบ</a></h2>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>แนวโจทย์</th><th>วิธีทำ</th></tr></thead>
+            <tbody>
+              <tr><td class="txt">อ่านสายจากรูป</td><td class="txt">ดู MUX ของ out3 ก่อน ไล่ช่อง 0–3 ว่าต่อกับสายไหน ทำครบทุกตัวจะได้ตาราง control แล้วแทนค่า input</td></tr>
+              <tr><td class="txt">ออกแบบการต่อสาย</td><td class="txt">อ่านตารางทีละคอลัมน์: คอลัมน์ out3 คือสายของ MUX out3 แถว 0–3 คือช่อง 0–3</td></tr>
+              <tr><td class="txt">MUX ซ้อนชั้น</td><td class="txt">เริ่มจาก MUX ตัวสุดท้าย ใช้ค่า select ของชั้นนั้นเลือกทางเข้า แล้วย้อนไปทีละชั้นจนถึง data</td></tr>
+              <tr><td class="txt">สร้างฟังก์ชันด้วย MUX 8-to-1</td><td class="txt">ขา data ของ minterm ที่ F = 1 ต่อ 1 ที่เหลือต่อ 0</td></tr>
+              <tr><td class="txt">สร้างฟังก์ชันด้วย MUX 4-to-1</td><td class="txt">แบ่งตาราง 8 แถวเป็นคู่ตาม select แล้วเทียบ F กับตัวแปรที่เหลือ</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>ตัวอย่าง: F(a, b, c) = Σm(1, 2, 6, 7) ด้วย MUX 4-to-1 (a = s1, b = s0)</h3>
+        <div class="two-col">
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th>a</th><th>b</th><th>F เมื่อ c = 0</th><th>F เมื่อ c = 1</th><th>ช่อง</th><th>ต่อกับ</th></tr></thead>
+              <tbody>
+                <tr><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>c</td></tr>
+                <tr><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td><td>c′</td></tr>
+                <tr><td>1</td><td>0</td><td>0</td><td>0</td><td>2</td><td>0</td></tr>
+                <tr><td>1</td><td>1</td><td>1</td><td>1</td><td>3</td><td>1</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th>c = 0, c = 1</th><th>ต่อช่องกับ</th></tr></thead>
+              <tbody>
+                <tr><td>0, 0</td><td>0</td></tr>
+                <tr><td>0, 1</td><td>c</td></tr>
+                <tr><td>1, 0</td><td>c′</td></tr>
+                <tr><td>1, 1</td><td>1</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 25 -->
+      <section id="mux-pitfalls">
+        <h2><span class="num">25</span>จุดที่พลาดบ่อยของ MUX</h2>
+        <div class="callout warn">
+          <ul style="margin: 0;">
+            <li>อ่าน s1 s0 = 1 0 เป็นช่อง 1 (ต้องเป็นช่อง 2 เพราะ s1 เป็นบิตหลักสอง)</li>
+            <li>นับ select 3 เส้นว่าเลือกได้ 6 input (ต้องเป็น 2³ = 8)</li>
+            <li>เข้าใจว่า MUX เป็น sequential ทั้งที่ไม่มีหน่วยความจำ</li>
+            <li>สับสน rotate กับ shift: rotate วนบิตกลับอีกด้าน ส่วน shift ทำบิตหายและเติมค่าคงที่</li>
+            <li>สลับลำดับ select ระหว่างชั้นของ MUX ซ้อนแล้วคิดว่าผลเหมือนเดิม</li>
+            <li>อ่านตัวเลขบนช่องจากซ้ายไปขวาตามความเคย ทั้งที่ต้องดูตามเลขที่เขียนบนรูป</li>
+          </ul>
+        </div>
+        <p>ฝึกทำได้ที่<a href="exam.html#sub-mux">แนวข้อสอบ Multiplexer</a></p>
+      </section>
+
+      <!-- 26 -->
+      <section id="cnt-basics">
+        <h2><span class="num">26</span>พื้นฐาน Counter <a class="ref" href="topics/counters.html#basics">อ่านเพิ่ม</a></h2>
+        <p>Counter เป็นวงจร <b>sequential</b> ที่เปลี่ยนค่าตามลำดับทุกครั้งที่มี clock ใช้ flip-flop 1 ตัวเก็บ 1 บิต ดังนั้น flip-flop n ตัวมีได้สูงสุด <b>2ⁿ</b> สถานะ</p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>คำ</th><th>ความหมาย</th></tr></thead>
+            <tbody>
+              <tr><td class="txt">MOD-N</td><td class="txt">นับครบ N สถานะแล้ววนกลับ เช่น MOD-10 นับ 0 ถึง 9</td></tr>
+              <tr><td class="txt">หารความถี่</td><td class="txt">บิตสูงสุดของ MOD-N มีความถี่ f/N เมื่อ clock มีความถี่ f</td></tr>
+              <tr><td class="txt">Toggle</td><td class="txt">J = K = 1 หรือ T = 1 ทำให้ Q กลับค่าทุกขอบ clock</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-scroll" style="margin-top:12px;">
+          <table class="tt">
+            <thead><tr><th>หัวข้อ</th><th>Asynchronous</th><th>Synchronous</th></tr></thead>
+            <tbody>
+              <tr><td class="txt">Clock</td><td class="txt">เข้าตัวแรกตัวเดียว ตัวถัดไปรับจาก output ตัวก่อน</td><td class="txt">เข้าทุกตัวพร้อมกัน</td></tr>
+              <tr><td class="txt">เกตเพิ่ม</td><td class="txt">ไม่ต้อง</td><td class="txt">ต้องมีเกตควบคุม</td></tr>
+              <tr><td class="txt">Delay</td><td class="txt">สะสม n × t<sub>pd</sub></td><td class="txt">ไม่สะสม</td></tr>
+              <tr><td class="txt">ค่าชั่วคราว</td><td class="txt">มี (ripple)</td><td class="txt">ไม่มีจาก ripple</td></tr>
+              <tr><td class="txt">ความเร็วสูงสุด</td><td class="txt">ลดลงเมื่อบิตเพิ่ม</td><td class="txt">สูงกว่า</td></tr>
+              <tr><td class="txt">ออกแบบลำดับอิสระ</td><td class="txt">ยาก</td><td class="txt">ทำได้ด้วย K-map</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 27 -->
+      <section id="cnt-async">
+        <h2><span class="num">27</span>Asynchronous และ MOD-N <a class="ref" href="topics/counters.html#async">อ่านเพิ่ม</a></h2>
+        <p>ทุกตัวต่อ J = K = 1 จึง toggle ทุกครั้งที่ขา clock ของตัวเองได้รับขอบ QA ได้ f/2 · QB ได้ f/4 · QC ได้ f/8</p>
+        <figure class="figure wide reg-fig" id="sum-ripple"><figcaption>3 บิต ขอบขาลง: Q ต่อเข้า clock ตัวถัดไป จึงนับขึ้น</figcaption></figure>
+        <div class="two-col">
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th>ขอบ clock</th><th>ต่อจาก</th><th>ทิศการนับ</th></tr></thead>
+              <tbody>
+                <tr><td class="txt">ขาลง (มีวงกลม)</td><td>Q</td><td class="txt">นับขึ้น</td></tr>
+                <tr><td class="txt">ขาลง (มีวงกลม)</td><td>Q′</td><td class="txt">นับลง</td></tr>
+                <tr><td class="txt">ขาขึ้น (ไม่มีวงกลม)</td><td>Q</td><td class="txt">นับลง</td></tr>
+                <tr><td class="txt">ขาขึ้น (ไม่มีวงกลม)</td><td>Q′</td><td class="txt">นับขึ้น</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <p><b>Clock ripple</b></p>
+            <p class="mono">delay บิตสุดท้าย = n × t<sub>pd</sub></p>
+            <p>จาก 7 ไป 8 แบบ 4 บิตจะผ่านค่าชั่วคราว 6, 4, 0 ก่อนถึง 8</p>
+            <p>เช่น 4 บิต t<sub>pd</sub> = 25 ns ต้องรอ 100 ns จึงใช้ clock ได้ไม่เกิน 10 MHz</p>
+          </div>
+        </div>
+        <h3>ทำ MOD-N แบบ reset</h3>
+        <ol>
+          <li>หาจำนวน flip-flop ที่ 2ⁿ ≥ N</li>
+          <li>เขียน N เป็นเลขฐานสอง</li>
+          <li>นำบิตที่เป็น 1 เข้าเกต: <b>AND</b> ถ้า reset เป็น active-high หรือ <b>NAND</b> ถ้าเป็น active-low</li>
+          <li>ต่อ output ของเกตเข้าขา reset ของทุกตัว</li>
+        </ol>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>ตัวนับ</th><th>N ฐานสอง</th><th>เกต</th><th>Reset</th><th>ลำดับที่อ่านได้</th></tr></thead>
+            <tbody>
+              <tr><td>MOD-5</td><td>101</td><td>AND ของ QC, QA</td><td class="txt">R active-high</td><td>0, 1, 2, 3, 4</td></tr>
+              <tr><td>MOD-10</td><td>1010</td><td>NAND ของ QD, QB</td><td class="txt">Clr′ active-low</td><td>0 ถึง 9</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn">
+          <b>ค่า N ปรากฏชั่วขณะ</b>
+          วงจรต้องแตะค่า N ก่อนจึงจะ reset ได้ จึงมี glitch สั้น ๆ แต่ไม่นับเป็นสถานะที่อ่านได้ และต้องตรวจค่า N ไม่ใช่ N − 1
+        </div>
+        <h3>BCD counter 7490</h3>
+        <p>ภายในมีตัวหาร 2 (CLKA → Qa) กับตัวหาร 5 (CLKB → Qb Qc Qd) ต้องต่อ <b>Qa เข้า CLKB</b> จึงนับ BCD 4 บิต และ Qd คือ fin/10</p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>R0(1) R0(2)</th><th>R9(1) R9(2)</th><th>Qd Qc Qb Qa</th></tr></thead>
+            <tbody>
+              <tr><td>1 1</td><td>ไม่ใช่ 1 1</td><td class="txt">รีเซ็ตเป็น 0000</td></tr>
+              <tr><td>×</td><td>1 1</td><td class="txt">ตั้งเป็น 1001 (เลข 9)</td></tr>
+              <tr><td>ไม่ใช่ 1 1</td><td>ไม่ใช่ 1 1</td><td class="txt">นับ</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 28 -->
+      <section id="cnt-sync">
+        <h2><span class="num">28</span>Synchronous counter <a class="ref" href="topics/counters.html#sync">อ่านเพิ่ม</a></h2>
+        <p>ทุกตัวรับ clock เดียวกัน เกตควบคุมกำหนดว่าขอบนี้บิตไหนต้อง toggle <b>นับขึ้น</b> toggle เมื่อบิตต่ำกว่าทุกตัวเป็น 1 ส่วน<b>นับลง</b> toggle เมื่อบิตต่ำกว่าทุกตัวเป็น 0</p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>Flip-flop</th><th>นับขึ้น J = K</th><th>นับลง J = K</th><th>MOD-10 นับขึ้น J = K</th></tr></thead>
+            <tbody>
+              <tr><td>FFA</td><td>1</td><td>1</td><td>1</td></tr>
+              <tr><td>FFB</td><td>QA</td><td>QA′</td><td>QA QD′</td></tr>
+              <tr><td>FFC</td><td>QA QB</td><td>QA′ QB′</td><td>QA QB</td></tr>
+              <tr><td>FFD</td><td>QA QB QC</td><td>QA′ QB′ QC′</td><td>QA QB QC + QA QD</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top:10px;">MOD-10 แบบนี้ไม่ใช้ reset แต่ใช้เกตบังคับจาก 9 กลับ 0 ที่ขอบ clock จึงไม่มี glitch ส่วน t<sub>pd</sub> ของ flip-flop ยังมีอยู่ แต่ทุกบิตเปลี่ยนพร้อมกัน delay จึงไม่สะสม</p>
+      </section>
+
+      <!-- 29 -->
+      <section id="cnt-design">
+        <h2><span class="num">29</span>ออกแบบ Counter ตามลำดับ <a class="ref" href="exam.html#sub-cnt">ฝึกในแนวข้อสอบ</a></h2>
+        <ol>
+          <li><b>State diagram:</b> วาดลำดับสถานะ นับลงคือกลับลูกศรทุกเส้น</li>
+          <li><b>Next state table:</b> เขียน C B A กับ C⁺ B⁺ A⁺ แยกตารางนับขึ้นและนับลง สถานะที่ไม่ใช้เป็น × แล้วใช้ตารางด้านล่างหา input ของ flip-flop</li>
+          <li><b>K-map:</b> ทำ 1 ตารางต่อ 1 ขา (แถว BA คอลัมน์ C) ใช้ × ขยายกลุ่ม แล้วอ่านเป็นสมการ</li>
+          <li><b>วงจร:</b> ต่อ output ของเกตเข้าขาที่ชื่อตรงกัน ป้อน Q กลับเป็น input ของเกต ทุกตัวใช้ clock เดียวกัน</li>
+        </ol>
+        <p class="fill-sub">ตารางทวน Q → Q⁺</p>
+        <div class="table-scroll" id="cnt-ex"></div>
+        <div class="callout tip">
+          <b>จำให้ไว</b>
+          T: บิตเปลี่ยนใส่ 1 ไม่เปลี่ยนใส่ 0 · D: ค่าเท่ากับ Q⁺ · JK: Q = 0 ได้ K = × และ Q = 1 ได้ J = × · JK มี × มากที่สุด จึงมักได้สมการสั้นที่สุด
+        </div>
+        <h3>ตัวอย่าง: ลำดับ 0 → 5 → 3 → 7 → 4 → 0 ด้วย T flip-flop</h3>
+        <div class="cnt-rings" id="cnt-rings"></div>
+        <p class="fill-sub">Next state table คู่นับขึ้นกับนับลง</p>
+        <div class="table-scroll" id="cnt-pair"></div>
+        <p class="fill-sub">K-map นับขึ้น</p>
+        <div class="design-maps" id="cnt-maps-up"></div>
+        <p class="fill-sub">K-map นับลง</p>
+        <div class="design-maps" id="cnt-maps-down"></div>
+        <p class="fill-sub">สมการของลำดับนี้แยกตามชนิด flip-flop</p>
+        <div class="table-scroll" id="cnt-eqs"></div>
+        <p style="margin-top:10px;">สมการที่มี * คือ K-map ของขานั้นมีคำตอบอื่นที่น้อยเท่ากัน ตอบแบบอื่นได้ถ้าอ่านจากกลุ่มที่ถูกต้อง</p>
+        <div class="callout warn">
+          <b>ตรวจสถานะที่ไม่ใช้</b>
+          แทนสถานะ 1, 2, 6 ลงในสมการแล้วไล่ Q⁺ จนเข้าวง ถ้าไม่เข้าวงต้องเปลี่ยนการเลือก × หรือใช้ reset ให้เริ่มในวง
+        </div>
+      </section>
+
+      <!-- 30 -->
+      <section id="cnt-updown">
+        <h2><span class="num">30</span>Up/Down counter <a class="ref" href="topics/counters.html#updown">อ่านเพิ่ม</a></h2>
+        <p>เพิ่ม input <b>sw</b> เพื่อเลือกทิศ sw = 1 นับขึ้น และ sw = 0 นับลง นำสมการนับขึ้นทุกเทอม AND กับ sw นำสมการนับลงทุกเทอม AND กับ sw′ แล้ว OR รวมกัน</p>
+        <p class="mono" style="text-align:center;">สมการรวม = sw · (นับขึ้น) + sw′ · (นับลง)</p>
+        <p class="fill-sub">ตัวอย่างจากลำดับในหัวข้อ 29 ด้วย T flip-flop</p>
+        <div class="table-scroll" id="cnt-ud"></div>
+        <p style="margin-top:10px;">นับเลขฐานสอง 3 บิตด้วย T: <span class="mono">TA = 1 · TB = sw·A + sw′·A′ · TC = sw·BA + sw′·B′A′</span></p>
+      </section>
+
+      <!-- 31 -->
+      <section id="cnt-pitfalls">
+        <h2><span class="num">31</span>จุดที่พลาดบ่อยของ Counter</h2>
+        <div class="callout warn">
+          <ul style="margin: 0;">
+            <li>ดูทิศการนับ async โดยไม่ดูชนิดขอบ clock</li>
+            <li>ต่อ MOD-N ที่ค่า N − 1 (ต้องตรวจค่า N)</li>
+            <li>ใช้ AND กับ reset ที่เป็น active-low</li>
+            <li>นับค่า N เป็นสถานะที่อ่านได้</li>
+            <li>อ่านลำดับ C B A กลับด้าน หรือสลับแถวกับคอลัมน์ของ K-map</li>
+            <li>ลืมใส่ × ให้สถานะที่ไม่ใช้ ทำให้สมการยาว</li>
+            <li>ใช้ excitation ผิดชนิด โดยเฉพาะ SR กับ JK</li>
+            <li>ใช้สมการนับขึ้นกับตารางนับลง: ลำดับทั่วไปต้องทำ K-map ใหม่ทุกขา</li>
+            <li>ทำแค่ตารางนับขึ้น ทั้งที่โจทย์ถามทั้งสองทิศ</li>
+            <li>ลืมตรวจสถานะที่ไม่ใช้ ว่ากลับเข้าวงหรือไม่</li>
+          </ul>
+        </div>
+        <p>ฝึกทำได้ที่<a href="exam.html#sub-cnt">แนวข้อสอบวงจรนับ</a></p>
+      </section>
     </main>
   </div>
 
@@ -636,7 +966,7 @@
   <script>
     (function () {
       "use strict";
-      const { twoState, ffSymbol, shiftRegister, tocSpy, seg7, SEG7_HEX, SEG7_GLYPH, kmapPrimeInfo, kmapSOP, kmapSvg } = LK;
+      const { twoState, ffSymbol, shiftRegister, tocSpy, seg7, SEG7_HEX, SEG7_GLYPH, kmapPrimeInfo, kmapSOP, kmapSvg, muxArray, muxTree, counterChain, counterDesign, counterUpDown, counterRing, COUNTER_FF } = LK;
 
       const FSM = {
         sr: { up: "SR=10", down: "SR=01", loop0: "SR=00, 01", loop1: "SR=00, 10" },
@@ -678,6 +1008,35 @@
       const eqCell = (x) => `<td>${x.eq}${x.ties > 1 ? " *" : ""}</td>`;
       $("seg7-eqs").innerHTML = `<table class="tt"><thead><tr><th>ขีด</th><th>BCD 0–9 (× ที่ 10–15)</th><th>ครบ 0–F (ไม่มี ×)</th><th>แค่ A–F (× ที่ 0–9)</th></tr></thead><tbody>` +
         SEGS.map((s, k) => `<tr><td>${s}</td>${eqCell(BCD[k])}${eqCell(HEX[k])}${eqCell(AF[k])}</tr>`).join("") + "</tbody></table>";
+
+      // Multiplexer figures.
+      const addFig = (id, html) => $(id).insertAdjacentHTML("afterbegin", html);
+      const ROT_L = ["in3 in2 in1 in0", "in2 in1 in0 in3", "in1 in0 in3 in2", "in0 in3 in2 in1"].map((op) => op.split(" "));
+      addFig("sum-mux-tree", muxTree({ sel: ["s0", "s1", "s2"], data: ["d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7"] }));
+      addFig("sum-mux-array", muxArray([0, 1, 2, 3].map((i) => ROT_L.map((op) => op[i]))));
+      addFig("sum-ripple", counterChain({ names: ["QA", "QB", "QC"] }));
+
+      // Counter: the tables and equations are solved from the sequence, the same way as the exam drills.
+      const JUMP = [0, 5, 3, 7, 4], nextOf = (seq) => Object.fromEntries(seq.map((v, i) => [v, seq[(i + 1) % seq.length]]));
+      const b3 = (v) => v.toString(2).padStart(3, "0"), spaced = (v) => [...b3(v)].join(" ");
+      const TYPES = ["T", "D", "SR", "JK"], design = (seq) => Object.fromEntries(TYPES.map((t) => [t, counterDesign(3, nextOf(seq), t)]));
+      const UP = design(JUMP), DOWN = design([...JUMP].reverse());
+      const PINS = TYPES.flatMap((t) => COUNTER_FF[t].pins);
+      $("cnt-ex").innerHTML = `<table class="tt"><thead><tr><th>Q</th><th>Q⁺</th>${PINS.map((p) => `<th>${p}</th>`).join("")}</tr></thead><tbody>` +
+        [[0, 0], [0, 1], [1, 0], [1, 1]].map(([q, n]) => `<tr><td>${q}</td><td>${n}</td>${TYPES.flatMap((t) => [...COUNTER_FF[t].ex(q, n)]).map((c) => `<td>${c}</td>`).join("")}</tr>`).join("") + "</tbody></table>";
+      $("cnt-rings").innerHTML = [["นับขึ้น", JUMP], ["นับลง", [...JUMP].reverse()]].map(([cap, seq]) => `<figure>${counterRing(seq.map(b3))}<figcaption>${cap}</figcaption></figure>`).join("");
+      const halfCells = (r) => (r.next === null ? `<td>× × ×</td><td>× × ×</td>` : `<td>${spaced(r.next)}</td><td>${r.cells.join(" ")}</td>`);
+      $("cnt-pair").innerHTML = `<table class="tt" style="white-space:nowrap;"><thead><tr><th rowspan="2">C B A</th><th colspan="2">นับขึ้น</th><th colspan="2">นับลง</th></tr><tr><th>C⁺ B⁺ A⁺</th><th>TC TB TA</th><th>C⁺ B⁺ A⁺</th><th>TC TB TA</th></tr></thead><tbody>` +
+        UP.T.rows.map((r, i) => `<tr><td>${spaced(r.s)}</td>${halfCells(r)}${halfCells(DOWN.T.rows[i])}</tr>`).join("") + "</tbody></table>";
+      const mapsOf = (d) => d.outputs.map((o) => `<figure>${kmapSvg(3, o.cells, { groups: o.terms })}<figcaption>${o.name} = ${o.eq}</figcaption></figure>`).join("");
+      $("cnt-maps-up").innerHTML = mapsOf(UP.T);
+      $("cnt-maps-down").innerHTML = mapsOf(DOWN.T);
+      const eqList = (d) => d.outputs.map((o) => `${o.name} = ${o.eq}${o.alts.length ? " *" : ""}`).join("<br>");
+      $("cnt-eqs").innerHTML = `<table class="tt"><thead><tr><th>ชนิด</th><th>นับขึ้น</th><th>นับลง</th></tr></thead><tbody>` +
+        TYPES.map((t) => `<tr><td>${t}</td><td>${eqList(UP[t])}</td><td>${eqList(DOWN[t])}</td></tr>`).join("") + "</tbody></table>";
+      const UD = counterUpDown(UP.T, DOWN.T);
+      $("cnt-ud").innerHTML = `<table class="tt"><thead><tr><th>ขา</th><th>นับขึ้น</th><th>นับลง</th><th>สมการรวม</th></tr></thead><tbody>` +
+        UP.T.outputs.map((o, i) => `<tr><td>${o.name}</td><td>${o.eq}</td><td>${DOWN.T.outputs[i].eq}</td><td>${UD.text(UD.outputs[i])}</td></tr>`).join("") + "</tbody></table>";
 
       tocSpy(document.querySelector(".toc"));
     })();

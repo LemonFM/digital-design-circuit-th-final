@@ -428,6 +428,64 @@
     return `<svg class="schem" viewBox="-6 0 ${last + 90} ${railY[0] + 16}" role="img" aria-label="วงจร MUX 2 ต่อ 1 ซ้อนกัน">${wires}${bodies}</svg>`;
   }
 
+  // Counter built from a row of flip-flops, least significant bit on the left.
+  // type "jk" (J = K = 1 or the carry) or "d" (D = own Q′). clock "ripple" (each stage clocked by the previous one, from tap "Q" or "Qn")
+  // or "common" (with carry: J = K = the AND of all lower bits). reset: { gate: "and" | "nand", from: [bit indexes], pin: "R" | "Clr′" }.
+  function counterChain({ names, type = "jk", clock = "ripple", edge = "fall", tap = "Q", reset = null }) {
+    const INK = 'stroke="#16191d" stroke-width="2"';
+    const W = (net, d) => `<path class="wire" data-net="${net}" d="${d}"/>`;
+    const DOT = (net, x, y) => `<circle class="dot" data-net="${net}" cx="${x}" cy="${y}" r="3.5"/>`;
+    const TX = (str, x, y, anchor = "start") => `<text x="${x}" y="${y}" text-anchor="${anchor}">${str}</text>`;
+    const n = names.length, pitch = 220, xs = names.map((_, i) => 110 + pitch * i), yJ = 136, yK = 208, yCK = type === "d" ? 190 : 172, gy = 70;
+    const yR = 262, yClk = reset ? 292 : 262, qn = (i) => xs[i] + 128, bubble = edge === "fall";
+    let wires = "", top = "";
+    const ckEnd = (x) => (bubble ? x - 10 : x);
+    if (clock === "ripple") wires += W("CLK", `M34 ${yCK} H${ckEnd(xs[0])}`) + TX("CLK", 28, yCK + 5, "end");
+    else wires += W("CLK", `M34 ${yClk} H${xs[n - 1] - 14}`) + TX("CLK", 28, yClk + 5, "end");
+    if (type === "jk" && clock === "ripple") wires += W("1", `M34 84 H${xs[n - 1] - 30}`) + TX("1", 28, 89, "end");
+    names.forEach((name, i) => {
+      const x = xs[i], nx = xs[i + 1], feed = (net) => W(net, `M${x - 30} ${yJ} H${x}`) + W(net, `M${x - 30} ${yJ} V${yK} H${x}`);
+      if (type === "d") wires += W(`${name}′`, `M${x + 104} ${yK} H${x + 118} V96 H${x - 22} V${yJ} H${x}`);
+      else if (clock === "ripple") wires += W("1", `M${x - 30} 84 V${yK} H${x}`) + W("1", `M${x - 30} ${yJ} H${x}`) + DOT("1", x - 30, 84) + DOT("1", x - 30, yJ);
+      else if (i === 0) wires += W("1", `M${x - 30} 84 V${yK} H${x}`) + W("1", `M${x - 30} ${yJ} H${x}`) + DOT("1", x - 30, yJ) + TX("1", x - 30, 76, "middle");
+      else if (i === 1) wires += W(names[0], `M${qn(0)} ${yJ} H${x - 30}`) + W(names[0], `M${x - 30} ${yJ} V${yK} H${x}`) + W(names[0], `M${x - 30} ${yJ} H${x}`) + DOT(names[0], x - 30, yJ);
+      else {
+        const gx = x - 78, prev = xs[i - 1] - 30, carry = i === 2 ? names[0] : `C${i - 1}`;
+        wires += W(`C${i}`, `M${gx + 39} ${gy + 15} H${x - 30} V${yK} H${x}`) + W(`C${i}`, `M${x - 30} ${yJ} H${x}`) + DOT(`C${i}`, x - 30, yJ);
+        wires += W(carry, `M${prev} ${i === 2 ? yJ : gy + 15} V${gy + 8} H${gx}`) + DOT(carry, prev, i === 2 ? yJ : gy + 15);
+        wires += W(names[i - 1], `M${qn(i - 1)} ${gy + 22} H${gx}`) + DOT(names[i - 1], qn(i - 1), gy + 22);
+        top += `<path d="M${gx} ${gy} H${gx + 24} A15 15 0 0 1 ${gx + 24} ${gy + 30} H${gx} Z" fill="#fff" ${INK}/>`;
+      }
+      wires += W(name, `M${x + 104} ${yJ} H${qn(i)} V32`) + `<path class="dot" data-net="${name}" d="M${qn(i)} 26 l-5 9 h10 z"/>` + TX(name, qn(i), 20, "middle");
+      if (clock === "common") wires += W("CLK", `M${x - 14} ${yClk} V${yCK} H${ckEnd(x)}`) + (i < n - 1 ? DOT("CLK", x - 14, yClk) : "");
+      else if (nx !== undefined) {
+        if (type === "d") wires += W(`${name}′`, `M${x + 118} ${yK} H${nx - 26} V${yCK} H${ckEnd(nx)}`) + DOT(`${name}′`, x + 118, yK);
+        else if (tap === "Q") wires += W(name, `M${qn(i)} ${yJ} V${yCK} H${ckEnd(nx)}`) + DOT(name, qn(i), yJ);
+        else wires += W(`${name}′`, `M${x + 104} ${yK} H${x + 150} V${yCK} H${ckEnd(nx)}`);
+      }
+      top += `<rect x="${x}" y="112" width="104" height="120" fill="#fff" ${INK}/>`;
+      top += `<path d="M${x} ${yCK - 7} L${x + 10} ${yCK} L${x} ${yCK + 7}" fill="none" ${INK}/>`;
+      if (bubble) top += `<circle cx="${x - 5}" cy="${yCK}" r="5" fill="#fff" ${INK}/>`;
+      top += type === "d" ? TX("D", x + 8, yJ + 5) : TX("J", x + 8, yJ + 5) + TX("K", x + 8, yK + 5);
+      top += TX("CK", x + 15, yCK + 5) + TX("Q", x + 96, yJ + 5, "end") + TX("Q′", x + 96, yK + 5, "end");
+    });
+    if (reset) {
+      const gx = xs[n - 1] + 176, low = reset.gate === "nand", outX = gx + (low ? 50 : 40);
+      [...reset.from].forEach((b, k) => { const y = 42 + 16 * k; wires += W(names[b], `M${qn(b)} ${y} H${gx}`) + DOT(names[b], qn(b), y); });
+      wires += W("RST", `M${outX} 50 H${gx + 72} V${yR} H${xs[0] + 52}`);
+      top += `<path d="M${gx} 34 H${gx + 24} A16 16 0 0 1 ${gx + 24} 66 H${gx} Z" fill="#fff" ${INK}/>`;
+      if (low) top += `<circle cx="${gx + 45}" cy="50" r="5" fill="#fff" ${INK}/>`;
+      names.forEach((_, i) => {
+        const px = xs[i] + 52;
+        wires += W("RST", `M${px} ${yR} V${low ? 242 : 232}`) + (i ? DOT("RST", px, yR) : "");
+        top += TX(reset.pin, px, 226, "middle");
+        if (low) top += `<circle cx="${px}" cy="237" r="5" fill="#fff" ${INK}/>`;
+      });
+    }
+    const width = (reset ? xs[n - 1] + 262 : xs[n - 1] + 150), height = clock === "common" || reset ? yClk + 14 : 244;
+    return `<svg class="schem" viewBox="-30 0 ${width + 30} ${height}" role="img" aria-label="วงจรนับจาก flip-flop">${wires}${top}</svg>`;
+  }
+
   // ---------- Karnaugh maps (variables D C B A, rows BA, columns DC) ----------
 
   const KMAP_VARS = ["D", "C", "B", "A"];
@@ -598,7 +656,7 @@
 
   // Vertical rails (each input and its complement), first-level gates, then an OR per output.
   function railCircuit(cfg) {
-    const { inputs, outputs, pitch = 22, compact = false } = cfg, used = new Set(outputs.flatMap((o) => (o.terms || []).flatMap(litsOf)));
+    const { inputs, outputs, pitch = 22, compact = false, stages = null } = cfg, used = new Set(outputs.flatMap((o) => (o.terms || []).flatMap(litsOf)));
     const rail = {}, wires = [], gates = [], labels = [], dots = [], reach = {};
     let x = 20;
     inputs.forEach((n) => { rail[n] = x; x += pitch; if (used.has(`${n}′`)) { rail[`${n}′`] = x; x += pitch; } x += 6; });
@@ -609,15 +667,22 @@
     const tap = (lit, y) => { dots.push(`<circle class="dot" data-net="${esc(lit)}" cx="${rail[lit]}" cy="${y}" r="3.5"/>`); reach[lit] = Math.max(reach[lit] || 0, y); };
     const PINS = compact ? { 2: [6, 18], 3: [4, 12, 20], 4: [3, 9, 15, 21] } : { 2: [10, 30], 3: [8, 20, 32], 4: [5, 15, 25, 35] };
     let y = hasNot ? 92 : 40;
+    // With stages, each output ends on a flip-flop pin instead of an arrow and label; extra room keeps the boxes apart.
+    const pinY = {}, lastOf = new Set((stages || []).map((s) => s.outs.at(-1))), wireEnd = stages ? outX : outX - 6;
+    const finish = (o, cy) => {
+      if (stages) { pinY[o.name] = cy; return; }
+      dots.push(`<path class="dot" data-net="${esc(o.name)}" d="M${outX - 8} ${cy - 5} L${outX} ${cy} L${outX - 8} ${cy + 5} Z"/>`);
+      labels.push(`<text x="${outX + 6}" y="${cy + 5}">${esc(o.name)}</text>`);
+    };
+    const stageGap = (o) => (lastOf.has(o.name) ? 34 : 0);
 
     outputs.forEach((o) => {
       if (o.constant !== undefined) { // tied to 0 or 1: no gates, just the fixed level
         const cy = y + 14;
         labels.push(`<text x="${gx}" y="${cy + 5}">${o.constant}</text>`);
-        W(o.name, `M${gx + 14} ${cy} H${outX - 6}`);
-        dots.push(`<path class="dot" data-net="${esc(o.name)}" d="M${outX - 8} ${cy - 5} L${outX} ${cy} L${outX - 8} ${cy + 5} Z"/>`);
-        labels.push(`<text x="${outX + 6}" y="${cy + 5}">${esc(o.name)}</text>`);
-        y += 42;
+        W(o.name, `M${gx + 14} ${cy} H${wireEnd}`);
+        finish(o, cy);
+        y += 42 + stageGap(o);
         return;
       }
       const slots = o.terms.map((t) => (Array.isArray(t) ? slot : 18)), height = Math.max(44, slots.reduce((a, b) => a + b, 0));
@@ -639,22 +704,21 @@
       });
       if (n === 1) {
         const r = routes[0];
-        W(o.name, `M${r.sx} ${r.wy} H${outX - 6}`);
+        W(o.name, `M${r.sx} ${r.wy} H${wireEnd}`);
       } else {
         const above = routes.filter((r) => r.wy < r.pin), below = routes.filter((r) => r.wy > r.pin).reverse();
         [above, below].forEach((side) => side.forEach((r, rank) => (r.bx = ox - 8 - 12 * rank)));
         routes.forEach((r) => W(r.net, r.wy === r.pin ? `M${r.sx} ${r.wy} H${ox + 8}` : `M${r.sx} ${r.wy} H${r.bx} V${r.pin} H${ox + 8}`));
         gates.push(gate("or", ox, cy - 20));
-        W(o.name, `M${ox + 46} ${cy} H${outX - 6}`);
+        W(o.name, `M${ox + 46} ${cy} H${wireEnd}`);
       }
-      dots.push(`<path class="dot" data-net="${esc(o.name)}" d="M${outX - 8} ${cy - 5} L${outX} ${cy} L${outX - 8} ${cy + 5} Z"/>`);
-      labels.push(`<text x="${outX + 6}" y="${cy + 5}">${esc(o.name)}</text>`);
-      y += height + 14;
+      finish(o, cy);
+      y += height + 14 + stageGap(o);
     });
 
     inputs.forEach((n) => {
       const px = rail[n], rn = rail[`${n}′`];
-      labels.push(`<text x="${px}" y="16" text-anchor="middle">${esc(n)}</text>`);
+      labels.push(stages ? `<text x="${px + 5}" y="20">${esc(n)}</text>` : `<text x="${px}" y="16" text-anchor="middle">${esc(n)}</text>`);
       W(n, `M${px} 24 V${Math.max(reach[n] || 0, 34)}`);
       if (rn === undefined) return;
       if (reach[n] > 34) dots.push(`<circle class="dot" data-net="${esc(n)}" cx="${px}" cy="34" r="3.5"/>`);
@@ -663,6 +727,25 @@
       W(`${n}′`, `M${rn} 68 V${reach[`${n}′`]}`);
       labels.push(`<text class="cc-not" x="${rn + 4}" y="82">${esc(n)}′</text>`);
     });
+    if (stages) {
+      const boxW = 72, bus = outX - 12, right = outX + boxW, climb = (i) => -12 - 11 * i, cks = [];
+      stages.forEach((st, i) => {
+        const ys = st.outs.map((nm) => pinY[nm]), top = ys[0] - 22, bottom = ys.at(-1) + 42, ck = bottom - 14, qy = top + 18;
+        gates.push(`<g class="gate"><rect x="${outX}" y="${top}" width="${boxW}" height="${bottom - top}"/><path d="M${outX} ${ck - 6} L${outX + 9} ${ck} L${outX} ${ck + 6}" style="fill:none"/></g>`);
+        st.labels.forEach((p, j) => labels.push(`<text class="cc-not" x="${outX + 6}" y="${ys[j] + 4}">${esc(p)}</text>`));
+        labels.push(`<text class="cc-not" x="${outX + 13}" y="${ck + 4}">CK</text>`, `<text class="cc-not" x="${right - 6}" y="${qy + 4}" text-anchor="end">Q</text>`);
+        W("CLK", `M${bus} ${ck} H${outX}`);
+        cks.push(ck);
+        const fx = right + 16 + 12 * i;
+        W(st.q, `M${right} ${qy} H${fx} V${climb(i)} H${rail[st.q]} V24`);
+      });
+      const end = cks.at(-1) + 26;
+      W("CLK", `M${bus} ${end} V${cks[0]}`);
+      cks.slice(1).forEach((ck) => dots.push(`<circle class="dot" data-net="CLK" cx="${bus}" cy="${ck}" r="3.5"/>`));
+      labels.push(`<text x="${bus - 6}" y="${end + 5}" text-anchor="end">CLK</text>`);
+      const fullW = right + 24 + 12 * stages.length, topY = climb(stages.length);
+      return `<svg class="schem rail sim-schem" viewBox="0 ${topY} ${fullW} ${end + 14 - topY}" role="img" aria-label="วงจรเกตต่อกับ flip-flop">${wires.join("")}${dots.join("")}${gates.join("")}${labels.join("")}</svg>`;
+    }
     const wide = Math.max(...outputs.map((o) => o.name.length));
     return `<svg class="schem rail sim-schem" viewBox="0 0 ${outX + 14 + wide * 10} ${y - 4}" role="img" aria-label="วงจรเกต">${wires.join("")}${dots.join("")}${gates.join("")}${labels.join("")}</svg>`;
   }
@@ -674,6 +757,89 @@
     if (cubes.some((c) => !lits(c).length)) return { name, constant: 1 };
     return { name, terms: cubes.map((c) => (lits(c).length === 1 ? lits(c)[0] : ["and", ...lits(c)])) };
   }
+
+  // ---------- Counter design ----------
+
+  const COUNTER_FF = {
+    T: { pins: ["T"], ex: (q, n) => [q ^ n], next: (q, v) => q ^ v.T },
+    SR: { pins: ["S", "R"], ex: (q, n) => [["0×", "10"], ["01", "×0"]][q][n], next: (q, v) => (v.S ? 1 : v.R ? 0 : q) },
+    JK: { pins: ["J", "K"], ex: (q, n) => [["0×", "1×"], ["×1", "×0"]][q][n], next: (q, v) => (v.J && v.K ? 1 - q : v.J ? 1 : v.K ? 0 : q) },
+    D: { pins: ["D"], ex: (q, n) => [n], next: (q, v) => v.D },
+  };
+  const sortedEq = (eq) => eq.split(" + ").sort().join(" + ");
+
+  // next: { state: next state }, states left out become ×. prefer picks one answer by output name when a K-map has several.
+  function counterDesign(n, next, type, prefer = {}) {
+    const f = COUNTER_FF[type], names = kmapNames(n), size = 1 << n, bits = names.map((b, k) => [b, n - 1 - k]);
+    const rows = Array.from({ length: size }, (_, s) => {
+      if (!(s in next)) return { s, next: null, cells: null };
+      const cells = bits.flatMap(([, p]) => { const e = f.ex((s >> p) & 1, (next[s] >> p) & 1); return f.pins.map((_, j) => String(e[j])); });
+      return { s, next: next[s], cells };
+    });
+    const outputs = [];
+    bits.forEach(([b], bi) => f.pins.forEach((pin, j) => {
+      const col = bi * f.pins.length + j, ones = [], dcs = [];
+      rows.forEach((r) => { const v = r.cells ? r.cells[col] : "×"; if (v === "1") ones.push(r.s); else if (v === "×") dcs.push(r.s); });
+      const info = kmapPrimeInfo(n, ones, dcs), all = info.choices.map((c) => [...info.essential, ...c]), name = pin + b;
+      const pick = all.find((t) => prefer[name] && sortedEq(kmapSOP(n, t)) === sortedEq(prefer[name])) || all[0];
+      outputs.push({ name, pin, bit: b, ones, dcs, terms: pick, eq: kmapSOP(n, pick), alts: all.map((t) => kmapSOP(n, t)).filter((e) => e !== kmapSOP(n, pick)),
+        cells: Array.from({ length: size }, (_, i) => (ones.includes(i) ? "1" : dcs.includes(i) ? "×" : "0")) });
+    }));
+    const circuit = { inputs: names, pitch: 24, compact: n > 3, outputs: outputs.map((o) => kmapRailOutput(n, o.name, o.terms)) };
+    const step = (s, cfg = circuit, extra = {}) => {
+      const lv = circuitLevels(cfg, { ...extra, ...Object.fromEntries(bits.map(([b, p]) => [b, (s >> p) & 1])) });
+      let out = 0, clash = false;
+      bits.forEach(([b, p]) => { const v = Object.fromEntries(f.pins.map((pin) => [pin, lv[pin + b]])); if (type === "SR" && v.S && v.R) clash = true; out |= f.next((s >> p) & 1, v) << p; });
+      return { next: out, clash };
+    };
+    return { n, type, f, names, bits, rows, outputs, circuit, step };
+  }
+
+  // Up/down from two designs of the same type: every output becomes sw·(up) + sw′·(down), term by term.
+  function counterUpDown(up, down) {
+    const lits = (c) => { const n = up.n; return up.names.flatMap((x, k) => { const b = 1 << (n - 1 - k); return c.m & b ? [] : [c.v & b ? x : `${x}′`]; }); };
+    const outputs = up.outputs.map((o, i) => {
+      const d = down.outputs[i], both = [[o, "sw"], [d, "sw′"]];
+      if (o.eq === "1" && d.eq === "1") return { name: o.name, constant: 1 };
+      const terms = both.flatMap(([x, s]) => x.terms.map((c) => { const t = [s, ...lits(c)]; return t.length === 1 ? s : ["and", ...t]; }));
+      return terms.length ? { name: o.name, terms } : { name: o.name, constant: 0 };
+    });
+    const text = (o) => (o.constant !== undefined ? String(o.constant) : o.terms.map((t) => (Array.isArray(t) ? t.slice(1).join("·") : t)).join(" + "));
+    return { outputs, text, circuit: { inputs: ["sw", ...up.names], pitch: 22, compact: true, outputs } };
+  }
+
+  // Ring-shaped state diagram; arrows follow the order of `states`.
+  function counterRing(states) {
+    const R = 16 + 24 * Math.max(states.length, 3) / Math.PI, r = 25, size = 2 * (R + r + 6), c = size / 2;
+    const at = (i) => { const t = -Math.PI / 2 + (2 * Math.PI * i) / states.length; return [c + R * Math.cos(t), c + R * Math.sin(t)]; };
+    const arrows = states.map((_, i) => {
+      const [x1, y1] = at(i), [x2, y2] = at((i + 1) % states.length), d = Math.hypot(x2 - x1, y2 - y1), ux = (x2 - x1) / d, uy = (y2 - y1) / d;
+      const ex = x2 - ux * (r + 2), ey = y2 - uy * (r + 2);
+      return `<line x1="${x1 + ux * r}" y1="${y1 + uy * r}" x2="${ex}" y2="${ey}" stroke="#16191d" stroke-width="2"/><path fill="#16191d" d="M${ex + ux * 2} ${ey + uy * 2} l${-ux * 10 - uy * 5} ${-uy * 10 + ux * 5} l${uy * 10} ${-ux * 10} z"/>`;
+    }).join("");
+    const nodes = states.map((s, i) => { const [x, y] = at(i); return `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" stroke="#16191d" stroke-width="2"/><text x="${x}" y="${y + 5}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="${String(s).length > 3 ? 13 : 15}" font-weight="600" fill="#16191d">${s}</text>`; }).join("");
+    return `<svg class="cc-ring" viewBox="0 0 ${size} ${size}" style="max-width:${Math.round(size)}px" role="img" aria-label="state diagram">${arrows}${nodes}</svg>`;
+  }
+
+  // The flip-flops alone, given with a design question: each input pin carries the name of the gate output that must drive it.
+  function counterFlipFlops(design) {
+    const INK = 'stroke="#16191d" stroke-width="2"', { names, f } = design, pins = f.pins, h = 40 + 36 * Math.max(pins.length, 2), pitch = 236;
+    const LINE = (d) => `<path d="${d}" fill="none" stroke="#16191d" stroke-width="2"/>`, TX = (t, x, y, a = "start") => `<text x="${x}" y="${y}" text-anchor="${a}">${t}</text>`;
+    let s = "";
+    names.forEach((b, i) => {
+      const x = 70 + pitch * i, y0 = 16, ck = y0 + h - 18;
+      s += `<rect x="${x}" y="${y0}" width="96" height="${h}" fill="#fff" ${INK}/>` + `<path d="M${x} ${ck - 7} L${x + 10} ${ck} L${x} ${ck + 7}" fill="none" ${INK}/>` + TX("CK", x + 15, ck + 5);
+      pins.forEach((p, k) => { const y = y0 + 22 + k * 34; s += LINE(`M${x - 30} ${y} H${x}`) + TX(`${p}${b}`, x - 34, y + 5, "end") + TX(p, x + 8, y + 5); });
+      s += LINE(`M${x + 96} ${y0 + 22} H${x + 122}`) + TX(b, x + 126, y0 + 27) + LINE(`M${x + 96} ${y0 + 56} H${x + 122}`) + TX(`${b}′`, x + 126, y0 + 61) + TX("Q", x + 88, y0 + 27, "end") + TX("Q′", x + 88, y0 + 61, "end");
+      s += LINE(`M${x - 14} ${ck} H${x}`) + LINE(`M${x - 14} ${ck} V${y0 + h + 24}`) + (i < names.length - 1 ? `<circle cx="${x - 14}" cy="${y0 + h + 24}" r="3.5" fill="#16191d"/>` : "");
+    });
+    const yBus = 16 + h + 24, width = 70 + pitch * names.length;
+    s += LINE(`M56 ${yBus} H${70 + pitch * (names.length - 1) - 14}`) + TX("CLK", 50, yBus + 5, "end");
+    return `<svg class="schem rail-ff" viewBox="0 0 ${width} ${yBus + 14}" role="img" aria-label="flip-flop ที่โจทย์ให้มา">${s}</svg>`;
+  }
+
+  // Attach the flip-flops of a design to a gate circuit, for one fully wired drawing.
+  const withFlipFlops = (cfg, design) => ({ ...cfg, compact: true, pitch: Math.min(cfg.pitch, 22), stages: design.names.map((b) => ({ q: b, outs: design.f.pins.map((p) => p + b), labels: design.f.pins })) });
 
   // ---------- Exercises ----------
 
@@ -815,6 +981,6 @@
 
   global.LK = {
     NOT, AND, OR, NAND, NOR, settle, label, gate, schematic, setLevels, wave, fitStep, tocSpy,
-    steps, pulses, isEdge, simulate, byQ, twoState, ffSymbol, shiftRegister, shifterCircuit, muxArray, muxTree, kmapPrimes, kmapPrimeInfo, kmapPowerSet, kmapCover, kmapTerm, kmapSOP, kmapPOS, kmapSvg, kmapNames, inCube, KMAP_COLORS, SEG7_HEX, SEG7_GLYPH, seg7, circuitLevels, railCircuit, kmapRailOutput, exercises, ffSim,
+    steps, pulses, isEdge, simulate, byQ, twoState, ffSymbol, shiftRegister, shifterCircuit, muxArray, muxTree, counterChain, kmapPrimes, kmapPrimeInfo, kmapPowerSet, kmapCover, kmapTerm, kmapSOP, kmapPOS, kmapSvg, kmapNames, inCube, KMAP_COLORS, SEG7_HEX, SEG7_GLYPH, seg7, circuitLevels, railCircuit, kmapRailOutput, COUNTER_FF, counterDesign, counterUpDown, counterRing, counterFlipFlops, withFlipFlops, exercises, ffSim,
   };
 })(window);

@@ -390,29 +390,30 @@
         <figure class="figure wide" id="mux8-tree"><figcaption>MUX 8-to-1 จาก MUX 2-to-1 เจ็ดตัว: s0 เลือกในคู่ s1 เลือกคู่ และ s2 เลือกครึ่งบนหรือครึ่งล่าง</figcaption></figure>
         <h3>การใช้งาน MUX</h3>
         <p><b>Multi-bit MUX:</b> ใช้ select ชุดเดียวคุม MUX หลายบิตพร้อมกัน เพื่อเลือกข้อมูลทั้ง word</p>
-        <div class="two-col">
-          <div class="table-scroll">
-            <table class="tt">
-              <thead><tr><th>s1 s0</th><th>Barrel shifter</th><th>Output 3 2 1 0</th></tr></thead>
-              <tbody>
-                <tr><td>00</td><td class="txt">ไม่หมุน</td><td>in3 in2 in1 in0</td></tr>
-                <tr><td>01</td><td class="txt">หมุนซ้าย 1</td><td>in2 in1 in0 in3</td></tr>
-                <tr><td>10</td><td class="txt">หมุนซ้าย 2</td><td>in1 in0 in3 in2</td></tr>
-                <tr><td>11</td><td class="txt">หมุนซ้าย 3</td><td>in0 in3 in2 in1</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="table-scroll">
-            <table class="tt">
-              <thead><tr><th>s1 s0</th><th>4-bit shifter</th><th>Output 3 2 1 0</th></tr></thead>
-              <tbody>
-                <tr><td>00</td><td class="txt">ผ่านตรง</td><td>in3 in2 in1 in0</td></tr>
-                <tr><td>01</td><td class="txt">เลื่อนซ้าย เติม 0</td><td>in2 in1 in0 0</td></tr>
-                <tr><td>10</td><td class="txt">เลื่อนขวา เติม 0</td><td>0 in3 in2 in1</td></tr>
-                <tr><td>11</td><td class="txt">หมุนขวา</td><td>in0 in3 in2 in1</td></tr>
-              </tbody>
-            </table>
-          </div>
+        <p>ทุก MUX เลือกช่องเลขเดียวกันพร้อมกัน ค่าที่ออกต่างกันเพราะแต่ละช่องต่อสายไว้ไม่เหมือนกัน คำว่าหมุนหรือเลื่อนคือผลที่เห็นเมื่อดู output รวมกัน</p>
+        <p class="fill-sub">Barrel shifter</p>
+        <div class="table-scroll">
+          <table class="tt" style="white-space:nowrap;">
+            <thead><tr><th>s1 s0</th><th>เลือกช่อง</th><th>out3 out2 out1 out0</th><th>ผลที่เห็น</th></tr></thead>
+            <tbody>
+              <tr><td>00</td><td>0</td><td>in3 in2 in1 in0</td><td class="txt">ไม่หมุน</td></tr>
+              <tr><td>01</td><td>1</td><td>in2 in1 in0 in3</td><td class="txt">หมุนซ้าย 1</td></tr>
+              <tr><td>10</td><td>2</td><td>in1 in0 in3 in2</td><td class="txt">หมุนซ้าย 2</td></tr>
+              <tr><td>11</td><td>3</td><td>in0 in3 in2 in1</td><td class="txt">หมุนซ้าย 3</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="fill-sub">4-bit shifter</p>
+        <div class="table-scroll">
+          <table class="tt" style="white-space:nowrap;">
+            <thead><tr><th>s1 s0</th><th>เลือกช่อง</th><th>out3 out2 out1 out0</th><th>ผลที่เห็น</th></tr></thead>
+            <tbody>
+              <tr><td>00</td><td>0</td><td>in3 in2 in1 in0</td><td class="txt">ผ่านตรง</td></tr>
+              <tr><td>01</td><td>1</td><td>in2 in1 in0 0</td><td class="txt">เลื่อนซ้าย เติม 0</td></tr>
+              <tr><td>10</td><td>2</td><td>0 in3 in2 in1</td><td class="txt">เลื่อนขวา เติม 0</td></tr>
+              <tr><td>11</td><td>3</td><td>in0 in3 in2 in1</td><td class="txt">หมุนขวา</td></tr>
+            </tbody>
+          </table>
         </div>
         <p style="margin-top:10px;">ทั้งสองวงจรใช้ MUX 4-to-1 หนึ่งตัวต่อบิต ไม่มี flip-flop และไม่ใช้ clock ต่างจาก <a href="shift-registers.html">shift register</a> ที่เก็บค่าไว้และเลื่อนทีละ clock</p>
       </section>
@@ -489,8 +490,9 @@
             <li>คิดว่า shifter ที่ใช้ MUX ต้องมี clock</li>
           </ul>
         </div>
-        <nav class="pager" aria-label="หัวข้อก่อนหน้า">
+        <nav class="pager" aria-label="หัวข้อก่อนหน้าและถัดไป">
           <a href="k-map.html"><small>← ก่อนหน้า</small>K-map</a>
+          <a class="next" href="counters.html"><small>ถัดไป →</small>Counter Circuits</a>
         </nav>
       </section>
     </main>
