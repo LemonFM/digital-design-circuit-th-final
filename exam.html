@@ -131,6 +131,10 @@
         { t: "sync", q: "Synchronous reset ทำให้ Q = 0 เมื่อใด", o: ["ทันทีที่ reset ทำงาน", "ที่ขอบ clock ถัดไปขณะ reset ทำงาน", "เมื่อ D = 0 เท่านั้น", "เมื่อ clock = 0"], a: 1, e: "synchronous ต้องรอขอบ clock" },
         { t: "sync", q: "Asynchronous clear (ClrN) ทำให้ Q = 0 เมื่อใด", o: ["ทันทีที่ ClrN = 0", "ที่ขอบขาขึ้นถัดไป", "เมื่อ ClrN = 1", "เมื่อ D = 0"], a: 0, e: "asynchronous ไม่รอ clock และเป็น active-low" },
         { t: "sync", q: "D FF ขอบขาขึ้นที่มี PreN, ClrN ถ้า PreN = 0, ClrN = 1 แล้วเกิดขอบขณะ D = 0 จะได้ Q เท่าไร", o: ["0", "1", "คงเดิม", "ไม่แน่นอน"], a: 1, e: "Preset มีสิทธิ์เหนือกว่า clock" },
+        { t: "sync", q: "SR flip-flop ขอบขาขึ้นที่มี PreN, ClrN ถ้า PreN = 0, ClrN = 1 แล้วเกิดขอบขณะ S = R = 1 จะได้ Q เท่าไร", o: ["1", "0", "ไม่แน่นอน", "คงเดิม"], a: 0, e: "PreN = 0 บังคับ Q = 1 ทันที ขอบ clock และ SR = 11 จึงไม่มีผล" },
+        { t: "sync", q: "SR flip-flop ขอบขาขึ้น ถ้า S = R = 1 เฉพาะระหว่างขอบ แล้วกลับเป็น SR = 00 ก่อนขอบถัดไป จะเกิดอะไรขึ้น", o: ["ไม่มีผล Q คงเดิม", "Q ไม่แน่นอนทันที", "Q = 1", "Q = 0"], a: 0, e: "S, R เป็น synchronous input ดูเฉพาะ ณ ขอบ" },
+        { t: "sync", q: "ใน SR flip-flop ที่มี PreN, ClrN ข้อใดเป็น asynchronous input ทั้งหมด", o: ["S และ R", "PreN และ ClrN", "S, R และ clock", "S, R, PreN และ ClrN"], a: 1, e: "S, R มีผลเฉพาะที่ขอบ ส่วน PreN, ClrN มีผลทันที" },
+        { t: "sync", q: "SR flip-flop เกิดขอบที่ SR = 11 จน Q ไม่แน่นอน วิธีใดทำให้รู้ค่า Q ได้ทันทีโดยไม่รอ clock", o: ["ให้ ClrN (หรือ PreN) = 0 สั้น ๆ", "ให้ SR = 00", "ให้ SR = 10", "หยุด clock"], a: 0, e: "SR = 10 ก็ได้ Q = 1 แต่ต้องรอขอบถัดไป ส่วน SR = 00 คงค่าไม่แน่นอนไว้" },
         { t: "sync", q: "D FF ที่มี synchronous clear แบบ active-high (SCLR) ต้องต่อขา D ของ flip-flop เป็นอะไร", o: ["D · SCLR′", "D + SCLR", "D ⊕ SCLR", "SCLR′"], a: 0, e: "SCLR = 1 ได้ 0 เข้าขา D จึงได้ Q = 0 ที่ขอบ" },
         { t: "sync", q: "D FF ที่มี synchronous preset แบบ active-high (SPRE) ต้องต่อขา D เป็นอะไร", o: ["D + SPRE", "D · SPRE′", "D ⊕ SPRE", "SPRE′"], a: 0, e: "SPRE = 1 ได้ 1 เข้าขา D จึงได้ Q = 1 ที่ขอบ" },
         { t: "sync", q: "ทำไมระบบดิจิทัลส่วนใหญ่ออกแบบเป็น synchronous (ทุก flip-flop ใช้ clock ร่วมกัน)", o: ["ทุกตัวเปลี่ยนพร้อมกันเป็นจังหวะ วิเคราะห์ timing ได้ง่าย", "ไม่ต้องใช้ clock", "ใช้ไฟน้อยกว่าเสมอ", "ไม่ต้องสนใจ setup time"], a: 0, e: "ยังต้องสนใจ setup/hold time" },
@@ -171,6 +175,8 @@
         ["jd", "J = DQ′, K = D′Q ก็ทำให้ JK ทำงานเป็น D ได้", true, "ใช้ได้แต่ไม่ minimal (ไม่ได้ใช้ ×)"],
         ["sync", "Synchronous input มีผลทันทีโดยไม่รอ clock", false, "ตัวที่มีผลทันทีคือ asynchronous"],
         ["sync", "PreN และ ClrN เป็น asynchronous input แบบ active-low", true, "N และวงกลมที่ขาหมายถึง active-low"],
+        ["sync", "S และ R ของ SR flip-flop แบบ edge-triggered เป็น synchronous input", true, "มีผลเฉพาะที่ขอบ clock"],
+        ["sync", "SR flip-flop ที่ PreN = 0 อยู่ ถ้าเกิดขอบขณะ S = R = 1 จะได้ Q ไม่แน่นอน", false, "PreN มีสิทธิ์เหนือกว่า จึงได้ Q = 1"],
         ["sync", "ถ้า ClrN = 0 อยู่ ขอบ clock ก็ยังทำให้ Q = D ได้", false, "Clear มีสิทธิ์เหนือกว่า"],
         ["sync", "Synchronous reset ทำให้ Q = 0 ที่ขอบ clock ถัดไปเมื่อ reset ทำงาน", true, "เพราะผ่านทางขา D"],
         ["sync", "พอ ClrN กลับเป็น 1 แล้ว Q จะกลับไปเป็นค่าก่อนถูก clear ทันที", false, "Q ค้างที่ 0 จนถึงขอบถัดไป"],
@@ -454,6 +460,9 @@
           { kind: "fill", q: "เติม Q⁺ ของ D flip-flop ขอบขาขึ้นที่มี PreN, ClrN (asynchronous, Q = ค่าเดิม)", head: ["Ck", "D", "PreN", "ClrN", "Q", "Q⁺"],
             rows: [["×", "×", "0", "0", "×", f("ห้ามใช้", AN)], ["×", "×", "0", "1", "0", f("1", AN)], ["↑", "1", "1", "0", "1", f("0", AN)], ["↑", "0", "1", "1", "1", f("0", AN)], ["↑", "1", "1", "1", "0", f("1", AN)], ["↓", "0", "1", "1", "1", f("1", AN)], ["0", "1", "1", "1", "0", f("0", AN)]],
             note: "Preset/Clear มาก่อน clock · ไม่ใช่ขอบขาขึ้นจึงคงค่า Q เดิม" },
+          { kind: "fill", q: "เติม Q⁺ ของ SR flip-flop ขอบขาขึ้นที่มี PreN, ClrN (asynchronous, Q = ค่าเดิม)", head: ["Ck", "S", "R", "PreN", "ClrN", "Q", "Q⁺"],
+            rows: [["×", "×", "×", "0", "0", "×", f("ห้ามใช้", AN)], ["×", "×", "×", "0", "1", "0", f("1", AN)], ["×", "×", "×", "1", "0", "1", f("0", AN)], ["↑", "1", "0", "1", "1", "0", f("1", AN)], ["↑", "0", "1", "1", "1", "1", f("0", AN)], ["↑", "0", "0", "1", "1", "1", f("1", AN)], ["↑", "1", "1", "1", "1", "0", f("ห้ามใช้", AN)], ["↑", "1", "1", "0", "1", "0", f("1", AN)], ["↓", "1", "0", "1", "1", "0", f("0", AN)]],
+            note: "แถว ↑ ที่ SR = 11 แต่ PreN = 0: preset มีสิทธิ์เหนือกว่า จึงได้ 1 ไม่ใช่ห้ามใช้ · แถว ↓ ไม่ใช่ขอบขาขึ้นจึงคงค่า Q เดิม" },
           { kind: "fill", q: "เติม Q⁺ ของ D flip-flop ขอบขาขึ้นที่มี synchronous clear แบบ active-high (SCLR, Q = ค่าเดิม)", head: ["Ck", "SCLR", "D", "Q", "Q⁺"],
             rows: [["↑", "1", "1", "1", f("0")], ["↑", "1", "0", "0", f("0")], ["↑", "0", "0", "1", f("0")], ["↑", "0", "1", "0", f("1")], ["1", "1", "×", "1", f("1")], ["↓", "1", "×", "1", f("1")]],
             note: "แถว Ck = 1 หรือ ↓ ที่ SCLR = 1: ไม่ใช่ขอบขาขึ้น จึงยังไม่ clear (Q คงเดิม)" },
@@ -461,7 +470,7 @@
             rows: [["↑", "1", "1", "1", "1", f("0")], ["↑", "0", "0", "0", "1", f("1")], ["↑", "0", "0", "1", "0", f("0")], ["↑", "0", "1", "0", "1", f("0")], ["↑", "0", "1", "1", "0", f("1")], ["↓", "1", "1", "0", "1", f("1")]],
             note: "D_FF = SCLR′ · (E′Q + ED)" },
           { kind: "fill", q: "จำแนกแต่ละขาว่าเป็น synchronous หรือ asynchronous", head: ["ขา", "ชนิด"],
-            rows: [["D", f("sync", ["sync", "async"])], ["J, K", f("sync", ["sync", "async"])], ["PreN", f("async", ["sync", "async"])], ["ClrN", f("async", ["sync", "async"])], ["SCLR (ผ่านขา D)", f("sync", ["sync", "async"])], ["E (enable ผ่าน MUX)", f("sync", ["sync", "async"])]] },
+            rows: [["D", f("sync", ["sync", "async"])], ["S, R", f("sync", ["sync", "async"])], ["J, K", f("sync", ["sync", "async"])], ["PreN", f("async", ["sync", "async"])], ["ClrN", f("async", ["sync", "async"])], ["SCLR (ผ่านขา D)", f("sync", ["sync", "async"])], ["E (enable ผ่าน MUX)", f("sync", ["sync", "async"])]] },
           { kind: "timing", q: "D flip-flop ขอบขาขึ้น 2 ตัวรับ ClrN เส้นเดียวกัน: <b>Qa</b> ใช้ clear แบบ <b>asynchronous</b>, <b>Qs</b> ใช้ clear แบบ <b>synchronous</b> (active-low ทั้งคู่) เริ่มต้น = 0",
             build: () => {
               const seq = { CLK: CLK32, D: pulses(32, [[0, 29]]), ClrN: pulses(32, [[0, 11], [13, 17], [23, 32]]) };
@@ -502,6 +511,10 @@
             a: "<b>Async</b>: ทำงานทันทีไม่ต้องมี clock แต่ถ้าปล่อย reset ใกล้ขอบ clock อาจเกิดปัญหา timing (recovery/removal time) และไวต่อ glitch ที่สาย reset · <b>Sync</b>: เข้ากับ timing ของระบบ กรอง glitch ระหว่างขอบได้ แต่ต้องมี clock และเพิ่มเกตหน้าขา D" },
           { kind: "text", q: "ถ้า ClrN = 0 อยู่ตรงกับขอบขาขึ้นที่ D = 1 จะได้ Q เท่าไร เพราะอะไร",
             a: "Q = 0 เพราะ ClrN เป็น asynchronous และมีสิทธิ์เหนือกว่า clock ขอบ clock จึงไม่มีผลขณะที่ clear ทำงานอยู่" },
+          { kind: "text", q: "SR flip-flop ที่มี PreN, ClrN มีกรณีห้ามใช้กี่แบบ แต่ละแบบต่างกันอย่างไร",
+            a: "2 แบบ · <b>SR = 11</b>: S, R เป็น synchronous จึงผิดเฉพาะเมื่อ SR = 11 <b>ตรงขอบ</b> (เป็น 11 ระหว่างขอบไม่มีผล) และถ้า PreN หรือ ClrN = 0 อยู่ตอนนั้น async จะชนะ จึงได้ค่าแน่นอน · <b>PreN = ClrN = 0</b>: เป็น asynchronous จึงผิด<b>ทันที</b>ไม่ว่า clock จะเป็นอะไร และถ้าปล่อยพร้อมกันได้ Q ไม่แน่นอน · หลังเกิด SR = 11 ที่ขอบ ใช้ PreN หรือ ClrN = 0 สั้น ๆ ทำให้รู้ค่า Q ได้ทันที" },
+          { kind: "text", q: "ใช้ D flip-flop ที่มี PreN, ClrN สร้าง SR flip-flop ที่มี PreN, ClrN (async) และ SCLR (sync clear, active-high)",
+            a: "<span class='mono'>D = SCLR′ · (S + R′Q)</span> · S, R และ SCLR อยู่หน้าขา D จึงมีผลที่ขอบ (SCLR = 1 ได้ D = 0) · PreN, ClrN ต่อตรงเข้าขา PreN, ClrN ของ D FF ไม่ผ่านวงจรหน้า D เพราะต้องมีผลทันที" },
           { kind: "text", q: "ถ้า PreN = ClrN = 0 พร้อมกันจะเกิดอะไรขึ้น",
             a: "ห้ามใช้ ในชิปจริง (เช่น 74LS74) จะได้ Q = Q′ = 1 ซึ่งผิดนิยาม และเมื่อปล่อยทั้งสองกลับเป็น 1 พร้อมกันจะบอกไม่ได้ว่า Q จะเป็นอะไร (nonstable)" },
           { kind: "text", q: "ระบบ synchronous sequential circuit คืออะไร มีลักษณะอย่างไร",
@@ -749,6 +762,48 @@
             inputs: { T: [1, 1, 1, 0, 1, 1, 1, 1], PreN: [1, 1, 1, 1, 1, 1, 1, 1], ClrN: [1, 1, 1, 1, 1, 1, 1, 1] }, glitch: { ClrN: [2, 5] },
             model: asyncPC(tEdge("CLK", "rise")), show: [S("CLK"), S("T"), S("ClrN"), O("Q")], hide: ["Q"],
             fmt: asyncFmt((r) => `T = ${r.T} จึง ${r.T ? "Toggle" : "Hold"} ได้ Q = ${r.Q}`), pre: "พัลส์ ClrN ทำให้ Q = 0 ทันที แล้ว toggle ต่อจาก 0" }),
+          // PreN and ClrN both drive every drill below.
+          edgeTiming({ q: "D FF ขอบขาขึ้นพร้อม PreN, ClrN เริ่มต้น Q = 0", edge: "rise",
+            inputs: { D: [1, 0, 0, 1, 1, 0, 1, 1], PreN: [1, 1, 1, 1, 1, 1, 1, 1], ClrN: [1, 1, 1, 1, 0, 1, 1, 1] }, glitch: { PreN: [1], ClrN: [6] },
+            model: asyncPC(dEdge("CLK", "rise")), show: [S("CLK"), S("D"), S("PreN"), S("ClrN"), O("Q")], hide: ["Q"],
+            fmt: asyncFmt((r) => `D = ${r.D} จึงได้ Q = ${r.Q}`), pre: "ระหว่าง ↑2–↑3 PreN เป็น 0 สั้น ๆ ได้ Q = 1 ทันที · ClrN = 0 คร่อม ↑5 จึงได้ Q = 0 และขอบ ↑5 ไม่มีผล · ระหว่าง ↑7–↑8 ClrN เป็น 0 สั้น ๆ ได้ Q = 0 ทันที" }),
+          edgeTiming({ q: "D FF <b>ขอบขาลง</b>พร้อม PreN, ClrN <b>เริ่มต้น Q = 1</b>", clk: "Clock", edge: "fall", init: { Q: 1 },
+            inputs: { D: [0, 1, 1, 0, 1, 1, 0, 0], PreN: [1, 1, 1, 1, 1, 1, 0, 1], ClrN: [1, 1, 0, 1, 1, 1, 1, 1] }, glitch: { PreN: [3], ClrN: [5] },
+            model: asyncPC(dEdge("Clock", "fall")), show: [S("Clock"), S("D"), S("PreN"), S("ClrN"), O("Q")], hide: ["Q"],
+            fmt: asyncFmt((r) => `D = ${r.D} จึงได้ Q = ${r.Q}`), pre: "ClrN = 0 คร่อม ↓3 · ระหว่าง ↓3–↓4 PreN เป็น 0 สั้น ๆ · ระหว่าง ↓5–↓6 ClrN เป็น 0 สั้น ๆ · PreN = 0 คร่อม ↓7 · async มีผลทันที และขอบที่ตรงกับช่วง async ทำงานจะไม่มีผล" }),
+          edgeTiming({ q: "JK flip-flop ขอบขาขึ้นพร้อม PreN, ClrN เริ่มต้น Q = 0", edge: "rise",
+            inputs: { J: [1, 0, 1, 1, 0, 1, 0, 1], K: [0, 1, 1, 0, 1, 1, 0, 1], PreN: [1, 1, 1, 1, 1, 1, 1, 1], ClrN: [1, 1, 1, 1, 1, 0, 1, 1] }, glitch: { PreN: [1, 6] },
+            model: asyncPC(jkEdge("CLK", "rise")), show: [S("CLK"), S("J"), S("K"), S("PreN"), S("ClrN"), O("Q")], hide: ["Q"],
+            fmt: asyncFmt(jkFmt), pre: "ระหว่าง ↑2–↑3 PreN และระหว่าง ↑7–↑8 PreN เป็น 0 สั้น ๆ ได้ Q = 1 ทันที · ClrN = 0 คร่อม ↑6 ขอบนั้นจึงไม่ toggle" }),
+          edgeTiming({ q: "T flip-flop ขอบขาลงพร้อม PreN, ClrN <b>เริ่มต้น Q = 1</b>", clk: "Clock", edge: "fall", init: { Q: 1 },
+            inputs: { T: [1, 1, 0, 1, 1, 1, 0, 1], PreN: [1, 1, 1, 1, 1, 0, 1, 1], ClrN: [1, 1, 1, 1, 1, 1, 1, 1] }, glitch: { ClrN: [2] },
+            model: asyncPC(tEdge("Clock", "fall")), show: [S("Clock"), S("T"), S("PreN"), S("ClrN"), O("Q")], hide: ["Q"],
+            fmt: asyncFmt((r) => `T = ${r.T} จึง ${r.T ? "Toggle" : "Hold"} ได้ Q = ${r.Q}`), pre: "ระหว่าง ↓2–↓3 ClrN เป็น 0 สั้น ๆ ได้ Q = 0 ทันที · PreN = 0 คร่อม ↓6 จึงได้ Q = 1 และขอบ ↓6 ไม่ toggle" }),
+          edgeTiming({ q: "D FF ขอบขาขึ้นพร้อม PreN, ClrN เริ่มต้น Q = 0 (PreN = ClrN = 0 แล้ว<b>ปล่อยไม่พร้อมกัน</b>)", edge: "rise",
+            inputs: { D: [1, 0, 1, 1, 0, 1, 0, 0], PreN: [1, 1, 0, 1, 1, 0, 0, 1], ClrN: [1, 1, 0, 0, 1, 0, 1, 1] },
+            model: asyncPC(dEdge("CLK", "rise")), show: [S("CLK"), S("D"), S("PreN"), S("ClrN"), O("Q")], hide: ["Q"],
+            fmt: asyncFmt((r) => `D = ${r.D} จึงได้ Q = ${qv(r.Q)}`), pre: "PreN = ClrN = 0 ห้ามใช้ จึงได้ Q ไม่แน่นอน (?) · ถ้าปล่อยไม่พร้อมกัน ตัวที่ยังเป็น 0 อยู่จะกำหนด Q: ปล่อย PreN ก่อนได้ Q = 0 (clear) · ปล่อย ClrN ก่อนได้ Q = 1 (preset) · ขอบที่ตรงกับช่วง async ไม่มีผล" }),
+          // SR flip-flop with PreN, ClrN.
+          edgeTiming({ q: "SR flip-flop ขอบขาขึ้นพร้อม PreN, ClrN เริ่มต้น Q = 0", edge: "rise",
+            inputs: { S: [1, 0, 0, 0, 1, 0, 0, 1], R: [0, 0, 1, 0, 0, 0, 1, 0], PreN: [1, 1, 1, 1, 1, 1, 1, 1], ClrN: [1, 1, 1, 1, 0, 1, 1, 1] }, glitch: { PreN: [2] },
+            model: asyncPC(srEdge("CLK", "rise")), show: [S("CLK"), S("S"), S("R"), S("PreN"), S("ClrN"), O("Q")], hide: ["Q"],
+            fmt: asyncFmt(srFmt), pre: "ระหว่าง ↑3–↑4 PreN เป็น 0 สั้น ๆ ได้ Q = 1 ทันที · ClrN = 0 คร่อม ↑5 จึงได้ Q = 0 และ Set ที่ ↑5 ไม่มีผล" }),
+          edgeTiming({ q: "SR flip-flop <b>ขอบขาลง</b>พร้อม PreN, ClrN <b>เริ่มต้น Q = 1</b>", clk: "Clock", edge: "fall", init: { Q: 1 },
+            inputs: { S: [0, 0, 1, 0, 0, 0, 1, 0], R: [1, 0, 0, 0, 1, 0, 0, 1], PreN: [1, 1, 1, 1, 0, 1, 1, 1], ClrN: [1, 1, 1, 1, 1, 1, 1, 1] }, glitch: { PreN: [1], ClrN: [3] },
+            model: asyncPC(srEdge("Clock", "fall")), show: [S("Clock"), S("S"), S("R"), S("PreN"), S("ClrN"), O("Q")], hide: ["Q"],
+            fmt: asyncFmt(srFmt), pre: "ระหว่าง ↓1–↓2 PreN เป็น 0 สั้น ๆ ได้ Q = 1 ทันที · ระหว่าง ↓3–↓4 ClrN เป็น 0 สั้น ๆ ได้ Q = 0 ทันที · PreN = 0 คร่อม ↓5 จึง Reset ที่ ↓5 ไม่มีผล" }),
+          edgeTiming({ q: "SR flip-flop ขอบขาขึ้นพร้อม PreN, ClrN เริ่มต้น Q = 0 (มีขอบที่ <b>SR = 11</b>)", edge: "rise",
+            inputs: { S: [1, 1, 0, 0, 1, 0, 1, 0], R: [0, 1, 0, 0, 0, 1, 1, 0], PreN: [1, 1, 1, 1, 1, 1, 1, 1], ClrN: [1, 1, 1, 1, 1, 1, 1, 1] }, glitch: { ClrN: [2], PreN: [7] },
+            model: asyncPC(srEdge("CLK", "rise")), show: [S("CLK"), S("S"), S("R"), S("PreN"), S("ClrN"), O("Q")], hide: ["Q"],
+            fmt: asyncFmt(srFmt), pre: "SR = 11 ที่ ↑2 และ ↑7 ได้ Q ไม่แน่นอน (?) และ SR = 00 ที่ขอบถัดไปก็คงค่าที่ไม่แน่นอนนั้นไว้ · async ทำให้กลับมารู้ค่าได้ทันที: ระหว่าง ↑3–↑4 ClrN เป็น 0 สั้น ๆ ได้ Q = 0 และหลัง ↑8 PreN เป็น 0 สั้น ๆ ได้ Q = 1" }),
+          edgeTiming({ q: "SR flip-flop <b>ขอบขาลง</b>พร้อม PreN, ClrN เริ่มต้น Q = 0 (SR = 11 ตรงกับช่วงที่ PreN หรือ ClrN = 0)", clk: "Clock", edge: "fall",
+            inputs: { S: [1, 1, 0, 1, 0, 1, 1, 0], R: [0, 1, 1, 0, 0, 1, 0, 1], PreN: [1, 0, 1, 1, 1, 1, 1, 1], ClrN: [1, 1, 1, 1, 1, 0, 1, 1] },
+            model: asyncPC(srEdge("Clock", "fall")), show: [S("Clock"), S("S"), S("R"), S("PreN"), S("ClrN"), O("Q")], hide: ["Q"],
+            fmt: asyncFmt(srFmt), pre: "PreN = 0 คร่อม ↓2 และ ClrN = 0 คร่อม ↓6 ซึ่งเป็นขอบที่ SR = 11 แต่ async มีสิทธิ์เหนือกว่า จึงได้ Q = 1 และ Q = 0 ตามลำดับ ไม่ใช่ค่าไม่แน่นอน" }),
+          edgeTiming({ q: "SR flip-flop ขอบขาขึ้นพร้อม PreN, ClrN เริ่มต้น Q = 0 (PreN = ClrN = 0 พร้อมกันแล้ว<b>ปล่อยไม่พร้อมกัน</b>)", edge: "rise",
+            inputs: { S: [1, 0, 0, 0, 0, 0, 0, 1], R: [0, 0, 0, 1, 0, 1, 0, 0], PreN: [1, 1, 0, 0, 1, 1, 0, 1], ClrN: [1, 1, 0, 1, 1, 1, 0, 0] },
+            model: asyncPC(srEdge("CLK", "rise")), show: [S("CLK"), S("S"), S("R"), S("PreN"), S("ClrN"), O("Q")], hide: ["Q"],
+            fmt: asyncFmt(srFmt), pre: "PreN = ClrN = 0 ห้ามใช้ จึงได้ Q ไม่แน่นอน (?) · ปล่อย ClrN ก่อนได้ Q = 1 (preset) · ปล่อย PreN ก่อนได้ Q = 0 (clear) · ขอบที่ตรงกับช่วง async ไม่มีผล" }),
         ],
         gen: [
           edgeTiming({ q: "JK flip-flop ขอบขาขึ้น <b>เริ่มต้น Q = 1</b> (มีพัลส์หลอก)", edge: "rise", init: { Q: 1 },
@@ -783,6 +838,11 @@
         ],
       };
       for (const [t, items] of Object.entries(EXTRA)) SUB[t].push(...items);
+      // Sync timing order: PreN/ClrN drills (SR → D → JK → T), then PreN = ClrN = 0, then async vs sync, SCLR last.
+      const syncRank = ({ q }) =>
+        /SCLR/.test(q) ? 6 : /Qa/.test(q) ? 5 : /พร้อมกัน/.test(q) ? 4 : /^T /.test(q) ? 3 : /^JK /.test(q) ? 2 : /^SR /.test(q) ? 0 : 1;
+      const syncTiming = SUB.sync.filter((it) => it.kind === "timing").sort((a, b) => syncRank(a) - syncRank(b));
+      SUB.sync = [...SUB.sync.filter((it) => it.kind !== "timing"), ...syncTiming];
 
       // Every drill with a single Q output also asks for Q′ (right under Q); both are always left for the student.
       const QN_NOTE = "<li>Q′ เป็นนิเสธของ Q ทุกช่วง (ช่วงที่ Q ไม่แน่นอน Q′ ก็ไม่แน่นอนด้วย)</li>";
