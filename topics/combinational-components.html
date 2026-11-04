@@ -363,12 +363,31 @@
         </div>
         <div data-sim="mux2"></div>
         <div data-sim="mux4"></div>
+        <h3>MUX 8-to-1</h3>
+        <p>select 3 เส้น s2 s1 s0 คือเลขฐานสองของช่องที่เลือก โดย s2 เป็นบิตสูงสุด เช่น 1 0 1 = 5 จึงเลือก d5</p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>s2</th><th>s1</th><th>s0</th><th>y</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>0</td><td>0</td><td>d0</td></tr>
+              <tr><td>0</td><td>0</td><td>1</td><td>d1</td></tr>
+              <tr><td>0</td><td>1</td><td>0</td><td>d2</td></tr>
+              <tr><td>0</td><td>1</td><td>1</td><td>d3</td></tr>
+              <tr><td>1</td><td>0</td><td>0</td><td>d4</td></tr>
+              <tr><td>1</td><td>0</td><td>1</td><td>d5</td></tr>
+              <tr><td>1</td><td>1</td><td>0</td><td>d6</td></tr>
+              <tr><td>1</td><td>1</td><td>1</td><td>d7</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div data-sim="mux8"></div>
         <h3>สร้าง 8-to-1 ได้ 3 แบบ</h3>
         <ul>
           <li><b>AND-OR ตรง ๆ:</b> AND 8 ตัว ตัวละ 4 input แล้ว OR 8 input</li>
           <li><b>Decoder 3-to-8:</b> decoder ให้ minterm ของ select แล้ว AND กับ data ทีละเส้น แล้ว OR</li>
           <li><b>MUX 2-to-1 จำนวน 7 ตัว:</b> ชั้นแรก 4 ตัวใช้ s0 ชั้นสอง 2 ตัวใช้ s1 ชั้นสุดท้าย 1 ตัวใช้ s2</li>
         </ul>
+        <figure class="figure wide" id="mux8-tree"><figcaption>MUX 8-to-1 จาก MUX 2-to-1 เจ็ดตัว: s0 เลือกในคู่ s1 เลือกคู่ และ s2 เลือกครึ่งบนหรือครึ่งล่าง</figcaption></figure>
         <h3>การใช้งาน MUX</h3>
         <p><b>Multi-bit MUX:</b> ใช้ select ชุดเดียวคุม MUX หลายบิตพร้อมกัน เพื่อเลือกข้อมูลทั้ง word</p>
         <div class="two-col">
@@ -485,7 +504,7 @@
   <script>
     (function () {
       "use strict";
-      const { setLevels, seg7, circuitLevels: evaluate, railCircuit, kmapRailOutput, SEG7_HEX: HEX, SEG7_GLYPH: GLYPH, kmapCover, kmapPrimeInfo, kmapTerm, kmapSOP, kmapSvg, inCube, KMAP_COLORS, tocSpy } = LK;
+      const { setLevels, muxTree, seg7, circuitLevels: evaluate, railCircuit, kmapRailOutput, SEG7_HEX: HEX, SEG7_GLYPH: GLYPH, kmapCover, kmapPrimeInfo, kmapTerm, kmapSOP, kmapSvg, inCube, KMAP_COLORS, tocSpy } = LK;
 
       const $id = (id) => document.getElementById(id);
       const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
@@ -631,6 +650,11 @@
           outputs: [{ name: "out", terms: [AND("s1′", "s0′", "w"), AND("s1′", "s0", "x"), AND("s1", "s0′", "y"), AND("s1", "s0", "z")] }],
           status: (inp) => `s1 s0 = ${inp.s1}${inp.s0} จึงเลือก ${"wxyz"[2 * inp.s1 + inp.s0]}`,
         },
+        mux8: {
+          title: "MUX 8-to-1", inputs: ["s2", "s1", "s0", "d7", "d6", "d5", "d4", "d3", "d2", "d1", "d0"], start: 0b10100100000, compact: true, pitch: 20,
+          outputs: [{ name: "y", terms: [0, 1, 2, 3, 4, 5, 6, 7].map((i) => AND(i & 4 ? "s2" : "s2′", i & 2 ? "s1" : "s1′", i & 1 ? "s0" : "s0′", `d${i}`)) }],
+          status: (inp) => { const k = 4 * inp.s2 + 2 * inp.s1 + inp.s0; return `s2 s1 s0 = ${inp.s2}${inp.s1}${inp.s0} จึงเลือก d${k}`; },
+        },
         demux: {
           title: "DEMUX 1-to-4", inputs: ["in", "a", "b"], start: 0b110, pitch: 24,
           outputs: [0, 1, 2, 3].map((i) => ({ name: `out${i}`, terms: [AND("in", i & 2 ? "a" : "a′", i & 1 ? "b" : "b′")] })),
@@ -666,6 +690,7 @@
         render();
       }
       document.querySelectorAll("[data-sim]").forEach((el) => mountSim(el, el.dataset.sim));
+      $id("mux8-tree").insertAdjacentHTML("afterbegin", muxTree({ sel: ["s0", "s1", "s2"], data: ["d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7"] }));
 
       // ---------- Codes 10–15 and the tail variants ----------
 

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <meta name="description" content="แนวข้อสอบ Latches and Flip-Flops, Shift register และ 7-segment แยกปรนัย/อัตนัย และแยกเรื่อง พร้อมเฉลย">
+  <meta name="description" content="แนวข้อสอบ Latches and Flip-Flops, Shift register, 7-segment และ Multiplexer แยกปรนัย/อัตนัย และแยกเรื่อง พร้อมเฉลย">
   <title>แนวข้อสอบ · CPE 2423 ครึ่งหลัง</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,7 +34,7 @@
         <li>D FF</li>
         <li>D FF → JK FF</li>
         <li>Input synchronous</li>
-        <li>BCD to 7-segment: ตารางความจริง → K-map → สมการ → วาดวงจร โดยห้ามใช้ exclusive</li>
+        <li>BCD to 7-segment: ตารางความจริง → K-map → สมการ</li>
       </ul>
       <p style="margin: 10px 0 0; font-size: 15px;">"D FF → JK FF" ปกติหมายถึงใช้ D FF สร้าง JK (D = JQ′ + K′Q) แต่เผื่อไว้ว่าอาจหมายถึงทิศกลับ จึงมีแท็บ "JK FF → D FF" (J = D, K = D′) ให้ด้วย · "Input synchronous" ตีความว่าเป็นเรื่อง synchronous input (มีผลที่ขอบ clock) เทียบกับ asynchronous input (Preset/Clear) รวมถึง synchronous reset/enable · โจทย์ทั้งหมดแต่งขึ้นเองเพื่อซ้อม ไม่ใช่ข้อสอบจริง</p>
     </div>
@@ -70,7 +70,7 @@
   <script>
     (function () {
       "use strict";
-      const { NOT, NAND, NOR, settle, simulate, pulses, isEdge, exercises, gate, twoState, wave, schematic, ffSymbol, shiftRegister: shselFig, shifterCircuit, seg7, SEG7_HEX, SEG7_GLYPH, railCircuit, kmapRailOutput, kmapPrimeInfo, kmapTerm, kmapSOP, kmapSvg, kmapNames } = LK;
+      const { NOT, NAND, NOR, settle, simulate, pulses, isEdge, exercises, gate, twoState, wave, schematic, ffSymbol, shiftRegister: shselFig, shifterCircuit, seg7, SEG7_HEX, SEG7_GLYPH, railCircuit, kmapRailOutput, kmapPrimeInfo, kmapTerm, kmapSOP, kmapSvg, kmapNames, muxArray, muxTree } = LK;
 
       const TOPICS = [
         ["sr", "SR flip-flop"],
@@ -81,6 +81,7 @@
         ["gen", "JK / T / ทั่วไป"],
         ["pipo", "Shift register 4 บิต"],
         ["seg7", "7-segment 4 บิต"],
+        ["mux", "Multiplexer"],
       ];
       const TOPIC_NAME = Object.fromEntries(TOPICS);
 
@@ -172,6 +173,18 @@
         { t: "pipo", q: "วงจร s2 s1 s0 (shifter): s2 s1 s0 = 0 1 0, d3–d0 = 1011 ได้ y3–y0 เท่าไร", o: ["0110", "0111", "1101", "1011"], a: 0, e: "ช่อง 2 เลื่อนซ้าย y0 รับค่าจาก MUX ขวา ซึ่ง s2 = 0 ให้ 0" },
         { t: "pipo", q: "วงจร s2 s1 s0 (shifter): s2 s1 s0 = 1 1 0, d3–d0 = 1011 ได้ y3–y0 เท่าไร", o: ["0111", "0110", "1101", "1011"], a: 0, e: "s2 = 1 ทำให้ y0 รับ d3 จึงเป็น rotate left" },
         { t: "pipo", q: "วงจร s2 s1 s0 (shifter): s0 = 1 ได้ผลอย่างไร", o: ["y = d ไม่ว่า s2, s1 เป็นอะไร", "เลื่อนขวาเสมอ", "เลื่อนซ้ายเสมอ", "y = 0000"], a: 0, e: "ช่อง 1 และ 3 ต่อ d ของบิตตัวเองทั้งคู่" },
+        { t: "mux", q: "MUX ที่มี data input 16 เส้น ต้องมี select กี่เส้น", o: ["2", "4", "8", "16"], a: 1, e: "2ⁿ = 16 จึงได้ n = 4" },
+        { t: "mux", q: "MUX 2-to-1 มีสมการ y เท่าไร", o: ["sd0 + s′d1", "s′d0 + sd1", "s + d0 + d1", "d0 ⊕ d1"], a: 1, e: "s = 0 เลือก d0 และ s = 1 เลือก d1" },
+        { t: "mux", q: "MUX 4-to-1 ที่ S1 S0 = 1 0 เลือกขา data ใด (w, x, y, z คือช่อง 0, 1, 2, 3)", o: ["w", "x", "y", "z"], a: 2, e: "1 0 คือ 2 จึงเลือกช่อง 2" },
+        { t: "mux", q: "สร้าง MUX 8-to-1 จาก MUX 2-to-1 ต้องใช้กี่ตัว", o: ["3", "4", "7", "8"], a: 2, e: "ชั้นละ 4, 2, 1 ตัว รวม 7" },
+        { t: "mux", q: "สร้าง MUX 16-to-1 จาก MUX 4-to-1 ต้องใช้กี่ตัว", o: ["4", "5", "8", "15"], a: 1, e: "ชั้นแรก 4 ตัว และชั้นสุดท้าย 1 ตัว" },
+        { t: "mux", q: "MUX 8-to-1 แบบ AND-OR ใช้ AND กี่ตัว และแต่ละตัวมีกี่ input", o: ["8 ตัว ตัวละ 3 input", "4 ตัว ตัวละ 4 input", "8 ตัว ตัวละ 4 input", "3 ตัว ตัวละ 8 input"], a: 2, e: "แต่ละตัวรับ select 3 เส้นและ data 1 เส้น" },
+        { t: "mux", q: "Barrel shifter 4 บิตหมุนซ้ายสไลด์ 29 ที่ s1 s0 = 0 1 จะได้ out3 out2 out1 out0 เท่าไร", o: ["in3 in2 in1 in0", "in2 in1 in0 in3", "in1 in0 in3 in2", "in0 in3 in2 in1"], a: 1, e: "หมุนซ้าย 1 ตำแหน่ง" },
+        { t: "mux", q: "4-bit shifter สไลด์ 30 ที่ s1 s0 = 1 0 ป้อน in = 1011 จะได้ out เท่าไร", o: ["0110", "1101", "0101", "1011"], a: 2, e: "1 0 คือเลื่อนขวาเติม 0" },
+        { t: "mux", q: "วงจร shifter ที่ใช้ MUX ล้วนจะได้ output ใหม่เมื่อใด", o: ["ที่ขอบขาขึ้นของ clock", "ทันทีที่ input หรือ select เปลี่ยน", "เมื่อ s1 = 1 เท่านั้น", "หลัง clock 4 ลูก"], a: 1, e: "เป็นวงจร combinational ไม่มี flip-flop" },
+        { t: "mux", q: "ใช้ MUX 4-to-1 สร้าง F(a, b, c) โดยให้ a, b เป็น select ถ้าแถว ab = 01 ได้ F = c′ ต้องต่อช่อง 1 กับอะไร", o: ["0", "1", "c", "c′"], a: 3, e: "ช่อง 1 ถูกเลือกเมื่อ ab = 01 จึงต่อตามค่า F ในแถวนั้น" },
+        { t: "mux", q: "ใช้ MUX 8-to-1 สร้าง F(a, b, c) = Σm(1, 2) ต้องต่อขา data อย่างไร", o: ["d1 = d2 = 0 ที่เหลือ 1", "d1 = d2 = 1 ที่เหลือ 0", "ทุกขาเป็น c", "d0 = d3 = 1 ที่เหลือ 0"], a: 1, e: "ขา data ของ minterm ที่ F = 1 ต่อ 1" },
+        { t: "mux", q: "DEMUX ต่างจาก MUX อย่างไร", o: ["DEMUX มีหลาย input ออก output เดียว", "DEMUX รับ input เดียวแล้วส่งไป output ที่เลือก", "DEMUX ต้องใช้ clock", "DEMUX ไม่มี select"], a: 1, e: "DEMUX ทำกลับกับ MUX" },
         { t: "seg7", q: "จอ common cathode ขีดติดเมื่อ output เป็นเท่าไร", o: ["1", "0", "×", "ขึ้นกับเลขที่แสดง"], a: 0, e: "common cathode ขั้วลบร่วม จึงติดเมื่อ output = 1 ส่วน common anode ติดเมื่อ output = 0" },
         { t: "seg7", q: "ขีด g ของจอ 7-segment อยู่ตำแหน่งใด", o: ["ขีดกลาง", "ขีดบนสุด", "ขีดล่างสุด", "ขีดขวาบน"], a: 0, e: "a–f ไล่ตามเข็มนาฬิกาจากขีดบน และ g คือขีดกลาง" },
         { t: "seg7", q: "เลข 7 ติดขีดใดบ้าง", o: ["a, b, c", "a, b, c, f", "b, c", "a, f, g"], a: 0, e: "7 = 1110000" },
@@ -225,6 +238,14 @@
         ["pipo", "วงจรนี้เลื่อนซ้ายได้", false, "มีแค่ shift right และ rotate right"],
         ["pipo", "Q3–Q0 อ่านได้ตลอดเวลาโดยไม่ต้องรอ clock", true, "ต่อออกขนานอยู่แล้ว"],
         ["pipo", "ทุกบิตใช้ SHSel₁ SHSel₀ ชุดเดียวกัน จึงเลือกโหมดแยกทีละบิตไม่ได้", true, "เลือกพร้อมกันทั้ง register"],
+        ["mux", "MUX มี output เพียงเส้นเดียวต่อบิต", true, "เลือก input 1 เส้นส่งออก"],
+        ["mux", "MUX ที่มี select 3 เส้นเลือกได้ 6 input", false, "2³ = 8 input"],
+        ["mux", "MUX เป็นวงจร sequential เพราะเลือกค่าได้", false, "ไม่มีหน่วยความจำ จึงเป็น combinational"],
+        ["mux", "สลับสายช่อง 1 กับช่อง 2 ของทุก MUX จะสลับการทำงานของ s1 s0 = 01 กับ 10", true, "select เดิมเลือกช่องเดิม แต่ช่องต่อกับสายใหม่"],
+        ["mux", "ใน MUX ซ้อนชั้น สลับ select ระหว่างชั้นแล้วตาราง output ยังเหมือนเดิมเสมอ", false, "ลำดับ select เปลี่ยน data ที่ถูกเลือก"],
+        ["mux", "MUX 2-to-1 สร้างจาก AND 2 ตัว OR 1 ตัว และ NOT 1 ตัวได้", true, "y = s′d0 + sd1"],
+        ["mux", "ช่องของ MUX ต่อค่าคงที่ 0 หรือ 1 ได้", true, "shifter ใช้เติม 0 ตอนเลื่อน"],
+        ["mux", "Rotate ทำให้บิตหายเหมือน shift", false, "Rotate วนบิตกลับอีกด้าน"],
         ["seg7", "แบบ 0–F ไม่มีช่อง × ใน K-map", true, "ใช้ครบ 16 รหัส"],
         ["seg7", "ถ้าแสดงแค่ A–F ค่า × จะมี 10 ช่อง", true, "รหัส 0–9 ไม่ได้ใช้"],
         ["seg7", "วงจรที่ห้ามใช้ exclusive หาสมการจาก K-map ไม่ได้", false, "K-map ให้รูป SOP ซึ่งใช้แค่ AND, OR, NOT อยู่แล้ว"],
@@ -1137,6 +1158,105 @@
           a: "มองหาเทอม AND ที่ซ้ำกันระหว่างขีด แล้วใช้ AND ตัวเดียวแยกสายไปหลายขีด ถ้าเทอมนั้นมีคำตอบหลายแบบให้เลือกแบบที่ใช้ร่วมกับขีดอื่นได้" },
       ];
 
+      // ----- Multiplexer drills -----
+      const MSRC = ["in3", "in2", "in1", "in0", "0", "1"], OUT4 = ["out3", "out2", "out1", "out0"];
+      const srcBit = (src, input) => (src.startsWith("in") ? input[3 - +src[2]] : src);
+      const opRows = (ops) => ops.map((op) => op.split(" "));
+      const wiringOf = (ops) => [0, 1, 2, 3].map((i) => opRows(ops).map((op) => op[i]));
+      const selBits = (k) => [String(k >> 1), String(k & 1)];
+      const muxArrayDrill = ({ q, ops, input }) => ({
+        kind: "fill", muxOps: ops, muxInput: input, q: `${q} · ดูการต่อสายจากรูป เติมตาราง control แล้วแทนค่า in3 in2 in1 in0 = ${input}`,
+        fig: () => muxArray(wiringOf(ops)), tableName: "ตารางแทนค่า",
+        control: { head: ["s1", "s0", ...OUT4], rows: opRows(ops).map((op, k) => [...selBits(k), ...op.map((v) => f(v, MSRC))]) },
+        head: ["s1", "s0", ...OUT4], rows: opRows(ops).map((op, k) => [...selBits(k), ...op.map((v) => f(srcBit(v, input)))]),
+      });
+      const muxWireDrill = ({ q, ops }) => ({
+        kind: "fill", muxOps: ops, q: `${q} · ออกแบบด้วย MUX 4-to-1 สี่ตัว เติมตารางว่าแต่ละช่องต้องต่อกับอะไร`, tableName: "ตารางต่อสาย",
+        control: { head: ["s1", "s0", ...OUT4], rows: opRows(ops).map((op, k) => [...selBits(k), ...op]) },
+        head: ["MUX ของ", "ช่อง 0", "ช่อง 1", "ช่อง 2", "ช่อง 3"], rows: wiringOf(ops).map((chs, i) => [OUT4[i], ...chs.map((v) => f(v, MSRC))]),
+        answerFig: () => muxArray(wiringOf(ops)),
+      });
+      // sel[L] is the select of level L; the leaf picked for a given select value is found by walking the tree.
+      const treePick = (sel, data, value) => { const i = sel.reduce((acc, name, L) => acc + (value[name] << L), 0); return data[i]; };
+      function muxTreeDrill({ q, sel, data }) {
+        const names = [...sel].sort().reverse(), size = 1 << names.length;
+        return {
+          kind: "fill", tree: { sel, data }, q: `${q} · ดูรูปแล้วเติมว่า y คือ input เส้นไหน`, fig: () => muxTree({ sel, data }), head: [...names, "y"],
+          rows: Array.from({ length: size }, (_, v) => { const bits = names.map((_, k) => (v >> (names.length - 1 - k)) & 1), value = Object.fromEntries(names.map((nm, k) => [nm, bits[k]]));
+            return [...bits.map(String), f(treePick(sel, data, value), data)]; }),
+        };
+      }
+      const F4 = ["0", "1", "c", "c′"];
+      function muxFn4({ ones }) {
+        const on = (i) => (ones.includes(i) ? "1" : "0");
+        const pick = (p, q) => (p === q ? p : p === "0" ? "c" : "c′");
+        return { kind: "fill", muxFn: ones, q: `ใช้ MUX 4-to-1 สร้าง F(a, b, c) = Σm(${ones.join(", ")}) โดยให้ a, b เป็น select (a = s1, b = s0) เติมตารางแล้วบอกว่าแต่ละช่องต่อกับอะไร`,
+          head: ["a", "b", "F เมื่อ c = 0", "F เมื่อ c = 1", "ช่องของ MUX", "ต่อกับ"], note: "แยกตาราง 8 แถวเป็นคู่ตาม a, b แล้วดูว่า F เทียบกับ c เป็นแบบไหน",
+          rows: [0, 1, 2, 3].map((k) => { const p = on(2 * k), r = on(2 * k + 1); return [...selBits(k), f(p), f(r), String(k), f(pick(p, r), F4)]; }) };
+      }
+      const AND2 = (...x) => ["and", ...x];
+      const MUX2 = { inputs: ["s", "d0", "d1"], pitch: 26, outputs: [{ name: "y", terms: [AND2("s′", "d0"), AND2("s", "d1")] }] };
+      const MUX4 = { inputs: ["s1", "s0", "w", "x", "y", "z"], pitch: 24, outputs: [{ name: "out", terms: [AND2("s1′", "s0′", "w"), AND2("s1′", "s0", "x"), AND2("s1", "s0′", "y"), AND2("s1", "s0", "z")] }] };
+      const MUX4E = { inputs: ["E", "s1", "s0", "w", "x", "y", "z"], pitch: 22, outputs: [{ name: "out", terms: [AND2("E", "s1′", "s0′", "w"), AND2("E", "s1′", "s0", "x"), AND2("E", "s1", "s0′", "y"), AND2("E", "s1", "s0", "z")] }] };
+      const MUX2B = { inputs: ["s", "a1", "a0", "b1", "b0"], pitch: 24, outputs: [{ name: "y1", terms: [AND2("s′", "a1"), AND2("s", "b1")] }, { name: "y0", terms: [AND2("s′", "a0"), AND2("s", "b0")] }] };
+      const MUX_CIRCUITS = [MUX2, MUX4, MUX4E, MUX2B];
+      const NOT_XOR = "ใช้ได้แค่ AND, OR, NOT ห้ามใช้ exclusive (XOR, XNOR)";
+
+      const ROT_L = "in3 in2 in1 in0|in2 in1 in0 in3|in1 in0 in3 in2|in0 in3 in2 in1".split("|");
+      SUB.mux = [
+        { kind: "fill", q: "เติมตารางความจริงของ MUX 2-to-1", head: ["s", "d1", "d0", "y"], note: "y = s′d0 + sd1",
+          rows: [0, 1, 2, 3, 4, 5, 6, 7].map((i) => { const s = i >> 2, d1 = (i >> 1) & 1, d0 = i & 1; return [String(s), String(d1), String(d0), f(String(s ? d1 : d0))]; }) },
+        { kind: "fill", q: "เติม K-map ของ y สำหรับ MUX 2-to-1 (แถว = s, คอลัมน์ = d1 d0)", head: ["s \\ d1d0", "00", "01", "11", "10"], note: "จับกลุ่มได้ y = s′d0 + sd1",
+          rows: [["0", f("0"), f("1"), f("1"), f("0")], ["1", f("0"), f("0"), f("1"), f("1")]] },
+        { kind: "fill", q: "เติมตารางของ MUX 4-to-1: แต่ละค่าของ S1 S0 เลือกขา data ใด และ minterm ของ select คืออะไร", head: ["S1", "S0", "out", "minterm"], note: "out = s1′s0′w + s1′s0x + s1s0′y + s1s0z",
+          rows: [["0", "0", f("w", ["w", "x", "y", "z"]), f("s1′s0′", ["s1′s0′", "s1′s0", "s1s0′", "s1s0"])], ["0", "1", f("x", ["w", "x", "y", "z"]), f("s1′s0", ["s1′s0′", "s1′s0", "s1s0′", "s1s0"])],
+            ["1", "0", f("y", ["w", "x", "y", "z"]), f("s1s0′", ["s1′s0′", "s1′s0", "s1s0′", "s1s0"])], ["1", "1", f("z", ["w", "x", "y", "z"]), f("s1s0", ["s1′s0′", "s1′s0", "s1s0′", "s1s0"])]] },
+        { kind: "fill", q: "เติมจำนวนอุปกรณ์เมื่อสร้าง MUX ใหญ่จาก MUX ตัวเล็ก", head: ["MUX ที่ต้องการ", "select กี่เส้น", "ใช้ 2-to-1 กี่ตัว", "ใช้ 4-to-1 กี่ตัว"], note: "2-to-1 ใช้ N − 1 ตัว · 4-to-1 ลดจำนวนเส้นลงตัวละ 3",
+          rows: [["4-to-1", f("2", ["2", "3", "4", "5", "6"]), f("3", ["3", "7", "15", "31"]), f("1", ["1", "3", "5", "21"])], ["16-to-1", f("4", ["2", "3", "4", "5", "6"]), f("15", ["3", "7", "15", "31"]), f("5", ["1", "3", "5", "21"])], ["64-to-1", f("6", ["2", "3", "4", "5", "6"]), f("63", ["15", "31", "63", "127"]), f("21", ["1", "3", "5", "21"])]] },
+        muxArrayDrill({ q: "Barrel shifter ตามสไลด์ 29", ops: ROT_L, input: "1011" }),
+        muxArrayDrill({ q: "4-bit shifter ตามสไลด์ 30", ops: "in3 in2 in1 in0|in2 in1 in0 0|0 in3 in2 in1|in0 in3 in2 in1".split("|"), input: "1101" }),
+        muxArrayDrill({ q: "วงจร MUX 4 ตัว แบบที่ 3", ops: "in3 in2 in1 in0|in0 in3 in2 in1|in1 in0 in3 in2|in2 in1 in0 in3".split("|"), input: "1000" }),
+        muxArrayDrill({ q: "วงจร MUX 4 ตัว แบบที่ 4", ops: "in3 in2 in1 in0|in2 in1 in0 0|in1 in0 0 0|in0 0 0 0".split("|"), input: "1011" }),
+        muxArrayDrill({ q: "วงจร MUX 4 ตัว แบบที่ 5", ops: "in3 in2 in1 in0|0 in3 in2 in1|0 0 in3 in2|0 0 0 in3".split("|"), input: "1110" }),
+        muxArrayDrill({ q: "วงจร MUX 4 ตัว แบบที่ 6", ops: "in3 in2 in1 in0|in3 in3 in2 in1|in3 in3 in3 in2|in3 in3 in3 in3".split("|"), input: "1010" }),
+        muxArrayDrill({ q: "วงจร MUX 4 ตัว แบบที่ 7", ops: "in3 in2 in1 in0|in0 in1 in2 in3|in1 in0 in3 in2|1 1 1 1".split("|"), input: "1100" }),
+        muxArrayDrill({ q: "วงจร MUX 4 ตัว แบบที่ 8", ops: "in0 in3 in2 in1|in3 in2 in1 in0|in2 in1 in0 0|0 in3 in2 in1".split("|"), input: "0111" }),
+        muxArrayDrill({ q: "วงจร MUX 4 ตัว แบบที่ 9", ops: "0 0 0 0|in2 in1 in0 1|1 in3 in2 in1|in3 in2 in1 in0".split("|"), input: "0101" }),
+        muxArrayDrill({ q: "วงจร MUX 4 ตัว แบบที่ 10", ops: "in3 0 in1 0|0 in2 0 in0|in1 in0 in1 in0|in3 in2 in3 in2".split("|"), input: "1001" }),
+        muxWireDrill({ q: "ออกแบบ barrel shifter หมุนซ้าย 0–3 ตำแหน่ง ตามตาราง", ops: ROT_L }),
+        muxWireDrill({ q: "ออกแบบ shifter เลื่อนซ้าย 0–3 ตำแหน่ง เติม 0 ตามตาราง", ops: "in3 in2 in1 in0|in2 in1 in0 0|in1 in0 0 0|in0 0 0 0".split("|") }),
+        muxWireDrill({ q: "ออกแบบวงจร ผ่านตรง, เลื่อนขวาเติม 0, เลื่อนซ้ายเติม 1, หมุนขวา ตามตาราง", ops: "in3 in2 in1 in0|0 in3 in2 in1|in2 in1 in0 1|in0 in3 in2 in1".split("|") }),
+        muxWireDrill({ q: "ออกแบบวงจรกลับลำดับบิตและสลับครึ่ง ตามตาราง", ops: "in3 in2 in1 in0|in0 in1 in2 in3|in1 in0 in3 in2|in2 in3 in0 in1".split("|") }),
+        muxTreeDrill({ q: "MUX 4-to-1 จาก MUX 2-to-1 สามตัว (แบบสไลด์ 25)", sel: ["s0", "s1"], data: ["w", "x", "y", "z"] }),
+        muxTreeDrill({ q: "MUX 2-to-1 สามตัว สลับ select ระหว่างชั้น", sel: ["s1", "s0"], data: ["w", "x", "y", "z"] }),
+        muxTreeDrill({ q: "MUX 2-to-1 สามตัว สลับสาย data", sel: ["s0", "s1"], data: ["z", "y", "x", "w"] }),
+        muxTreeDrill({ q: "MUX 8-to-1 จาก MUX 2-to-1 เจ็ดตัว (แบบสไลด์ 27)", sel: ["s0", "s1", "s2"], data: ["d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7"] }),
+        muxTreeDrill({ q: "MUX 2-to-1 เจ็ดตัว เรียง select กลับด้าน", sel: ["s2", "s1", "s0"], data: ["d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7"] }),
+        muxFn4({ ones: [0, 2, 3, 7] }),
+        muxFn4({ ones: [1, 4, 6, 7] }),
+        muxFn4({ ones: [1, 2, 5, 6] }),
+        { kind: "fill", q: "ใช้ MUX 8-to-1 สร้าง F(a, b, c) = Σm(1, 2, 4, 7) โดยให้ a, b, c เป็น select เติมว่าแต่ละช่องต่อ 0 หรือ 1", head: ["a", "b", "c", "ช่อง", "ต่อกับ"], note: "ช่องของ minterm ที่อยู่ใน F ต่อ 1",
+          rows: [0, 1, 2, 3, 4, 5, 6, 7].map((i) => [String(i >> 2), String((i >> 1) & 1), String(i & 1), `d${i}`, f([1, 2, 4, 7].includes(i) ? "1" : "0")]) },
+        { kind: "text", q: `ออกแบบ MUX 2-to-1 ครบขั้นตอน: ตารางความจริง, K-map, สมการ และวงจร ${NOT_XOR}`,
+          a: `ตารางมี 8 แถวตามข้อแรก K-map ของ y จับกลุ่มได้ <b>y = s′d0 + sd1</b> ใช้ NOT 1 ตัว AND 2 ตัว OR 1 ตัว${railCircuit(MUX2)}` },
+        { kind: "text", q: `ออกแบบ MUX 4-to-1 (ขา w, x, y, z, select S1 S0): ตาราง, สมการ และวงจร ${NOT_XOR}`,
+          a: `input มี 6 เส้นจึงใช้ตารางย่อ 4 แถวแทน K-map แต่ละแถวคือ minterm ของ select AND กับ data: <b>out = s1′s0′w + s1′s0x + s1s0′y + s1s0z</b> ใช้ NOT 2 ตัว AND 3 input 4 ตัว OR 4 input 1 ตัว${railCircuit(MUX4)}` },
+        { kind: "text", q: `ออกแบบ MUX 4-to-1 ที่มีขา Enable (E = 0 ให้ out = 0) ${NOT_XOR}`,
+          a: `เพิ่ม E เข้าทุกเทอม: <b>out = E(s1′s0′w + s1′s0x + s1s0′y + s1s0z)</b> ถ้าใช้ AND 4 input ตรง ๆ จะได้วงจรด้านล่าง${railCircuit(MUX4E)}` },
+        { kind: "text", q: `ออกแบบ MUX 2-to-1 ขนาด 2 บิต เลือกระหว่าง A = a1a0 กับ B = b1b0 (s = 0 เลือก A) ${NOT_XOR}`,
+          a: `ทำ MUX 2-to-1 หนึ่งชุดต่อบิต ใช้ select ร่วมกัน: <b>y1 = s′a1 + sb1</b> และ <b>y0 = s′a0 + sb0</b>${railCircuit(MUX2B)}` },
+        { kind: "text", q: "ใช้ MUX 2-to-1 สร้าง MUX 4-to-1 ต้องต่ออย่างไร และทำไมชั้นแรกใช้ S0 ได้",
+          a: "ใช้ 3 ตัว ชั้นแรก 2 ตัวรับ w, x และ y, z โดยใช้ S0 เลือกในคู่ ส่วนตัวสุดท้ายใช้ S1 เลือกคู่ เพราะคู่ w, x มี S1 = 0 และคู่ y, z มี S1 = 1 จึงตรงกับลำดับรหัส 00, 01, 10, 11" },
+        { kind: "text", q: "สร้าง MUX 8-to-1 ได้กี่วิธี แต่ละวิธีใช้อะไร",
+          a: "1) AND 4 input 8 ตัว กับ OR 8 input · 2) decoder 3-to-8 AND กับ data ทีละเส้นแล้ว OR · 3) MUX 2-to-1 จำนวน 7 ตัว" },
+        { kind: "text", q: "ถ้าสลับสายช่อง 0 กับช่อง 3 ของทุก MUX ใน barrel shifter ตาราง control จะเปลี่ยนอย่างไร",
+          a: "แถว s1 s0 = 00 จะได้ผลเดิมของ 11 และแถว 11 ได้ผลเดิมของ 00 ส่วนแถว 01, 10 เท่าเดิม เพราะ select ยังเลือกช่องเดิม แต่ช่องนั้นต่อกับสายใหม่" },
+        { kind: "text", q: "Barrel shifter ต่างจาก shift register อย่างไร",
+          a: "Barrel shifter เป็น combinational ใช้ MUX ล้วน หมุนกี่ตำแหน่งก็ได้ทันทีและไม่เก็บค่า ส่วน shift register มี flip-flop เลื่อนทีละตำแหน่งต่อ clock และเก็บค่าไว้" },
+        { kind: "text", q: "ทำไม MUX 4-to-1 สร้างฟังก์ชัน 3 ตัวแปรได้ ทั้งที่มี select แค่ 2 เส้น",
+          a: "select 2 เส้นแบ่งตารางเป็น 4 คู่ แต่ละคู่เหลือตัวแปรเดียว F ในคู่นั้นจึงเป็นได้แค่ 0, 1, c หรือ c′ ซึ่งต่อเข้าขา data ได้เลย" },
+      ];
+
       // =====================================================================
       // Rendering
       // =====================================================================
@@ -1176,7 +1296,7 @@
             : `<td><select data-ans="${c.a}" aria-label="คำตอบ"><option value="">–</option>${c.c.map((o) => `<option>${o}</option>`).join("")}</select></td>`).join("")}</tr>`).join("")}</tbody>
         </table></div>`;
 
-      function fillCard(it, n) {
+      function fillCard(it, n, id) {
         return `
           <div class="fill-card" data-fill data-note="${encodeURIComponent(it.note || "")}">
             <div class="q-head"><span class="q-no">${n}</span><span class="q-text">${it.q}</span></div>
@@ -1189,6 +1309,7 @@
               <button class="btn" type="button" data-clear>ล้าง</button>
               <span class="fill-result" aria-live="polite"></span>
             </div>
+            ${it.answerFig ? `<div class="design-step"><button class="btn" type="button" data-show="${id}" data-label="ดูวงจรเฉลย">ดูวงจรเฉลย</button><div id="${id}" hidden><figure class="figure wide reg-fig">${it.answerFig()}</figure></div></div>` : ""}
           </div>`;
       }
 
@@ -1267,7 +1388,7 @@
             const id = `x${++uid}`;
             n++;
             if (kind === "design") return designCard(it, n, id);
-            if (kind === "fill") return fillCard(it, n);
+            if (kind === "fill") return fillCard(it, n, id);
             if (kind === "timing") { timing[id] = it; return timingCard(it, n, id); }
             return textCard(it, n, id);
           }).join("");
@@ -1483,6 +1604,11 @@
           ["Register 4 บิต (D FF) ตามสไลด์ 14: 0 คงค่า, 1 Parallel load, 2 Shift right, 3 Rotate right", () => shselFig()],
           ["Shifter 4 บิต s2 s1 s0 (ไม่มี flip-flop): s1 s0 = 0 ขวา, 1 ส่งผ่าน, 2 ซ้าย, 3 ส่งผ่าน · s2 = 0 เติมค่าคงที่, s2 = 1 หมุน", () => shifterCircuit()],
         ],
+        mux: [
+          ["MUX 4-to-1 แบบ AND-OR: out = s1′s0′w + s1′s0x + s1s0′y + s1s0z", () => railCircuit(MUX4)],
+          ["Barrel shifter 4 บิต หมุนซ้าย 0–3 ตำแหน่ง (สไลด์ 29)", () => muxArray(wiringOf(ROT_L))],
+          ["MUX 8-to-1 จาก MUX 2-to-1 เจ็ดตัว (สไลด์ 27)", () => muxTree({ sel: ["s0", "s1", "s2"], data: ["d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7"] })],
+        ],
         seg7: [
           ["ชื่อขีด a–g: a บนสุด ไล่ตามเข็มนาฬิกา และ g คือขีดกลาง", () => `<div style="text-align:center;">${seg7("0000000", { size: 96, names: true })}</div>`],
           ["รูปบนจอ 0–F (เลข 6 ติดขีด a และเลข 9 ติดขีด d)", () => `<div class="cc-digits small">${SEG7_HEX.map((row, k) => `<figure>${seg7(row, { size: 26 })}<figcaption>${SEG7_GLYPH[k]}</figcaption></figure>`).join("")}</div>`],
@@ -1492,7 +1618,7 @@
       const reviewHTML = (t) => `
         <details class="review">
           <summary>ดูวงจรทบทวน · ${TOPIC_NAME[t]} <span>(${REVIEW[t].length} รูป)</span></summary>
-          <div class="review-grid${t === "pipo" ? " wide" : ""}">${REVIEW[t].map(([cap, draw]) => `<figure>${draw()}<figcaption>${cap}</figcaption></figure>`).join("")}</div>
+          <div class="review-grid${t === "pipo" || t === "mux" ? " wide" : ""}">${REVIEW[t].map(([cap, draw]) => `<figure>${draw()}<figcaption>${cap}</figcaption></figure>`).join("")}</div>
         </details>`;
 
       // ----- panel switching (hash: #obj-sr, #sub-dj …) -----
@@ -1581,7 +1707,7 @@
         }
 
         const fill = e.target.closest("[data-fill]");
-        if (fill && e.target.closest("button")) {
+        if (fill && e.target.closest("[data-check], [data-solve], [data-clear]")) {
           const sels = [...fill.querySelectorAll("select")];
           const result = fill.querySelector(".fill-result");
           const note = decodeURIComponent(fill.dataset.note);
@@ -1675,7 +1801,7 @@
                 : shownStrip(it) + block("ขั้นที่ 1: ตารางความจริง", fillTable(it, false)) + block("ขั้นที่ 2: K-map", blank) +
                   block("ขั้นที่ 3: สมการ SOP", `<div class="p-lines seven"></div>`) + block("ขั้นที่ 4: วาดวงจร (AND, OR, NOT)", `<div class="p-draw"></div>`);
             }
-            if (kind === "fill") body = (it.fig && !reveal ? `<div class="p-circuit">${it.fig()}</div>` : "") + (it.control ? `<p class="p-sub">ตาราง control</p>${fillTable(it.control, reveal)}<p class="p-sub">${it.tableName || "ตารางทีละขั้น"}</p>` : "") + fillTable(it, reveal) + (reveal && it.note ? `<p class="p-note">${it.note}</p>` : "");
+            if (kind === "fill") body = (it.fig && !reveal ? `<div class="p-circuit">${it.fig()}</div>` : "") + (it.control ? `<p class="p-sub">ตาราง control</p>${fillTable(it.control, reveal)}<p class="p-sub">${it.tableName || "ตารางทีละขั้น"}</p>` : "") + fillTable(it, reveal) + (reveal && it.answerFig ? `<div class="p-circuit">${it.answerFig()}</div>` : "") + (reveal && it.note ? `<p class="p-note">${it.note}</p>` : "");
             if (kind === "timing") {
               const def = defs.get(it) || defs.set(it, it.build()).get(it);
               body = (it.fig && !reveal ? `<div class="p-circuit">${it.fig()}</div>` : "") + printWave(def, reveal);

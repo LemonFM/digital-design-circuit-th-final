@@ -359,6 +359,75 @@
     return `<svg class="schem" viewBox="-14 0 1170 470" role="img" aria-label="วงจร shifter 4 บิต MUX 4 ต่อ 1 สี่ตัว และ MUX 2 ต่อ 1 สองตัว">${s}</svg>`;
   }
 
+  // Four 4-to-1 MUXes side by side. wiring[i] lists what channels 0–3 of the MUX for out(3 − i) connect to: "in3"…"in0", "0" or "1".
+  function muxArray(wiring) {
+    const INK = 'stroke="#16191d" stroke-width="2"';
+    const W = (d, tap = "") => `<path class="wire"${tap ? ` data-tap="${tap}"` : ""} d="${d}"/>`;
+    const DOT = (x, y) => `<circle class="dot" cx="${x}" cy="${y}" r="3.5"/>`;
+    const TX = (str, x, y, anchor = "start") => `<text x="${x}" y="${y}" text-anchor="${anchor}">${str}</text>`;
+    const ARROW = { r: (x, y) => `M${x} ${y} l-9 -5 v10 z`, d: (x, y) => `M${x} ${y} l-5 -9 h10 z` };
+    const TIP = (dir, x, y) => `<path class="dot" d="${ARROW[dir](x, y)}"/>`;
+    const xs = [60, 300, 540, 780], rail = [52, 78, 104, 130], muxTop = 214, busS1 = 326, busS0 = 342;
+    const pin = (x, c) => x + [110, 80, 50, 20][c];
+    const reach = rail.map((_, i) => [xs[i] + 65, xs[i] + 65]);
+    let taps = "";
+    wiring.forEach((chs, i) => chs.forEach((src, c) => {
+      const px = pin(xs[i], c), from = src.startsWith("in") ? 3 - +src[2] : -1;
+      if (from >= 0) {
+        taps += W(`M${px} ${rail[from]} V${muxTop}`, `out${3 - i}.${c}=${src}`) + DOT(px, rail[from]) + TIP("d", px, muxTop);
+        reach[from] = [Math.min(reach[from][0], px), Math.max(reach[from][1], px)];
+      } else taps += W(`M${px} ${muxTop - 44} V${muxTop}`, `out${3 - i}.${c}=${src}`) + TX(src, px, muxTop - 50, "middle") + TIP("d", px, muxTop);
+    }));
+    let s = "";
+    xs.forEach((x, i) => {
+      s += W(`M${x + 65} 28 V${rail[i]}`) + TX(`in${3 - i}`, x + 65, 20, "middle");
+      s += W(`M${reach[i][0]} ${rail[i]} H${reach[i][1]}`);
+    });
+    s += taps;
+    xs.forEach((x, i) => {
+      s += DOT(x + 65, rail[i]);
+      s += `<path d="M${x} ${muxTop} H${x + 130} L${x + 112} ${muxTop + 60} H${x + 18} Z" fill="#fff" ${INK}/>`;
+      [0, 1, 2, 3].forEach((c) => (s += TX(c, pin(x, c), muxTop + 20, "middle")));
+      s += W(`M${x - 34} ${busS1} V${muxTop + 26} H${x + 8}`) + TIP("r", x + 8, muxTop + 26) + TX("s1", x + 16, muxTop + 40);
+      s += W(`M${x - 16} ${busS0} V${muxTop + 44} H${x + 14}`) + TIP("r", x + 14, muxTop + 44) + TX("s0", x + 34, muxTop + 54);
+      s += W(`M${x + 65} ${muxTop + 60} V366`) + TIP("d", x + 65, 366) + TX(`out${3 - i}`, x + 65, 386, "middle");
+      if (i < 3) s += DOT(x - 34, busS1) + DOT(x - 16, busS0);
+    });
+    s += W(`M2 ${busS1} H${xs[3] - 34}`) + W(`M2 ${busS0} H${xs[3] - 16}`) + TX("s1", -4, busS1 + 5, "end") + TX("s0", -4, busS0 + 5, "end");
+    return `<svg class="schem" viewBox="-34 0 960 398" role="img" aria-label="วงจร MUX 4 ต่อ 1 สี่ตัว">${s}</svg>`;
+  }
+
+  // A tree of 2-to-1 MUXes. sel[L] drives every MUX of level L (0 is next to the data); data lists the inputs, top to bottom.
+  function muxTree({ sel, data, out = "y" }) {
+    const INK = 'stroke="#16191d" stroke-width="2"';
+    const W = (d) => `<path class="wire" d="${d}"/>`;
+    const DOT = (x, y) => `<circle class="dot" cx="${x}" cy="${y}" r="3.5"/>`;
+    const TX = (str, x, y, anchor = "start") => `<text x="${x}" y="${y}" text-anchor="${anchor}">${str}</text>`;
+    const TIPR = (x, y) => `<path class="dot" d="M${x} ${y} l-9 -5 v10 z"/>`, TIPU = (x, y) => `<path class="dot" d="M${x} ${y} l-5 9 h10 z"/>`;
+    const n = sel.length, gap = 88, colX = (L) => 120 + 170 * L, count = (L) => 1 << (n - 1 - L);
+    const ys = [Array.from({ length: count(0) }, (_, i) => 46 + i * gap)];
+    for (let L = 1; L < n; L++) ys.push(Array.from({ length: count(L) }, (_, i) => (ys[L - 1][2 * i] + ys[L - 1][2 * i + 1]) / 2));
+    const bottom = ys[0].at(-1) + 56, railY = sel.map((_, L) => bottom + 22 * (n - 1 - L));
+    let wires = "", bodies = "";
+    ys.forEach((col, L) => {
+      const x = colX(L), xb = x - 20;
+      wires += W(`M34 ${railY[L]} H${xb} V${col[0] + 42}`) + TX(sel[L], 28, railY[L] + 5, "end");
+      col.forEach((y, i) => {
+        [0, 1].forEach((b) => {
+          const py = y + (b ? 15 : -15);
+          if (L === 0) wires += W(`M${x - 58} ${py} H${x}`) + TX(data[2 * i + b], x - 64, py + 5, "end");
+          else { const cy = ys[L - 1][2 * i + b], cx = colX(L - 1) + 44; wires += W(`M${cx} ${cy} H${x - 44} V${py} H${x}`); }
+          wires += TIPR(x, py);
+        });
+        wires += W(`M${xb} ${y + 42} H${x + 22} V${y + 24}`) + DOT(xb, y + 42) + TIPU(x + 22, y + 24);
+        bodies += `<path d="M${x} ${y - 30} L${x + 44} ${y - 14} V${y + 14} L${x} ${y + 30} Z" fill="#fff" ${INK}/>` + TX(0, x + 5, y - 10) + TX(1, x + 5, y + 20);
+      });
+    });
+    const last = colX(n - 1) + 44, end = ys[n - 1][0];
+    wires += W(`M${last} ${end} H${last + 44}`) + TIPR(last + 44, end) + TX(out, last + 52, end + 5);
+    return `<svg class="schem" viewBox="-6 0 ${last + 90} ${railY[0] + 16}" role="img" aria-label="วงจร MUX 2 ต่อ 1 ซ้อนกัน">${wires}${bodies}</svg>`;
+  }
+
   // ---------- Karnaugh maps (variables D C B A, rows BA, columns DC) ----------
 
   const KMAP_VARS = ["D", "C", "B", "A"];
@@ -552,7 +621,7 @@
         return;
       }
       const slots = o.terms.map((t) => (Array.isArray(t) ? slot : 18)), height = Math.max(44, slots.reduce((a, b) => a + b, 0));
-      const cy = y + height / 2, n = o.terms.length, gapPin = n <= 2 ? 20 : n === 3 ? 12 : n === 4 ? 10 : 7;
+      const cy = y + height / 2, n = o.terms.length, gapPin = n <= 2 ? 20 : n === 3 ? 12 : n === 4 ? 10 : n <= 6 ? 7 : 5;
       let top = y + (height - slots.reduce((a, b) => a + b, 0)) / 2;
       const routes = o.terms.map((t, i) => {
         const pin = cy + (i - (n - 1) / 2) * gapPin;
@@ -746,6 +815,6 @@
 
   global.LK = {
     NOT, AND, OR, NAND, NOR, settle, label, gate, schematic, setLevels, wave, fitStep, tocSpy,
-    steps, pulses, isEdge, simulate, byQ, twoState, ffSymbol, shiftRegister, shifterCircuit, kmapPrimes, kmapPrimeInfo, kmapPowerSet, kmapCover, kmapTerm, kmapSOP, kmapPOS, kmapSvg, kmapNames, inCube, KMAP_COLORS, SEG7_HEX, SEG7_GLYPH, seg7, circuitLevels, railCircuit, kmapRailOutput, exercises, ffSim,
+    steps, pulses, isEdge, simulate, byQ, twoState, ffSymbol, shiftRegister, shifterCircuit, muxArray, muxTree, kmapPrimes, kmapPrimeInfo, kmapPowerSet, kmapCover, kmapTerm, kmapSOP, kmapPOS, kmapSvg, kmapNames, inCube, KMAP_COLORS, SEG7_HEX, SEG7_GLYPH, seg7, circuitLevels, railCircuit, kmapRailOutput, exercises, ffSim,
   };
 })(window);
