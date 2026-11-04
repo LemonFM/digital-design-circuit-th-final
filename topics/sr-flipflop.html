@@ -1,0 +1,829 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="สรุป SR Latch และ SR Flip-Flop ตามสไลด์ 06 Introduction to Latches and Flip-Flops: bistable element, NOR/NAND latch, enable, master–slave, state diagram, excitation table และแบบฝึก timing diagram">
+  <title>SR Latch & Flip-Flop · CPE 2423</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <nav class="topbar">
+    <div class="wrap">
+      <a href="../index.html">← CPE 2423 ครึ่งหลัง</a>
+      <span class="crumb">01 · SR Latch & SR Flip-Flop</span>
+    </div>
+  </nav>
+
+  <header class="page-head wrap">
+    <p class="eyebrow">หัวข้อ 01 · Latches and Flip-Flops</p>
+    <h1>SR Latch & SR Flip-Flop</h1>
+    <p class="lead">วงจรเก็บข้อมูล 1 บิตตัวแรกของบทนี้ สั่งให้ Q เป็น 1 ด้วย <b>S</b> (Set) สั่งให้เป็น 0 ด้วย <b>R</b> (Reset) ถ้าไม่สั่งอะไรก็จะจำค่าเดิมไว้ (Hold)</p>
+    <p class="source">อ้างอิง: สไลด์ <i>06 Introduction to Latches and Flip-Flops</i> โดย อ. Pichai Suwanloylong · ป้าย <span class="ref" style="margin:0">สไลด์ N</span> บอกหน้าที่ตรงกัน</p>
+  </header>
+
+  <div class="wrap layout">
+    <details class="toc" open>
+      <summary>สารบัญ</summary>
+      <ol>
+        <li><a href="#overview">Latch vs Flip-flop</a></li>
+        <li><a href="#bistable">Bistable element</a></li>
+        <li><a href="#nor">SR latch แบบ NOR</a></li>
+        <li><a href="#nand">S′R′ latch แบบ NAND</a></li>
+        <li><a href="#enable">SR latch with Enable</a></li>
+        <li><a href="#sim">ลองกดวงจร</a></li>
+        <li><a href="#equation">Qnext และ State diagram</a></li>
+        <li><a href="#excitation">Excitation table</a></li>
+        <li><a href="#flipflop">Clock และ SR Flip-Flop</a></li>
+        <li><a href="#practice">แบบฝึก timing diagram</a></li>
+        <li><a href="#recap">สรุปก่อนสอบ</a></li>
+      </ol>
+    </details>
+
+    <main class="content">
+      <!-- 1 -->
+      <section id="overview">
+        <h2><span class="num">1</span>Latch vs Flip-flop <span class="ref">สไลด์ 1, 3</span></h2>
+        <p>Latch และ flip-flop เป็นวงจร <b>sequential</b> ที่เก็บข้อมูลได้ 1 บิต output ขึ้นกับ input ปัจจุบัน และสถานะเดิม (Q) ต่างจากวงจร combinational ที่ดูแค่ input</p>
+        <div class="two-col">
+          <div class="card">
+            <p><b>Latch</b> (level-sensitive)</p>
+            <p>ตลอดช่วงที่สัญญาณ <b>enable ทำงาน</b> สถานะจะเปลี่ยนตาม input <b>ทันที</b> และเมื่อปิด enable ก็จะจำสถานะไว้</p>
+          </div>
+          <div class="card">
+            <p><b>Flip-flop</b> (edge-triggered)</p>
+            <p>เปลี่ยนสถานะเฉพาะที่ <b>ขอบที่ทำงาน</b> (active edge) ของสัญญาณ clock คือขอบขาขึ้นหรือขอบขาลง พ้นขอบไปแล้วจะคงค่าไว้ไม่ว่า input จะเปลี่ยนอย่างไร</p>
+          </div>
+        </div>
+        <div class="callout tip">
+          <b>สัญลักษณ์ที่ใช้ในหน้านี้ (ตามสไลด์)</b>
+          <ul style="margin: 6px 0 0;">
+            <li><b>Q′</b> = นิเสธของ Q (บางตำราเขียน <span class="ov">Q</span>)</li>
+            <li><b>Q</b> = สถานะปัจจุบัน · <b>Qnext</b> = สถานะถัดไป (ตำราอื่นเขียน Q⁺ หรือ Q(t+1))</li>
+            <li><b>S′, R′</b> = input แบบ active-low (ใส่ 0 เพื่อสั่งงาน) · <b>E</b> = Enable · <b>×</b> = don't care</li>
+            <li>RS flip-flop กับ SR flip-flop คือตัวเดียวกัน แค่เรียกต่างกัน</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 2 -->
+      <section id="bistable">
+        <h2><span class="num">2</span>Bistable element <span class="ref">สไลด์ 2</span></h2>
+        <p>ถ้าต่อ output ของ inverter กลับเข้า input ของตัวเอง ค่าจะขัดกันเอง จึงใช้ <b>inverter 2 ตัวต่อเป็นวง</b> แทน ได้วงจรความจำที่ง่ายที่สุด เพราะมี <b>สถานะเสถียร 2 แบบ</b> คือ Q = 0 หรือ Q = 1 แล้วค่าจะค้างอยู่อย่างนั้นด้วยวงป้อนกลับ</p>
+        <figure class="figure">
+          <svg data-schematic="bistable" id="bistable-svg" role="img" aria-label="Bistable element: inverter สองตัวต่อไขว้กัน ได้ output Q และ Q prime"></svg>
+          <figcaption>กดปุ่มเพื่อสลับระหว่างสองสถานะเสถียร · สายสีส้ม = 1, สีเทา = 0</figcaption>
+        </figure>
+        <p style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <button class="btn" type="button" id="bistable-flip">สลับสถานะ</button>
+          <span id="bistable-state" class="mono"></span>
+        </p>
+        <div class="callout warn">
+          <b>ข้อจำกัด</b>
+          วงจรนี้ไม่มี input จึงเปลี่ยนค่าที่เก็บไว้ไม่ได้ ต้องเปลี่ยน inverter เป็นเกต NOR หรือ NAND เพื่อเพิ่มขา S และ R และนี่คือที่มาของ SR latch
+        </div>
+      </section>
+
+      <!-- 3 -->
+      <section id="nor">
+        <h2><span class="num">3</span>SR latch แบบ NOR <span class="ref">สไลด์ 4–5</span></h2>
+        <p>ใช้เกต NOR 2 ตัว input เป็นแบบ <b>active-high</b>: <b>S = 1</b> ทำให้ Set (Q = 1), <b>R = 1</b> ทำให้ Reset (Q = 0), <b>S = R = 0</b> ทำให้ Hold (จำค่าเดิม)</p>
+        <figure class="figure">
+          <svg data-schematic="nor" role="img" aria-label="SR latch จากเกต NOR สองตัว R เข้าเกตบนซึ่งให้ Q และ S เข้าเกตล่างซึ่งให้ Q prime"></svg>
+          <figcaption>R เข้าเกตบน (ได้ Q) · S เข้าเกตล่าง (ได้ Q′) ตรงกับรูป (a) ในสไลด์ 5</figcaption>
+        </figure>
+        <div class="two-col">
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th>S</th><th>R</th><th>Q</th><th>Qnext</th><th>Qnext′</th><th>สถานะ</th></tr></thead>
+              <tbody>
+                <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td class="txt" rowspan="2">Hold</td></tr>
+                <tr><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+                <tr><td>0</td><td>1</td><td>×</td><td>0</td><td>1</td><td class="txt">Reset</td></tr>
+                <tr><td>1</td><td>0</td><td>×</td><td>1</td><td>0</td><td class="txt">Set</td></tr>
+                <tr class="bad"><td>1</td><td>1</td><td>×</td><td>0</td><td>0</td><td class="txt">ห้ามใช้</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <p><b>ทำไมได้ผลแบบนี้:</b> NOR ให้ 0 ทันทีถ้ามี input ตัวใดเป็น 1</p>
+            <ul>
+              <li>S = 1 ทำให้ Q′ = 0 แล้วเกตบนได้ NOR(0, 0) = 1 จึงได้ Q = 1</li>
+              <li>R = 1 ทำให้ Q = 0 แล้วเกตล่างได้ NOR(0, 0) = 1 จึงได้ Q′ = 1</li>
+              <li>S = R = 1 บังคับให้ <b>ทั้ง Q และ Q′ เป็น 0</b></li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout warn">
+          <b>ทำไม S = R = 1 ถึงห้ามใช้</b>
+          ได้ Q = Q′ = 0 ซึ่งขัดกับนิยามที่สองตัวต้องตรงข้ามกัน และถ้าปล่อย S, R กลับเป็น 0 พร้อมกัน เกตทั้งสองจะแข่งกันเปลี่ยน (race condition) ผลจึงเป็น <b>Undefined</b> บอกไม่ได้ว่า Q จะออกมาเป็น 0 หรือ 1
+        </div>
+      </section>
+
+      <!-- 4 -->
+      <section id="nand">
+        <h2><span class="num">4</span>S′R′ latch แบบ NAND <span class="ref">สไลด์ 6</span></h2>
+        <p>ใช้เกต NAND 2 ตัว input ชื่อ <b>S′</b> และ <b>R′</b> เป็นแบบ <b>active-low</b>: <b>S′ = 0</b> ทำให้ Set, <b>R′ = 0</b> ทำให้ Reset, <b>S′ = R′ = 1</b> ทำให้ Hold</p>
+        <figure class="figure">
+          <svg data-schematic="nand" role="img" aria-label="SR latch จากเกต NAND สองตัว S prime เข้าเกตบนซึ่งให้ Q และ R prime เข้าเกตล่างซึ่งให้ Q prime"></svg>
+          <figcaption>สังเกต: ตำแหน่ง input สลับกับแบบ NOR โดย S′ อยู่ฝั่งเดียวกับ Q</figcaption>
+        </figure>
+        <div class="two-col">
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th>S′</th><th>R′</th><th>Q</th><th>Qnext</th><th>Qnext′</th><th>สถานะ</th></tr></thead>
+              <tbody>
+                <tr class="bad"><td>0</td><td>0</td><td>×</td><td>1</td><td>1</td><td class="txt">ห้ามใช้</td></tr>
+                <tr><td>0</td><td>1</td><td>×</td><td>1</td><td>0</td><td class="txt">Set</td></tr>
+                <tr><td>1</td><td>0</td><td>×</td><td>0</td><td>1</td><td class="txt">Reset</td></tr>
+                <tr><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td><td class="txt" rowspan="2">Hold</td></tr>
+                <tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <p><b>ทำไมได้ผลแบบนี้:</b> NAND ให้ 1 ทันทีถ้ามี input ตัวใดเป็น 0</p>
+            <ul>
+              <li>S′ = 0 บังคับให้ Q = 1 (Set)</li>
+              <li>R′ = 0 บังคับให้ Q′ = 1 จึงได้ Q = 0 (Reset)</li>
+              <li>S′ = R′ = 0 บังคับให้ <b>ทั้ง Q และ Q′ เป็น 1</b></li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout tip">
+          <b>เทคนิคจำ</b>
+          ตาราง NAND คือตาราง NOR ที่กลับค่า input ทุกตัว ส่วนสถานะห้ามใช้ ถ้าเป็น NOR จะได้ Q, Q′ = <b>0, 0</b> ถ้าเป็น NAND จะได้ <b>1, 1</b> ในสไลด์ 6 ช่วง t4–t5 จะเห็น Q และ Q′ เป็น 1 พร้อมกัน และหลัง t6 กลายเป็น Undefined (ลองทำใน <a href="#ex3">แบบฝึกข้อ 3</a>)
+        </div>
+      </section>
+
+      <!-- 5 -->
+      <section id="enable">
+        <h2><span class="num">5</span>SR latch with Enable <span class="ref">สไลด์ 7</span></h2>
+        <p>เพิ่มเกต NAND 2 ตัวหน้า S′R′ latch และเพิ่มขา <b>E</b> (Enable) เพื่อคุมว่าเมื่อไรจะยอมรับ S, R</p>
+        <ul>
+          <li><b>E = 0</b>: ไม่สนใจ S, R เลย latch คงค่าเดิมไว้</li>
+          <li><b>E = 1</b>: ทำงานเหมือน SR latch ปกติ input เป็นแบบ <b>active-high</b> (เกต NAND ด้านหน้ากลับค่าให้ จึงได้ S′ = (S·E)′ และ R′ = (R·E)′)</li>
+        </ul>
+        <figure class="figure wide">
+          <svg data-schematic="enable" role="img" aria-label="SR latch with enable: S และ E เข้า NAND ตัวบนได้ S prime, R และ E เข้า NAND ตัวล่างได้ R prime แล้วต่อเข้า NAND latch"></svg>
+          <figcaption>เกต NAND คู่หน้าสร้าง S′ และ R′ ส่งให้ S′R′ latch</figcaption>
+        </figure>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>E</th><th>S</th><th>R</th><th>Q</th><th>Qnext</th><th>Qnext′</th><th>สถานะ</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>×</td><td>×</td><td>0</td><td>0</td><td>1</td><td class="txt" rowspan="2">Hold (ไม่สนใจ S, R)</td></tr>
+              <tr><td>0</td><td>×</td><td>×</td><td>1</td><td>1</td><td>0</td></tr>
+              <tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td class="txt" rowspan="2">Hold</td></tr>
+              <tr><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+              <tr><td>1</td><td>0</td><td>1</td><td>×</td><td>0</td><td>1</td><td class="txt">Reset</td></tr>
+              <tr><td>1</td><td>1</td><td>0</td><td>×</td><td>1</td><td>0</td><td class="txt">Set</td></tr>
+              <tr class="bad"><td>1</td><td>1</td><td>1</td><td>×</td><td>1</td><td>1</td><td class="txt">ห้ามใช้</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn">
+          <b>ระวัง</b>
+          เพราะข้างในเป็น NAND latch แถว E = 1, S = R = 1 จึงได้ Q = Q′ = <b>1</b> (ไม่ใช่ 0 แบบ NOR) และถ้า E กลับเป็น 0 ระหว่างนั้น ผลจะเป็น Undefined
+        </div>
+      </section>
+
+      <!-- 6 -->
+      <section id="sim">
+        <h2><span class="num">6</span>ลองกดวงจร</h2>
+        <p>กดปุ่ม input เพื่อสลับค่า 0/1 แล้วดูสัญญาณในวงจร แถวที่ใช้อยู่ในตารางจะถูกไฮไลต์ และ timing diagram ด้านล่างจะบันทึกทุกครั้งที่กด</p>
+        <div class="callout tip">
+          <b>ลองทำดู</b>
+          ตั้ง S = R = 1 (แบบ NOR) แล้วกด "สลับพร้อมกัน" ให้ทั้งคู่กลับเป็น 0 ในจังหวะเดียว Q จะกลายเป็น Undefined (?) จากนั้นกด Set หรือ Reset เพื่อให้กลับมามีค่าแน่นอน
+        </div>
+
+        <div class="sim" id="simulator">
+          <div class="tabs" role="tablist" aria-label="ชนิดวงจร">
+            <button role="tab" data-mode="nor" aria-selected="true">NOR latch</button>
+            <button role="tab" data-mode="nand" aria-selected="false">NAND latch</button>
+            <button role="tab" data-mode="enable" aria-selected="false">With Enable</button>
+          </div>
+          <div class="sim-grid">
+            <div>
+              <svg class="sim-schem" role="img" aria-label="วงจรจำลองที่สีของสายแสดงค่าลอจิก"></svg>
+              <div class="sim-inputs"></div>
+            </div>
+            <div>
+              <div class="outs">
+                <div class="out"><span>Q</span><b data-out="Q">0</b></div>
+                <div class="out"><span>Q′</span><b data-out="Qn">1</b></div>
+              </div>
+              <p class="sim-status" aria-live="polite"></p>
+              <div class="table-scroll"><table class="tt sim-table"></table></div>
+            </div>
+          </div>
+          <div class="sim-wave-head">
+            <h4>Timing diagram ของการกดล่าสุด</h4>
+            <button class="btn" type="button" data-reset>เริ่มใหม่</button>
+          </div>
+          <div class="wave-scroll"><svg class="sim-wave" role="img" aria-label="timing diagram ของการกดล่าสุด"></svg></div>
+        </div>
+      </section>
+
+      <!-- 7 -->
+      <section id="equation">
+        <h2><span class="num">7</span>Qnext และ State diagram <span class="ref">สไลด์ 24</span></h2>
+        <p>เขียนตารางคุณลักษณะ (characteristic table) โดยมี Q เป็น input ด้วย แล้วใช้ K-map หา Qnext</p>
+        <div class="two-col">
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th>S</th><th>R</th><th>Q</th><th>Qnext</th><th>Qnext′</th></tr></thead>
+              <tbody>
+                <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td></tr>
+                <tr><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+                <tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+                <tr><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+                <tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr>
+                <tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+                <tr class="bad"><td>1</td><td>1</td><td>0</td><td>×</td><td>×</td></tr>
+                <tr class="bad"><td>1</td><td>1</td><td>1</td><td>×</td><td>×</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <div class="table-scroll">
+              <table class="tt kmap">
+                <thead>
+                  <tr><th>Q \ SR</th><th>00</th><th>01</th><th>11</th><th>10</th></tr>
+                </thead>
+                <tbody>
+                  <tr><th>0</th><td>0</td><td>0</td><td class="g1">×</td><td class="g1">1</td></tr>
+                  <tr><th>1</th><td class="g2">1</td><td>0</td><td class="g1">×</td><td class="g12">1</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p style="margin-top: 12px; font-size: 15px;">
+              <span class="chip g1">S</span> จับคอลัมน์ SR = 11, 10 (ใช้ × ช่วยให้กลุ่มใหญ่ขึ้น)<br>
+              <span class="chip g2">R′Q</span> จับแถว Q = 1 ที่ R = 0 (ซ้อนหัวท้ายของแถว)
+            </p>
+          </div>
+        </div>
+        <div class="formula">
+          Qnext = S + R′Q
+          <small>มีเงื่อนไข S·R = 0 (ห้าม S และ R เป็น 1 พร้อมกัน)</small>
+        </div>
+
+        <h3>State diagram</h3>
+        <p>มี 2 สถานะ คือ Q = 0 และ Q = 1 ลูกศรบอกว่าค่า SR แบบไหนทำให้ย้ายสถานะ หรืออยู่ที่เดิม</p>
+        <figure class="figure">
+          <svg class="fsm" viewBox="0 0 440 184" role="img" aria-label="State diagram ของ SR flip-flop: จาก Q=0 ไป Q=1 เมื่อ SR=10, จาก Q=1 ไป Q=0 เมื่อ SR=01, อยู่ที่ Q=0 เมื่อ SR=00 หรือ 01, อยู่ที่ Q=1 เมื่อ SR=00 หรือ 10">
+            <defs>
+              <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"/></marker>
+            </defs>
+            <path d="M136 70 Q220 12 304 70" marker-end="url(#arr)"/>
+            <path d="M304 110 Q220 168 136 110" marker-end="url(#arr)"/>
+            <path d="M78 78 C26 46 26 134 78 102" marker-end="url(#arr)"/>
+            <path d="M362 78 C414 46 414 134 362 102" marker-end="url(#arr)"/>
+            <circle cx="110" cy="90" r="34"/>
+            <circle cx="330" cy="90" r="34"/>
+            <text class="st" x="110" y="96" text-anchor="middle">Q=0</text>
+            <text class="st" x="330" y="96" text-anchor="middle">Q=1</text>
+            <text x="220" y="30" text-anchor="middle">SR=10</text>
+            <text x="220" y="164" text-anchor="middle">SR=01</text>
+            <text x="52" y="50" text-anchor="middle">SR=00, 01</text>
+            <text x="388" y="50" text-anchor="middle">SR=00, 10</text>
+          </svg>
+          <figcaption>อยู่ที่ Q = 0 ต่อเมื่อไม่ได้สั่ง Set · อยู่ที่ Q = 1 ต่อเมื่อไม่ได้สั่ง Reset</figcaption>
+        </figure>
+        <div class="callout tip">
+          <b>สร้าง SR flip-flop จาก D flip-flop</b> <span class="ref" style="margin-left:0">สไลด์ 24 (d)</span>
+          ป้อน <b>D = S + R′Q</b> เข้า D flip-flop (Q ป้อนกลับผ่านเกต AND ร่วมกับ R′ แล้ว OR กับ S) เพราะ D flip-flop มี Qnext = D จึงได้ Qnext = S + R′Q ตามต้องการ
+        </div>
+      </section>
+
+      <!-- 8 -->
+      <section id="excitation">
+        <h2><span class="num">8</span>Excitation table <span class="ref">สไลด์ 24 (f)</span></h2>
+        <p>ตารางนี้ใช้กลับทางกับตารางความจริง คือรู้ว่าต้องการให้ <b>Q → Qnext</b> แล้วถามว่าต้องใส่ S, R เท่าไร ใช้ตอน <b>ออกแบบ counter และ state machine</b></p>
+        <div class="two-col">
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th>Q</th><th>Qnext</th><th>S</th><th>R</th></tr></thead>
+              <tbody>
+                <tr><td>0</td><td>0</td><td>0</td><td>×</td></tr>
+                <tr><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+                <tr><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+                <tr><td>1</td><td>1</td><td>×</td><td>0</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <p><b>วิธีคิดแต่ละแถว</b> (ดูจาก state diagram ได้เลย)</p>
+            <ul>
+              <li><b>0 → 0</b>: SR = 00 หรือ 01 จึงได้ S = 0, R = ×</li>
+              <li><b>0 → 1</b>: SR = 10 จึงได้ S = 1, R = 0</li>
+              <li><b>1 → 0</b>: SR = 01 จึงได้ S = 0, R = 1</li>
+              <li><b>1 → 1</b>: SR = 00 หรือ 10 จึงได้ S = ×, R = 0</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 9 -->
+      <section id="flipflop">
+        <h2><span class="num">9</span>Clock และ SR Flip-Flop <span class="ref">สไลด์ 11–12, 18–19</span></h2>
+        <p>Latch ยอมให้สถานะเปลี่ยนได้ตลอดเวลาที่เปิด enable แต่วงจรคอมพิวเตอร์ต้องการให้ทุกอย่าง <b>เปลี่ยนพร้อมกันเป็นจังหวะ</b> จึงใช้สัญญาณ <b>clock</b> (คลื่นสี่เหลี่ยม) คู่กับ flip-flop</p>
+        <div class="keypoints">
+          <div class="kp"><div class="k">Rising edge</div><div class="v">0 → 1</div><p>ขอบขาขึ้น นิยมใช้เป็นขอบที่ทำงาน (active edge)</p></div>
+          <div class="kp"><div class="k">Falling edge</div><div class="v">1 → 0</div><p>ขอบขาลง สัญลักษณ์มีวงกลมหน้าขา Clk</p></div>
+          <div class="kp"><div class="k">Clock cycle</div><div class="v">ขอบขาขึ้น → ขอบขาขึ้นถัดไป</div><p>คาบ T = 1 / f เช่น f = 2 GHz ได้ T = 0.5 ns</p></div>
+        </div>
+
+        <h3>ชนิดของ clocked flip-flop (สไลด์ 12)</h3>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>ชนิด</th><th>ทำงานเมื่อ</th><th>หมายเหตุ</th></tr></thead>
+            <tbody>
+              <tr><td class="txt">Level-triggered</td><td class="txt">ระดับ high หรือ low ของ clock</td><td class="txt">แม่นยำน้อยกว่า (ก็คือ latch with enable)</td></tr>
+              <tr><td class="txt">Edge-triggered</td><td class="txt">ขอบขาขึ้นหรือขอบขาลงเท่านั้น</td><td class="txt">จังหวะแม่นยำกว่า</td></tr>
+              <tr><td class="txt">Master–Slave</td><td class="txt">ใช้ latch 2 ตัวทำงานสลับจังหวะกัน</td><td class="txt">output เปลี่ยนเฉพาะตอน clock เปลี่ยน แต่ latch ตัวหน้ารับ input ตลอดครึ่งคาบ (pulse-triggered)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout tip">
+          <b>ข้อความในสไลด์ 12 ที่ควรอ่านอย่างระวัง</b> <span class="ref" style="margin-left:0">ตรวจทานเพิ่ม</span>
+          <ul style="margin: 6px 0 0;">
+            <li>สไลด์เรียกว่า "level-triggered <i>flip-flop</i>" แต่ตามนิยามทั่วไป อุปกรณ์ที่ทำงานตามระดับคือ <b>latch</b> ส่วน flip-flop หมายถึงแบบที่ทำงานตามขอบ</li>
+            <li>สไลด์บอกว่า "master clocked on the rising edge, slave on the falling edge" ที่ถูกคือ latch ทั้งสองตัวทำงานตาม <b>ระดับ</b> สลับกัน (เช่นในสไลด์ 14 และ 19 master เปิดตอน CLK = 0 และ slave เปิดตอน CLK = 1) ทำให้ output เปลี่ยนที่ขอบขาขึ้น</li>
+          </ul>
+        </div>
+
+
+        <h3>Master–Slave SR Flip-Flop (สไลด์ 19)</h3>
+        <figure class="figure wide">
+          <svg class="blk" viewBox="0 0 560 176" role="img" aria-label="Master-slave SR flip-flop: S และ R เข้า master latch ที่ enable ด้วย CLK prime, output P และ P prime ส่งเข้า slave latch ที่ enable ด้วย CLK ได้ Q และ Q prime">
+            <text class="cap" x="225" y="20" text-anchor="middle">Master (E = CLK′)</text>
+            <text class="cap" x="425" y="20" text-anchor="middle">Slave (E = CLK)</text>
+            <line x1="40" y1="52" x2="170" y2="52"/><text x="30" y="57" text-anchor="end">S</text>
+            <line x1="40" y1="112" x2="170" y2="112"/><text x="30" y="117" text-anchor="end">R</text>
+            <line x1="280" y1="52" x2="370" y2="52"/><text x="325" y="44" text-anchor="middle">P</text>
+            <line x1="280" y1="112" x2="370" y2="112"/><text x="325" y="104" text-anchor="middle">P′</text>
+            <line x1="480" y1="52" x2="520" y2="52"/><text x="528" y="57">Q</text>
+            <line x1="480" y1="112" x2="520" y2="112"/><text x="528" y="117">Q′</text>
+            <path d="M40 160 H345 V82 H370"/><text x="30" y="165" text-anchor="end">CLK</text>
+            <path d="M110 160 V82 H120"/><path d="M153 82 H170"/>
+            <path class="inv" d="M120 70 L144 82 L120 94 Z"/><circle cx="148.5" cy="82" r="4.5"/>
+            <circle class="dot" cx="110" cy="160" r="3.5"/>
+            <rect x="170" y="30" width="110" height="104" rx="4"/>
+            <rect x="370" y="30" width="110" height="104" rx="4"/>
+            <text x="180" y="57">S</text><text x="180" y="87">E</text><text x="180" y="117">R</text>
+            <text x="270" y="57" text-anchor="end">Q</text><text x="270" y="117" text-anchor="end">Q′</text>
+            <text x="380" y="57">S</text><text x="380" y="87">E</text><text x="380" y="117">R</text>
+            <text x="470" y="57" text-anchor="end">Q</text><text x="470" y="117" text-anchor="end">Q′</text>
+          </svg>
+          <figcaption>latch แต่ละตัวคือ SR latch with Enable · master รับ CLK ผ่าน inverter</figcaption>
+        </figure>
+        <ol>
+          <li><b>CLK = 0</b>: master เปิด จึงรับ S, R เก็บไว้ที่ P ส่วน slave ปิด Q จึงไม่เปลี่ยน</li>
+          <li><b>CLK ขึ้นเป็น 1</b>: master ปิด (จำค่า P ไว้) แล้ว slave เปิดและคัดลอก P ไปเป็น Q</li>
+          <li>ผล: Q (output) เปลี่ยนเฉพาะที่ <b>ขอบขาขึ้น</b> เท่านั้น</li>
+        </ol>
+        <div class="callout warn">
+          <b>ข้อควรระวัง: master–slave SR เป็น pulse-triggered ไม่ใช่ edge-triggered แท้</b> <span class="ref" style="margin-left:0">ตรวจทานเพิ่ม</span>
+          Q เปลี่ยนที่ขอบก็จริง แต่ค่าที่ได้ขึ้นกับ S, R <b>ตลอดช่วง CLK = 0</b> ไม่ใช่แค่ค่า ณ ขอบ เช่น ถ้า S เป็น 1 แป๊บเดียวตอน CLK = 0 แล้วกลับเป็น 0 master จะถูก set ค้างไว้ (SR = 00 คือ hold) พอถึงขอบขาขึ้น Q ก็เป็น 1 ทั้งที่ ณ ขอบ S = 0 ถ้าโจทย์บอกว่าเป็น <b>edge-triggered</b> (เช่นแบบฝึกข้อ 4) ให้ดูค่า S, R เฉพาะ ณ ขอบ
+        </div>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>S</th><th>R</th><th>Operation summary (สไลด์ 19)</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>0</td><td class="txt">No state change</td></tr>
+              <tr><td>1</td><td>0</td><td class="txt">Set Q เป็น 1 (หลังขอบ clock ที่ทำงาน)</td></tr>
+              <tr><td>0</td><td>1</td><td class="txt">Reset Q เป็น 0 (หลังขอบ clock ที่ทำงาน)</td></tr>
+              <tr class="bad"><td>1</td><td>1</td><td class="txt">Not allowed</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>สัญลักษณ์</h3>
+        <figure class="figure">
+          <div class="sym-grid" id="symbols"></div>
+          <figcaption>สามเหลี่ยม (▷) ที่ขา Clk หมายถึงทริกที่ขอบ ถ้ามีวงกลมหน้าสามเหลี่ยมหมายถึงขอบขาลง</figcaption>
+        </figure>
+      </section>
+
+      <!-- 10 -->
+      <section id="practice">
+        <h2><span class="num">10</span>แบบฝึก timing diagram</h2>
+        <p>ไล่ทีละช่วงเวลา ดูว่า input ช่วงนั้นเป็นคำสั่งอะไร (set / reset / hold) แล้วจึงหาค่า Q ข้อ 1–2 ให้ <b>เริ่มต้น Q = 0</b> และไม่คิด propagation delay</p>
+
+        <div class="exercise">
+          <p class="q-text"><b>ข้อ 1</b> · SR latch แบบ NOR หาค่า Q</p>
+          <div class="wave-scroll"><svg data-exercise="1" role="img" aria-label="แบบฝึกข้อ 1 สัญญาณ S และ R"></svg></div>
+          <div class="actions"><button class="btn primary" type="button" data-reveal="1">ดูเฉลย</button></div>
+          <div class="answer callout ok" data-answer="1" hidden>
+            <b>เฉลยข้อ 1</b>
+            t1–t2 set → 1, t3 hold → 1, t4 reset → 0, t6 set → 1, t8 reset → 0 ช่วงที่ S = R = 0 ให้ใช้ค่าเดิมของช่วงก่อนหน้า
+          </div>
+        </div>
+
+        <div class="exercise">
+          <p class="q-text"><b>ข้อ 2</b> · SR latch with Enable หาค่า Q (ระวังช่วง E = 0)</p>
+          <div class="wave-scroll"><svg data-exercise="2" role="img" aria-label="แบบฝึกข้อ 2 สัญญาณ E S และ R"></svg></div>
+          <div class="actions"><button class="btn primary" type="button" data-reveal="2">ดูเฉลย</button></div>
+          <div class="answer callout ok" data-answer="2" hidden>
+            <b>เฉลยข้อ 2</b>
+            ที่ t0, t2, t4, t6, t8 มี S หรือ R เป็น 1 แต่ E = 0 จึงไม่มีผล Q เปลี่ยนแค่ที่ t3 (set → 1) และ t7 (reset → 0)
+          </div>
+        </div>
+
+        <div class="exercise" id="ex3">
+          <p class="q-text"><b>ข้อ 3</b> · S′R′ latch แบบ NAND หาค่า Q และ Q′ <span class="ref">โจทย์จากสไลด์ 6</span></p>
+          <div class="wave-scroll"><svg data-exercise="3" role="img" aria-label="แบบฝึกข้อ 3 สัญญาณ S prime และ R prime จากสไลด์ 6"></svg></div>
+          <div class="actions"><button class="btn primary" type="button" data-reveal="3">ดูเฉลย</button></div>
+          <div class="answer callout ok" data-answer="3" hidden>
+            <b>เฉลยข้อ 3</b>
+            <ul style="margin: 6px 0 0;">
+              <li>t0–t2: S′ = 0 ทำให้ set Q = 1 แล้ว hold ต่อ</li>
+              <li>t2: R′ = 0 ทำให้ reset Q = 0, Q′ = 1 แล้ว hold ถึง t4</li>
+              <li>t4: S′ = R′ = 0 ได้ Q = Q′ = <b>1</b> (สถานะห้ามใช้ของ NAND)</li>
+              <li>t5: R′ = 1 จึงเหลือ set ได้ Q = 1, Q′ = 0 จากนั้น R′ = 0 อีกครั้ง ได้ Q = Q′ = 1</li>
+              <li>t6: S′, R′ กลับเป็น 1 พร้อมกัน เกิด race จึงเป็น <b>Undefined</b></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="exercise">
+          <p class="q-text"><b>ข้อ 4</b> · SR flip-flop ทริกขอบขาลง (falling-edge) เริ่มต้น Q = 0 <span class="ref">โจทย์จากสไลด์ 18</span></p>
+          <div class="wave-scroll"><svg data-exercise="4" role="img" aria-label="แบบฝึกข้อ 4 สัญญาณ Clock S และ R จากสไลด์ 18"></svg></div>
+          <div class="actions"><button class="btn primary" type="button" data-reveal="4">ดูเฉลย</button></div>
+          <div class="answer callout ok" data-answer="4" hidden>
+            <b>เฉลยข้อ 4</b>
+            ดูค่า S, R <b>ณ จังหวะขอบขาลง</b> (เส้นประ ↓1–↓4) เท่านั้น
+            <ul style="margin: 6px 0 0;">
+              <li>↓1: S = 1, R = 0 ทำให้ Q = 1</li>
+              <li>↓2: S = R = 0 จึง hold ได้ Q = 1 (พัลส์ S ลูกที่สองเกิดระหว่างขอบ จึงไม่มีผล)</li>
+              <li>↓3: S = 0, R = 1 ทำให้ Q = 0</li>
+              <li>↓4: S = R = 0 จึง hold ได้ Q = 0</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 11 -->
+      <section id="recap">
+        <h2><span class="num">11</span>สรุปก่อนสอบ</h2>
+        <div class="table-scroll">
+          <table class="tt stack">
+            <thead><tr><th>ชนิด</th><th>สั่งงานด้วย</th><th>Hold</th><th>Set</th><th>Reset</th><th>ห้ามใช้ (ได้ Q, Q′)</th></tr></thead>
+            <tbody>
+              <tr><td class="txt">NOR latch</td><td class="txt" data-label="สั่งงานด้วย"><span>1 (active-high)</span></td><td data-label="Hold"><span>SR=00</span></td><td data-label="Set"><span>SR=10</span></td><td data-label="Reset"><span>SR=01</span></td><td data-label="ห้ามใช้"><span>SR=11 → 0, 0</span></td></tr>
+              <tr><td class="txt">NAND latch</td><td class="txt" data-label="สั่งงานด้วย"><span>0 (active-low)</span></td><td data-label="Hold"><span>S′R′=11</span></td><td data-label="Set"><span>S′R′=01</span></td><td data-label="Reset"><span>S′R′=10</span></td><td data-label="ห้ามใช้"><span>S′R′=00 → 1, 1</span></td></tr>
+              <tr><td class="txt">SR latch with Enable</td><td class="txt" data-label="สั่งงานด้วย"><span>1 ขณะ E = 1</span></td><td data-label="Hold"><span>E=0 / SR=00</span></td><td data-label="Set"><span>SR=10</span></td><td data-label="Reset"><span>SR=01</span></td><td data-label="ห้ามใช้"><span>SR=11 → 1, 1</span></td></tr>
+              <tr><td class="txt">SR flip-flop</td><td class="txt" data-label="สั่งงานด้วย"><span>1 ณ ขอบ clock</span></td><td data-label="Hold"><span>SR=00</span></td><td data-label="Set"><span>SR=10</span></td><td data-label="Reset"><span>SR=01</span></td><td data-label="ห้ามใช้"><span>SR=11 (Not allowed)</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="formula">
+          Qnext = S + R′Q
+          <small>excitation: 0→0 = 0×, 0→1 = 10, 1→0 = 01, 1→1 = ×0</small>
+        </div>
+        <div class="callout warn">
+          <b>จุดที่พลาดบ่อย</b>
+          <ul style="margin: 6px 0 0;">
+            <li>ลืมว่า NAND latch เป็น active-low (ใส่ 0 = สั่งงาน)</li>
+            <li>ตอบค่าสถานะห้ามใช้สลับกัน: NOR ได้ Q, Q′ = 0, 0 ส่วน NAND ได้ 1, 1</li>
+            <li>Latch with Enable ตอน E = 0 ห้ามให้ Q เปลี่ยน แม้ S หรือ R จะเป็น 1</li>
+            <li>Flip-flop ดูค่า S, R เฉพาะ <b>ที่ขอบ</b> ที่ทำงาน ห้ามดูทั้งช่วง (ต่างจาก latch)</li>
+            <li>ปล่อย input ออกจากสถานะห้ามใช้พร้อมกัน ผลคือ Undefined ไม่ใช่ 0 หรือ 1</li>
+            <li>เขียน Qnext = S + R′Q แต่ลืมเงื่อนไข SR = 0</li>
+            <li>ใช้ตารางความจริงแทน excitation table ตอนออกแบบ counter</li>
+          </ul>
+        </div>
+        <div class="callout tip">
+          <b>ต่อยอดในสไลด์</b>
+          ปัญหา SR = 11 ถูกแก้ด้วย <b>D latch / D flip-flop</b> (ใส่ inverter ให้ S′, R′ ตรงข้ามกันเสมอ ได้ Qnext = D) และ <b>JK flip-flop</b> (เปลี่ยน JK = 11 เป็นการ toggle)
+        </div>
+        <nav class="pager" aria-label="หัวข้อถัดไป">
+          <a class="next" href="d-flipflop.html"><small>ถัดไป →</small>D Latch & D Flip-Flop</a>
+        </nav>
+      </section>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap"><a href="../index.html">← กลับหน้าแรก</a> · CPE 2423 ครึ่งหลัง</div>
+  </footer>
+
+  <script src="../assets/logic-kit.js"></script>
+  <script>
+    (function () {
+      "use strict";
+      const { NOT, NOR, NAND, settle, schematic, setLevels, wave, fitStep, label, tocSpy } = LK;
+
+      // ---------- Schematic layouts ----------
+      // Cross-coupled pair: top gate at (gx, 30), bottom at (gx, 130); feedback verticals at x = gx-30 and gx+110.
+      const CROSS = (gx, ox, outX = gx + 56) => ({
+        Q: { d: `M${outX} 50 H${ox} M${gx + 110} 50 V85 L${gx - 30} 115 V140 H${gx + 6}`, dots: [[gx + 110, 50]] },
+        Qn: { d: `M${outX} 150 H${ox} M${gx + 110} 150 V115 L${gx - 30} 85 V60 H${gx + 6}`, dots: [[gx + 110, 150]] },
+      });
+      const OUT_LABELS = (x) => [["Q", x, 55, "start", "Q"], ["~Q", x, 155, "start", "Qn"]];
+
+      const SPECS = {
+        bistable: {
+          viewBox: "0 0 440 200",
+          nets: {
+            Q: { d: "M222 50 H392 M280 50 V85 L140 115 V150 H176", dots: [[280, 50]] },
+            Qn: { d: "M222 150 H392 M280 150 V115 L140 85 V50 H176", dots: [[280, 150]] },
+          },
+          gates: [["not", 170, 30], ["not", 170, 130]],
+          labels: OUT_LABELS(400),
+        },
+        nor: {
+          viewBox: "0 0 440 200",
+          nets: { R: { d: "M40 40 H176" }, S: { d: "M40 160 H176" }, ...CROSS(170, 392) },
+          gates: [["nor", 170, 30], ["nor", 170, 130]],
+          labels: [["R", 30, 45, "end", "R"], ["S", 30, 165, "end", "S"], ...OUT_LABELS(400)],
+        },
+        nand: {
+          viewBox: "0 0 440 200",
+          nets: { Sb: { d: "M40 40 H176" }, Rb: { d: "M40 160 H176" }, ...CROSS(170, 392) },
+          gates: [["nand", 170, 30], ["nand", 170, 130]],
+          labels: [["~S", 32, 45, "end", "Sb"], ["~R", 32, 165, "end", "Rb"], ...OUT_LABELS(400)],
+        },
+        enable: {
+          viewBox: "0 0 580 200",
+          nets: {
+            S: { d: "M48 40 H136" },
+            R: { d: "M48 160 H136" },
+            E: { d: "M48 100 H100 M100 60 V140 M100 60 H136 M100 140 H136", dots: [[100, 100]] },
+            Sp: { d: "M186 50 H240 V40 H306" },
+            Rp: { d: "M186 150 H240 V160 H306" },
+            ...CROSS(300, 530),
+          },
+          gates: [["nand", 130, 30], ["nand", 130, 130], ["nand", 300, 30], ["nand", 300, 130]],
+          labels: [["S", 38, 45, "end", "S"], ["E", 38, 105, "end", "E"], ["R", 38, 165, "end", "R"], ["S′", 212, 40, "middle"], ["R′", 212, 174, "middle"], ...OUT_LABELS(538)],
+        },
+      };
+
+      document.querySelectorAll("[data-schematic]").forEach((svg) => schematic(svg, SPECS[svg.dataset.schematic]));
+
+      // ---------- Bistable element ----------
+      const bistableSvg = document.getElementById("bistable-svg");
+      const bistableState = document.getElementById("bistable-state");
+      let bq = 0;
+      function drawBistable() {
+        setLevels(bistableSvg, { Q: bq, Qn: NOT(bq) });
+        bistableState.textContent = `Q = ${bq}, Q′ = ${NOT(bq)}`;
+      }
+      document.getElementById("bistable-flip").addEventListener("click", () => {
+        bq ^= 1;
+        drawBistable();
+      });
+      drawBistable();
+
+      // ---------- Circuit models ----------
+      const MODES = {
+        nor: {
+          inputs: [["S", "S"], ["R", "R"]],
+          pair: ["S", "R"],
+          start: { S: 0, R: 0 },
+          levels: (i) => ({ S: i.S, R: i.R }),
+          next: (i, q, qn) => settle(q, qn, (a, b) => [NOR(i.R, b), NOR(i.S, a)]),
+          head: ["S", "R", "Q", "Qnext", ""],
+          rows: [["0", "0", "0", "0", "Hold"], ["0", "0", "1", "1", "Hold"], ["0", "1", "×", "0", "Reset"], ["1", "0", "×", "1", "Set"], ["1", "1", "×", "0*", "ห้ามใช้"]],
+          row: (i, pq) => (i.S || i.R ? 1 + i.S * 2 + i.R : hold(0, pq)),
+        },
+        nand: {
+          inputs: [["Sb", "~S"], ["Rb", "~R"]],
+          pair: ["Sb", "Rb"],
+          start: { Sb: 1, Rb: 1 },
+          levels: (i) => ({ Sb: i.Sb, Rb: i.Rb }),
+          next: (i, q, qn) => settle(q, qn, (a, b) => [NAND(i.Sb, b), NAND(i.Rb, a)]),
+          head: ["S′", "R′", "Q", "Qnext", ""],
+          rows: [["0", "0", "×", "1*", "ห้ามใช้"], ["0", "1", "×", "1", "Set"], ["1", "0", "×", "0", "Reset"], ["1", "1", "0", "0", "Hold"], ["1", "1", "1", "1", "Hold"]],
+          row: (i, pq) => (i.Sb && i.Rb ? hold(3, pq) : i.Sb * 2 + i.Rb),
+        },
+        enable: {
+          inputs: [["E", "E"], ["S", "S"], ["R", "R"]],
+          pair: ["S", "R"],
+          start: { E: 0, S: 0, R: 0 },
+          levels: (i) => ({ E: i.E, S: i.S, R: i.R, Sp: NAND(i.S, i.E), Rp: NAND(i.R, i.E) }),
+          next(i, q, qn) {
+            const sp = NAND(i.S, i.E), rp = NAND(i.R, i.E);
+            return settle(q, qn, (a, b) => [NAND(sp, b), NAND(rp, a)]);
+          },
+          head: ["E", "S", "R", "Q", "Qnext", ""],
+          rows: [["0", "×", "×", "0", "0", "Hold"], ["0", "×", "×", "1", "1", "Hold"], ["1", "0", "0", "0", "0", "Hold"], ["1", "0", "0", "1", "1", "Hold"], ["1", "0", "1", "×", "0", "Reset"], ["1", "1", "0", "×", "1", "Set"], ["1", "1", "1", "×", "1*", "ห้ามใช้"]],
+          row: (i, pq) => (!i.E ? hold(0, pq) : i.S || i.R ? 3 + i.S * 2 + i.R : hold(2, pq)),
+        },
+      };
+
+      // seq: { key: "0101…" } → array of input objects, one per time step.
+      const steps = (seq) => {
+        const keys = Object.keys(seq);
+        return [...seq[keys[0]]].map((_, t) => Object.fromEntries(keys.map((k) => [k, +seq[k][t]])));
+      };
+
+      // Level-sensitive circuits: re-evaluate on every step.
+      function run(mode, seq, q = 0, qn = 1) {
+        return steps(seq).map((i) => {
+          [q, qn] = MODES[mode].next(i, q, qn);
+          return { ...i, Q: q, Qn: qn };
+        });
+      }
+
+      // Falling-edge SR flip-flop: Q only changes where CLK goes 1 → 0, using S, R just before the edge.
+      function runFallingEdge(seq, q = 0) {
+        const rows = steps(seq);
+        return rows.map((i, t) => {
+          const p = rows[t - 1];
+          if (p && p.CLK === 1 && i.CLK === 0) q = p.S && p.R ? null : p.S ? 1 : p.R ? 0 : q;
+          return { ...i, Q: q };
+        });
+      }
+
+      // n-step waveform that is 1 inside the given [from, to) ranges.
+      const pulses = (n, ranges) =>
+        Array.from({ length: n }, (_, t) => (ranges.some(([a, b]) => t >= a && t < b) ? "1" : "0")).join("");
+
+      // ---------- Simulator ----------
+      const root = document.getElementById("simulator");
+      const svg = root.querySelector(".sim-schem");
+      const inputsEl = root.querySelector(".sim-inputs");
+      const table = root.querySelector(".sim-table");
+      const status = root.querySelector(".sim-status");
+      const waveSvg = root.querySelector(".sim-wave");
+      const outQ = root.querySelector('[data-out="Q"]');
+      const outQn = root.querySelector('[data-out="Qn"]');
+      const MAX_STEPS = 16;
+      let mode, inp, q, qn, pq, hist; // pq = Q before the latest change, picks the Hold row
+      // Hold rows come in pairs (Q = 0, Q = 1); an unknown Q matches neither.
+      const hold = (base, pq) => (pq === null ? -1 : base + pq);
+
+      const show = (v) => (v === null ? "?" : String(v));
+      const cls = (v) => (v === 1 ? "hi" : v === null ? "x" : "");
+
+      function setMode(m) {
+        mode = m;
+        const M = MODES[m];
+        root.querySelectorAll("[role=tab]").forEach((b) => b.setAttribute("aria-selected", b.dataset.mode === m));
+        schematic(svg, SPECS[m]);
+        inp = { ...M.start };
+        [q, qn] = M.next(inp, 0, 1);
+        pq = q;
+        hist = [{ ...inp, Q: q, Qn: qn }];
+        const pairNames = M.inputs.filter(([k]) => M.pair.includes(k)).map(([, n]) => label(n)).join(", ");
+        inputsEl.innerHTML =
+          M.inputs
+            .map(([k, name]) => `<button class="sw" type="button" data-in="${k}"><span class="sw-name">${label(name)}</span><span class="sw-val"></span></button>`)
+            .join("") + `<button class="btn" type="button" data-pair>สลับ ${pairNames} พร้อมกัน</button>`;
+        table.innerHTML =
+          `<thead><tr>${M.head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>` +
+          M.rows.map((r) => `<tr>${r.map((c, j) => `<td${j === r.length - 1 ? ' class="txt"' : ""}>${c}</td>`).join("")}</tr>`).join("") +
+          "</tbody>";
+        render();
+      }
+
+      function toggle(keys) {
+        const M = MODES[mode];
+        keys.forEach((k) => (inp[k] ^= 1));
+        pq = q;
+        [q, qn] = M.next(inp, q, qn);
+        hist.push({ ...inp, Q: q, Qn: qn });
+        if (hist.length > MAX_STEPS) hist.shift();
+        render();
+      }
+
+      function render() {
+        const M = MODES[mode];
+        setLevels(svg, { ...M.levels(inp), Q: q, Qn: qn });
+
+        inputsEl.querySelectorAll(".sw").forEach((b) => {
+          const v = inp[b.dataset.in];
+          b.setAttribute("aria-pressed", v === 1);
+          b.querySelector(".sw-val").textContent = v;
+        });
+
+        outQ.textContent = show(q);
+        outQ.className = cls(q);
+        outQn.textContent = show(qn);
+        outQn.className = cls(qn);
+
+        const r = M.row(inp, pq);
+        table.querySelectorAll("tbody tr").forEach((tr, j) => tr.classList.toggle("on", j === r));
+
+        const meaning = r >= 0 ? M.rows[r][M.rows[r].length - 1] : "";
+        if (q === null) {
+          status.className = "sim-status bad";
+          status.textContent = "Undefined: ออกจากสถานะห้ามใช้พร้อมกันจนเกิด race จึงบอกค่า Q ไม่ได้ ให้กด Set หรือ Reset เพื่อกำหนดค่าใหม่";
+        } else if (q === qn) {
+          status.className = "sim-status bad";
+          status.textContent = `ห้ามใช้: Q = Q′ = ${q} ซึ่งขัดกับนิยามที่ต้องเป็นค่าตรงข้ามกัน`;
+        } else {
+          status.className = "sim-status" + (meaning === "Hold" ? "" : " set");
+          status.textContent =
+            meaning === "Set" ? "Set: บังคับให้ Q = 1"
+            : meaning === "Reset" ? "Reset: บังคับให้ Q = 0"
+            : `Hold: คงค่าเดิมไว้ Q = ${q}`;
+        }
+
+        const signals = M.inputs.map(([key, name]) => ({ key, name }));
+        signals.push({ key: "Q", name: "Q", out: true }, { key: "Qn", name: "~Q", out: true });
+        wave(waveSvg, signals, hist, { step: 36 });
+        waveSvg.parentElement.scrollLeft = waveSvg.parentElement.scrollWidth; // keep the latest step in view
+      }
+
+      root.addEventListener("click", (e) => {
+        const tab = e.target.closest("[role=tab]");
+        if (tab) return setMode(tab.dataset.mode);
+        const sw = e.target.closest("[data-in]");
+        if (sw) return toggle([sw.dataset.in]);
+        if (e.target.closest("[data-pair]")) return toggle(MODES[mode].pair);
+        if (e.target.closest("[data-reset]")) setMode(mode);
+      });
+
+      setMode("nor");
+
+      // ---------- Exercises ----------
+      const N4 = 32; // slide 18 redrawn on a grid of 1/8 clock period
+      const EXERCISES = {
+        1: {
+          rows: run("nor", { S: "0110001000", R: "0000100010" }),
+          signals: [{ key: "S", name: "S" }, { key: "R", name: "R" }, { key: "Q", name: "Q", out: true }],
+          hide: ["Q"],
+        },
+        2: {
+          rows: run("enable", { E: "0101010101", S: "1001100010", R: "0010001100" }),
+          signals: [{ key: "E", name: "E" }, { key: "S", name: "S" }, { key: "R", name: "R" }, { key: "Q", name: "Q", out: true }],
+          hide: ["Q"],
+        },
+        3: {
+          // Slide 6: the segment between t5 and t6 is split where R′ drops again;
+          // two steps after t6 leave room for the "Undefined" box.
+          rows: run("nand", { Sb: "011100011", Rb: "110101011" }),
+          signals: [{ key: "Sb", name: "~S" }, { key: "Rb", name: "~R" }, { key: "Q", name: "Q", out: true }, { key: "Qn", name: "~Q", out: true }],
+          hide: ["Q", "Qn"],
+          opts: { ticks: false, marks: ["t0", "t1", "t2", "t3", "t4", "t5", null, "t6"].map((text, at) => text && { at, text }).filter(Boolean) },
+          minStep: 26,
+        },
+        4: {
+          rows: runFallingEdge({
+            CLK: pulses(N4, [[2, 6], [10, 14], [18, 22], [26, 30]]),
+            S: pulses(N4, [[4, 7], [15, 17]]),
+            R: pulses(N4, [[19, 24]]),
+          }),
+          signals: [{ key: "CLK", name: "Clock" }, { key: "S", name: "S" }, { key: "R", name: "R" }, { key: "Q", name: "Q", out: true }],
+          hide: ["Q"],
+          opts: { ticks: false, marks: [6, 14, 22, 30].map((at, k) => ({ at, text: `↓${k + 1}` })) },
+          minStep: 12,
+        },
+      };
+
+      Object.entries(EXERCISES).forEach(([id, ex]) => {
+        const exSvg = document.querySelector(`[data-exercise="${id}"]`);
+        const btn = document.querySelector(`[data-reveal="${id}"]`);
+        const answer = document.querySelector(`[data-answer="${id}"]`);
+        let revealed = false;
+        const draw = () =>
+          wave(exSvg, ex.signals, ex.rows, {
+            ...ex.opts,
+            hide: revealed ? [] : ex.hide,
+            step: fitStep(exSvg.parentElement, ex.rows.length, ex.minStep),
+          });
+        window.addEventListener("resize", draw);
+        btn.addEventListener("click", () => {
+          revealed = !revealed;
+          btn.textContent = revealed ? "ซ่อนเฉลย" : "ดูเฉลย";
+          answer.hidden = !revealed;
+          draw();
+        });
+        draw();
+      });
+
+      // ---------- Block symbols ----------
+      function symbol(clk, cap) {
+        let s = `<rect x="40" y="16" width="80" height="104" rx="4"/>`;
+        s += `<line x1="12" y1="40" x2="40" y2="40"/><text x="48" y="45">S</text>`;
+        s += `<line x1="12" y1="96" x2="40" y2="96"/><text x="48" y="101">R</text>`;
+        s += `<line x1="120" y1="40" x2="148" y2="40"/><text x="112" y="45" text-anchor="end">Q</text>`;
+        s += `<line x1="120" y1="96" x2="148" y2="96"/><text x="112" y="101" text-anchor="end">${label("~Q")}</text>`;
+        if (clk === "level") s += `<line x1="12" y1="68" x2="40" y2="68"/><text x="48" y="73">E</text>`;
+        if (clk === "rise") s += `<line x1="12" y1="68" x2="40" y2="68"/>`;
+        if (clk === "fall") s += `<line x1="12" y1="68" x2="30" y2="68"/><circle cx="35" cy="68" r="5"/>`;
+        if (clk === "rise" || clk === "fall") s += `<path d="M40 60 L52 68 L40 76"/><text x="56" y="73">Clk</text>`;
+        s += `<text class="cap" x="80" y="146" text-anchor="middle">${cap}</text>`;
+        return s;
+      }
+      document.getElementById("symbols").innerHTML = [
+        ["none", "SR latch"],
+        ["level", "SR latch + Enable"],
+        ["rise", "FF ขอบขาขึ้น"],
+        ["fall", "FF ขอบขาลง"],
+      ]
+        .map(([clk, cap]) => `<svg class="sym" viewBox="0 0 160 156" role="img" aria-label="สัญลักษณ์ ${cap}">${symbol(clk, cap)}</svg>`)
+        .join("");
+
+      tocSpy(document.querySelector(".toc"));
+    })();
+  </script>
+</body>
+</html>

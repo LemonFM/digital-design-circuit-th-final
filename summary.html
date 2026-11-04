@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="สรุปรวม Latches and Flip-Flops ในหน้าเดียว: ตารางการทำงาน สมการ excitation table state diagram การแปลง flip-flop และวิธีทำโจทย์ timing diagram">
+  <title>สรุป · CPE 2423 ครึ่งหลัง</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <div class="site-tabs">
+    <div class="wrap">
+      <a class="brand" href="index.html">CPE 2423 ครึ่งหลัง</a>
+      <nav aria-label="ส่วนของเว็บ">
+        <a href="index.html">เนื้อหา</a>
+        <a href="summary.html" aria-current="page">สรุป</a>
+        <a href="exam.html">แนวข้อสอบ</a>
+      </nav>
+    </div>
+  </div>
+
+  <header class="page-head wrap">
+    <p class="eyebrow">บท 06 · Latches and Flip-Flops</p>
+    <h1>สรุปรวมก่อนสอบ</h1>
+    <p class="lead">ทุกตาราง สมการ และวิธีคิดที่ต้องใช้ รวมไว้ในหน้าเดียว ถ้าข้อไหนยังไม่เข้าใจ กดลิงก์ "อ่านเพิ่ม" เพื่อไปที่หน้าเนื้อหาของหัวข้อนั้น</p>
+  </header>
+
+  <div class="wrap layout">
+    <details class="toc" open>
+      <summary>สารบัญ</summary>
+      <ol>
+        <li><a href="#types">Latch vs Flip-flop</a></li>
+        <li><a href="#latches">ตาราง SR latch</a></li>
+        <li><a href="#ff">4 flip-flop และ truth table</a></li>
+        <li><a href="#excitation">Excitation table รวม</a></li>
+        <li><a href="#state">State diagram</a></li>
+        <li><a href="#convert">แปลง flip-flop</a></li>
+        <li><a href="#async">Preset / Clear</a></li>
+        <li><a href="#symbols">อ่านสัญลักษณ์</a></li>
+        <li><a href="#timing">วิธีทำโจทย์ timing</a></li>
+        <li><a href="#pitfalls">จุดที่พลาดบ่อย</a></li>
+      </ol>
+    </details>
+
+    <main class="content">
+      <!-- 1 -->
+      <section id="types">
+        <h2><span class="num">1</span>Latch vs Flip-flop</h2>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>ชนิด</th><th>Q เปลี่ยนเมื่อ</th><th>ตัวอย่าง</th></tr></thead>
+            <tbody>
+              <tr><td class="txt">Latch (level-sensitive)</td><td class="txt">ตลอดช่วงที่ enable ทำงาน (transparent)</td><td class="txt">SR latch, latch with Enable, D latch</td></tr>
+              <tr><td class="txt">Flip-flop (edge-triggered)</td><td class="txt">เฉพาะขอบที่ทำงาน (↑ หรือ ↓)</td><td class="txt">D, JK, T flip-flop</td></tr>
+              <tr><td class="txt">Master–slave</td><td class="txt">output เปลี่ยนที่ขอบ ใช้ latch 2 ตัวเปิดสลับระดับกัน</td><td class="txt">master–slave D (edge แท้), SR/JK (pulse-triggered)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top: 10px;"><a href="topics/sr-flipflop.html#overview">อ่านเพิ่ม →</a></p>
+      </section>
+
+      <!-- 2 -->
+      <section id="latches">
+        <h2><span class="num">2</span>ตาราง SR latch ทั้ง 3 แบบ</h2>
+        <div class="two-col">
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th colspan="4">NOR (active-high)</th></tr><tr><th>S</th><th>R</th><th>Q</th><th>Qnext, Qnext′</th></tr></thead>
+              <tbody>
+                <tr><td>0</td><td>0</td><td>0</td><td>0, 1</td></tr>
+                <tr><td>0</td><td>0</td><td>1</td><td>1, 0</td></tr>
+                <tr><td>0</td><td>1</td><td>×</td><td>0, 1</td></tr>
+                <tr><td>1</td><td>0</td><td>×</td><td>1, 0</td></tr>
+                <tr class="bad"><td>1</td><td>1</td><td>×</td><td>0, 0 ✗</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th colspan="4">NAND (active-low)</th></tr><tr><th>S′</th><th>R′</th><th>Q</th><th>Qnext, Qnext′</th></tr></thead>
+              <tbody>
+                <tr class="bad"><td>0</td><td>0</td><td>×</td><td>1, 1 ✗</td></tr>
+                <tr><td>0</td><td>1</td><td>×</td><td>1, 0</td></tr>
+                <tr><td>1</td><td>0</td><td>×</td><td>0, 1</td></tr>
+                <tr><td>1</td><td>1</td><td>0</td><td>0, 1</td></tr>
+                <tr><td>1</td><td>1</td><td>1</td><td>1, 0</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th colspan="5">With Enable (NAND)</th></tr><tr><th>E</th><th>S</th><th>R</th><th>Q</th><th>Qnext, Qnext′</th></tr></thead>
+              <tbody>
+                <tr><td>0</td><td>×</td><td>×</td><td>0</td><td>0, 1</td></tr>
+                <tr><td>0</td><td>×</td><td>×</td><td>1</td><td>1, 0</td></tr>
+                <tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0, 1</td></tr>
+                <tr><td>1</td><td>0</td><td>0</td><td>1</td><td>1, 0</td></tr>
+                <tr><td>1</td><td>0</td><td>1</td><td>×</td><td>0, 1</td></tr>
+                <tr><td>1</td><td>1</td><td>0</td><td>×</td><td>1, 0</td></tr>
+                <tr class="bad"><td>1</td><td>1</td><td>1</td><td>×</td><td>1, 1 ✗</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <p style="font-size: 15px; color: var(--ink-2); margin-top: 10px;">Q = ค่าเดิมก่อนใส่ input · Qnext = ค่าถัดไป · × = Q เดิมเป็นอะไรก็ได้ (ไม่มีผล)</p>
+        <div class="callout warn">
+          <b>จำให้ขึ้นใจ</b>
+          สถานะห้ามใช้ของ NOR ได้ 0, 0 ส่วนของ NAND ได้ 1, 1 · ถ้าปล่อย input ออกจากสถานะห้ามใช้ <b>พร้อมกัน</b> จะเกิด race และได้ผล <b>Undefined</b>
+        </div>
+        <p><a href="topics/sr-flipflop.html#nor">อ่านเพิ่ม →</a></p>
+      </section>
+
+      <!-- 3 -->
+      <section id="ff">
+        <h2><span class="num">3</span>4 flip-flop และ truth table</h2>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>ชนิด</th><th>การทำงาน ณ ขอบ clock</th><th>Qnext</th><th>ห้ามใช้</th></tr></thead>
+            <tbody>
+              <tr><td>SR</td><td class="txt">00 Hold · 01 Reset · 10 Set</td><td>S + R′Q</td><td>SR = 11</td></tr>
+              <tr><td>D</td><td class="txt">Q ← D</td><td>D</td><td>–</td></tr>
+              <tr><td>JK</td><td class="txt">00 Hold · 01 Reset · 10 Set · 11 Toggle</td><td>JQ′ + K′Q</td><td>–</td></tr>
+              <tr><td>T</td><td class="txt">0 Hold · 1 Toggle</td><td>T ⊕ Q</td><td>–</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Truth table แต่ละชนิด</h3>
+        <p style="font-size: 15px; color: var(--ink-2);">Q = ค่าเดิมก่อนขอบ · Qnext = ค่าหลังขอบ clock ที่ทำงาน (ขอบขาขึ้นหรือขาลงตามชนิด) · ระหว่างขอบ Q คงเดิมเสมอ</p>
+        <div class="tt-grid">
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th colspan="6">SR flip-flop</th></tr><tr><th>S</th><th>R</th><th>Q</th><th>Qnext</th><th>Qnext′</th><th>การทำงาน</th></tr></thead>
+              <tbody>
+                  <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td class="txt" rowspan="2">Hold</td></tr>
+                  <tr><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+                  <tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td class="txt" rowspan="2">Reset</td></tr>
+                  <tr><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+                  <tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td class="txt" rowspan="2">Set</td></tr>
+                  <tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+                  <tr class="bad"><td>1</td><td>1</td><td>0</td><td>×</td><td>×</td><td class="txt" rowspan="2">ห้ามใช้</td></tr>
+                  <tr class="bad"><td>1</td><td>1</td><td>1</td><td>×</td><td>×</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th colspan="6">JK flip-flop</th></tr><tr><th>J</th><th>K</th><th>Q</th><th>Qnext</th><th>Qnext′</th><th>การทำงาน</th></tr></thead>
+              <tbody>
+                  <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td class="txt" rowspan="2">Hold</td></tr>
+                  <tr><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+                  <tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td class="txt" rowspan="2">Reset</td></tr>
+                  <tr><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+                  <tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td class="txt" rowspan="2">Set</td></tr>
+                  <tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+                  <tr><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td><td class="txt" rowspan="2">Toggle</td></tr>
+                  <tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th colspan="5">D flip-flop</th></tr><tr><th>D</th><th>Q</th><th>Qnext</th><th>Qnext′</th><th>การทำงาน</th></tr></thead>
+              <tbody>
+                  <tr><td>0</td><td>0</td><td>0</td><td>1</td><td class="txt" rowspan="2">Reset (Q⁺ = 0)</td></tr>
+                  <tr><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+                  <tr><td>1</td><td>0</td><td>1</td><td>0</td><td class="txt" rowspan="2">Set (Q⁺ = 1)</td></tr>
+                  <tr><td>1</td><td>1</td><td>1</td><td>0</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th colspan="5">T flip-flop</th></tr><tr><th>T</th><th>Q</th><th>Qnext</th><th>Qnext′</th><th>การทำงาน</th></tr></thead>
+              <tbody>
+                  <tr><td>0</td><td>0</td><td>0</td><td>1</td><td class="txt" rowspan="2">Hold</td></tr>
+                  <tr><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+                  <tr><td>1</td><td>0</td><td>1</td><td>0</td><td class="txt" rowspan="2">Toggle</td></tr>
+                  <tr><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <h3>K-map ที่ใช้หาสมการ</h3>
+        <div class="two-col" style="margin-top: 16px;">
+          <div class="card">
+            <p><b>K-map ของ SR</b> (Q \ SR = 00 01 11 10)</p>
+            <p class="mono" style="margin: 0;">Q=0: 0 0 × 1<br>Q=1: 1 0 × 1<br>→ Qnext = S + R′Q, SR = 0</p>
+          </div>
+          <div class="card">
+            <p><b>K-map ของ JK</b> (Q \ JK = 00 01 11 10)</p>
+            <p class="mono" style="margin: 0;">Q=0: 0 0 1 1<br>Q=1: 1 0 0 1<br>→ Qnext = JQ′ + K′Q</p>
+          </div>
+        </div>
+        <p><a href="topics/d-flipflop.html">D</a> · <a href="topics/jk-flipflop.html">JK</a> · <a href="topics/t-flipflop.html">T</a> อ่านเพิ่ม →</p>
+      </section>
+
+      <!-- 4 -->
+      <section id="excitation">
+        <h2><span class="num">4</span>Excitation table รวม</h2>
+        <p>ใช้ตอนออกแบบ counter และ state machine: รู้ว่า Q ต้องเปลี่ยนเป็นอะไร แล้วหาว่าต้องป้อน input เท่าไร</p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>Q → Qnext</th><th>S</th><th>R</th><th>J</th><th>K</th><th>D</th><th>T</th></tr></thead>
+            <tbody>
+              <tr><td>0 → 0</td><td>0</td><td>×</td><td>0</td><td>×</td><td>0</td><td>0</td></tr>
+              <tr><td>0 → 1</td><td>1</td><td>0</td><td>1</td><td>×</td><td>1</td><td>1</td></tr>
+              <tr><td>1 → 0</td><td>0</td><td>1</td><td>×</td><td>1</td><td>0</td><td>1</td></tr>
+              <tr><td>1 → 1</td><td>×</td><td>0</td><td>×</td><td>0</td><td>1</td><td>0</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="keypoints">
+          <div class="kp"><div class="k">D</div><div class="v">D = Qnext</div><p>ไม่มี × เลย</p></div>
+          <div class="kp"><div class="k">T</div><div class="v">T = Q ⊕ Qnext</div><p>เปลี่ยนค่า = 1, ไม่เปลี่ยน = 0</p></div>
+          <div class="kp"><div class="k">JK</div><div class="v">× ครึ่งหนึ่ง</div><p>Q = 0 ได้ K = × · Q = 1 ได้ J = ×</p></div>
+          <div class="kp"><div class="k">SR</div><div class="v">คล้าย JK</div><p>แต่ 0→1 ต้อง R = 0 และ 1→0 ต้อง S = 0</p></div>
+        </div>
+      </section>
+
+      <!-- 5 -->
+      <section id="state">
+        <h2><span class="num">5</span>State diagram</h2>
+        <div class="fsm-grid">
+          <figure class="figure"><svg data-fsm="sr" role="img" aria-label="State diagram SR"></svg><figcaption>SR</figcaption></figure>
+          <figure class="figure"><svg data-fsm="d" role="img" aria-label="State diagram D"></svg><figcaption>D</figcaption></figure>
+          <figure class="figure"><svg data-fsm="jk" role="img" aria-label="State diagram JK"></svg><figcaption>JK</figcaption></figure>
+          <figure class="figure"><svg data-fsm="t" role="img" aria-label="State diagram T"></svg><figcaption>T</figcaption></figure>
+        </div>
+      </section>
+
+      <!-- 6 -->
+      <section id="convert">
+        <h2><span class="num">6</span>แปลง flip-flop ชนิดหนึ่งเป็นอีกชนิด</h2>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>อยากได้</th><th>ใช้ D flip-flop</th><th>ใช้ JK flip-flop</th></tr></thead>
+            <tbody>
+              <tr><td>SR</td><td>D = S + R′Q</td><td>J = S, K = R</td></tr>
+              <tr><td>JK</td><td>D = JQ′ + K′Q</td><td>–</td></tr>
+              <tr><td>T</td><td>D = T ⊕ Q</td><td>J = K = T</td></tr>
+              <tr><td>D</td><td>–</td><td>J = D, K = D′</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ol class="steps">
+          <li><span>เขียนตารางของตัวที่ <b>อยากได้</b> (input ของมัน + Q → Qnext)</span></li>
+          <li><span>ใช้ <b>excitation table ของตัวที่มีอยู่</b> หาค่า input ที่ทำให้ได้ Qnext นั้น (ถ้าใช้ D คือ D = Qnext)</span></li>
+          <li><span>ทำ K-map หาสมการ แล้ววาดวงจร combinational หน้า flip-flop และป้อน Q กลับมา</span></li>
+        </ol>
+        <div class="callout tip">
+          <b>หลักคิด</b>
+          ถ้าใช้ D flip-flop ให้เอาสมการ Qnext ของตัวที่อยากได้มาเป็น D ตรง ๆ เพราะ D flip-flop มี Q⁺ = D · ถ้าใช้ JK ให้หาค่า J, K ที่ทำให้ JQ′ + K′Q ออกมาเท่ากับ Qnext ที่ต้องการ
+        </div>
+      </section>
+
+      <!-- 7 -->
+      <section id="async">
+        <h2><span class="num">7</span>Asynchronous Preset / Clear</h2>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>PreN</th><th>ClrN</th><th>ผล</th></tr></thead>
+            <tbody>
+              <tr class="bad"><td>0</td><td>0</td><td class="txt">ห้ามใช้ (ชิปจริงให้ Q = Q′ = 1)</td></tr>
+              <tr><td>0</td><td>1</td><td class="txt">Q = 1 ทันที ไม่รอ clock</td></tr>
+              <tr><td>1</td><td>0</td><td class="txt">Q = 0 ทันที ไม่รอ clock</td></tr>
+              <tr><td>1</td><td>1</td><td class="txt">ทำงานปกติตามขอบ clock</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top: 10px;">ลำดับความสำคัญ: <b>Preset/Clear &gt; clock</b> · ลงท้าย N หรือมีวงกลม = active-low · <a href="topics/async-inputs.html">อ่านเพิ่ม →</a></p>
+        <div class="two-col">
+          <div class="card">
+            <p><b>Synchronous input</b></p>
+            <p style="margin: 0;">มีผลเฉพาะที่ขอบ clock: D, J, K, T, S, R, synchronous clear (D<sub>FF</sub> = D · SCLR′), enable (D<sub>FF</sub> = E′Q + ED)</p>
+          </div>
+          <div class="card">
+            <p><b>Asynchronous input</b></p>
+            <p style="margin: 0;">มีผลทันทีไม่รอ clock: PreN, ClrN (Set′, Clear′) ต่อเข้า latch ภายในโดยตรง</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 8 -->
+      <section id="symbols">
+        <h2><span class="num">8</span>อ่านสัญลักษณ์</h2>
+        <figure class="figure">
+          <div class="sym-grid" id="symbols-grid" style="max-width: 760px; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));"></div>
+          <figcaption>ไม่มีขา clock = latch · มี E = latch with enable · ▷ = ขอบขาขึ้น · ○▷ = ขอบขาลง · วงกลมที่ขาอื่น = active-low</figcaption>
+        </figure>
+      </section>
+
+      <!-- 9 -->
+      <section id="timing">
+        <h2><span class="num">9</span>วิธีทำโจทย์ timing diagram</h2>
+        <ol class="steps">
+          <li><span>ดูว่าเป็น <b>latch</b> (ตามระดับ) หรือ <b>flip-flop</b> (ตามขอบ) และถ้าเป็น flip-flop ให้ดูว่าใช้ <b>ขอบขาขึ้นหรือขาลง</b></span></li>
+          <li><span>ลากเส้นแนวตั้งที่ขอบที่ทำงานทุกขอบ (สำหรับ latch ให้แรเงาช่วงที่ enable = 1)</span></li>
+          <li><span>ไล่ดู <b>PreN / ClrN</b> ก่อน ช่วงไหนเป็น 0 ให้ Q ตามนั้นทันที</span></li>
+          <li><span>ที่แต่ละขอบ ให้อ่าน input <b>ณ ขอบนั้น</b> (ค่าก่อนขอบนิดเดียว) แล้วเปิดตารางของ flip-flop ชนิดนั้น</span></li>
+          <li><span>Toggle ให้กลับค่าจาก <b>Q ก่อนขอบ</b> · Hold ให้ใช้ค่าเดิม</span></li>
+          <li><span>ระหว่างขอบ Q คงที่ (ยกเว้น latch ช่วง enable และ Preset/Clear)</span></li>
+        </ol>
+        <p><a href="exam.html#timing">ไปฝึกโจทย์ timing →</a></p>
+      </section>
+
+      <!-- 10 -->
+      <section id="pitfalls">
+        <h2><span class="num">10</span>จุดที่พลาดบ่อย</h2>
+        <div class="callout warn">
+          <ul style="margin: 0;">
+            <li>สลับสถานะห้ามใช้: NOR ได้ 0, 0 ส่วน NAND ได้ 1, 1</li>
+            <li>ลืมว่า NAND latch, PreN, ClrN เป็น active-low</li>
+            <li>อ่าน input ตลอดช่วงแทนที่จะอ่าน ณ ขอบ (flip-flop) หรือกลับกัน (latch)</li>
+            <li>ตอบ JK = 11 ว่าห้ามใช้ (ที่ถูกคือ Toggle)</li>
+            <li>T = 1 คือกลับค่าจาก Q เดิม ไม่ใช่ Q = 1</li>
+            <li>เขียน Qnext = S + R′Q โดยไม่ใส่เงื่อนไข SR = 0</li>
+            <li>สลับตำแหน่ง × ใน excitation table ของ JK</li>
+            <li>PreN/ClrN กลับเป็น 1 แล้ว Q ไม่เด้งกลับ แต่ค้างไว้จนถึงขอบถัดไป</li>
+            <li>master–slave SR/JK เป็น pulse-triggered (ones catching) แต่ master–slave D เป็น edge-triggered แท้</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap">CPE 2423 ครึ่งหลัง · สรุปสำหรับสอบปลายภาค</div>
+  </footer>
+
+  <script src="assets/logic-kit.js"></script>
+  <script>
+    (function () {
+      "use strict";
+      const { twoState, ffSymbol, tocSpy } = LK;
+
+      const FSM = {
+        sr: { up: "SR=10", down: "SR=01", loop0: "SR=00, 01", loop1: "SR=00, 10" },
+        d: { up: "D=1", down: "D=0", loop0: "D=0", loop1: "D=1" },
+        jk: { up: "JK=10, 11", down: "JK=01, 11", loop0: "JK=00, 01", loop1: "JK=00, 10" },
+        t: { up: "T=1", down: "T=1", loop0: "T=0", loop1: "T=0" },
+      };
+      document.querySelectorAll("[data-fsm]").forEach((svg) => twoState(svg, FSM[svg.dataset.fsm]));
+
+      document.getElementById("symbols-grid").innerHTML = [
+        ffSymbol({ left: ["S", "R"], cap: "SR latch" }),
+        ffSymbol({ left: ["~S", "~R"], cap: "S′R′ latch" }),
+        ffSymbol({ left: ["D", "E"], cap: "D latch + E" }),
+        ffSymbol({ left: ["D", { name: "Ck", clk: "rise" }], cap: "D FF ↑" }),
+        ffSymbol({ left: ["J", { name: "Ck", clk: "fall" }, "K"], cap: "JK FF ↓" }),
+        ffSymbol({ left: ["D", { name: "Ck", clk: "rise" }], top: "PreN", bottom: "ClrN", cap: "D FF + Pre/Clr" }),
+      ].join("");
+
+      tocSpy(document.querySelector(".toc"));
+    })();
+  </script>
+</body>
+</html>

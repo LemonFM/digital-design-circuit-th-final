@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="สรุป D Latch และ D Flip-Flop ตามสไลด์ 06: D latch, D latch with enable, D flip-flop ขอบขาขึ้น/ขาลง, master–slave, D flip-flop with enable, state diagram และแบบฝึก timing diagram">
+  <title>D Latch & D Flip-Flop · CPE 2423</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <nav class="topbar">
+    <div class="wrap">
+      <a href="../index.html">← CPE 2423 ครึ่งหลัง</a>
+      <span class="crumb">02 · D Latch & D Flip-Flop</span>
+    </div>
+  </nav>
+
+  <header class="page-head wrap">
+    <p class="eyebrow">หัวข้อ 02 · Latches and Flip-Flops</p>
+    <h1>D Latch & D Flip-Flop</h1>
+    <p class="lead">แก้ปัญหา SR = 11 ด้วยการมี input ตัวเดียวคือ <b>D</b> (Data) ทำให้ Set กับ Reset ไม่มีทางเกิดพร้อมกัน ผลคือ <b>Qnext = D</b> เป็นตัวที่ใช้มากที่สุดในวงจรจริง</p>
+    <p class="source">อ้างอิง: สไลด์ <i>06 Introduction to Latches and Flip-Flops</i> หน้า 8–10, 13–17, 25</p>
+  </header>
+
+  <div class="wrap layout">
+    <details class="toc" open>
+      <summary>สารบัญ</summary>
+      <ol>
+        <li><a href="#dlatch">D latch</a></li>
+        <li><a href="#enable">D latch with Enable</a></li>
+        <li><a href="#dff">D flip-flop</a></li>
+        <li><a href="#ms">Master–Slave D FF</a></li>
+        <li><a href="#compare">Latch vs ขอบขาขึ้น vs ขาลง</a></li>
+        <li><a href="#dffe">D flip-flop with Enable</a></li>
+        <li><a href="#sim">ลองกดวงจร</a></li>
+        <li><a href="#state">State diagram & Excitation</a></li>
+        <li><a href="#practice">แบบฝึก timing diagram</a></li>
+        <li><a href="#recap">สรุปก่อนสอบ</a></li>
+      </ol>
+    </details>
+
+    <main class="content">
+      <!-- 1 -->
+      <section id="dlatch">
+        <h2><span class="num">1</span>D latch <span class="ref">สไลด์ 8–9</span></h2>
+        <p>เอา S′R′ latch (NAND) มาใส่ <b>inverter</b> ระหว่าง S′ กับ R′ ให้สองขานี้ตรงข้ามกันเสมอ จึงไม่มีทางเกิด S′ = R′ = 0 (สถานะห้ามใช้) เหลือ input ตัวเดียวคือ <b>D</b></p>
+        <figure class="figure">
+          <svg data-schematic="dlatch" role="img" aria-label="D latch: D ต่อตรงเข้า R prime และผ่าน inverter เป็น S prime ของ NAND latch"></svg>
+          <figcaption>D = 1 ทำให้ S′ = 0 จึง Set · D = 0 ทำให้ R′ = 0 จึง Reset</figcaption>
+        </figure>
+        <div class="two-col">
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th>D</th><th>Q</th><th>Qnext</th><th>Qnext′</th></tr></thead>
+              <tbody>
+                <tr><td>0</td><td>×</td><td>0</td><td>1</td></tr>
+                <tr><td>1</td><td>×</td><td>1</td><td>0</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <p><b>ได้อะไร เสียอะไร</b></p>
+            <ul>
+              <li>ตัดแถวในตาราง SR ออก 3 แถว รวมถึงแถวห้ามใช้ (S′ = R′ = 0)</li>
+              <li>แต่ <b>เสียความสามารถในการจำค่า</b> เพราะ Qnext ตาม D ตลอด จึงเหมือนต่อสายตรงจาก input ไป output</li>
+              <li>จึงต้องเพิ่มขา Enable ในหัวข้อถัดไป</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2 -->
+      <section id="enable">
+        <h2><span class="num">2</span>D latch with Enable <span class="ref">สไลด์ 10</span></h2>
+        <p>เพิ่มขา <b>E</b> เพื่อเลือกว่า Q จะตาม D หรือจำค่าเดิม</p>
+        <div class="keypoints">
+          <div class="kp"><div class="k">E = 1</div><div class="v">Q ตาม D ทันที</div><p>เรียกว่า <b>transparent</b> เพราะ D ทะลุไปถึง Q</p></div>
+          <div class="kp"><div class="k">E = 0</div><div class="v">จำค่าเดิม</div><p>D เปลี่ยนเท่าไรก็ไม่มีผล</p></div>
+        </div>
+        <figure class="figure wide">
+          <svg data-schematic="dlatchE" role="img" aria-label="D latch with enable: D เข้า NAND ตัวบนพร้อม E, D ผ่าน inverter เข้า NAND ตัวล่างพร้อม E, แล้วต่อเข้า NAND latch"></svg>
+          <figcaption>แบบที่ 2 ในสไลด์: SR latch with Enable + inverter (S = D, R = D′)</figcaption>
+        </figure>
+        <div class="two-col">
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th>E</th><th>D</th><th>Q</th><th>Qnext</th><th>Qnext′</th></tr></thead>
+              <tbody>
+                <tr><td>0</td><td>×</td><td>0</td><td>0</td><td>1</td></tr>
+                <tr><td>0</td><td>×</td><td>1</td><td>1</td><td>0</td></tr>
+                <tr><td>1</td><td>0</td><td>×</td><td>0</td><td>1</td></tr>
+                <tr><td>1</td><td>1</td><td>×</td><td>1</td><td>0</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <p><b>อีกแบบในสไลด์: ใช้ MUX</b></p>
+            <p>ต่อ MUX 2-to-1 ที่มี select = E ช่อง 1 รับ D ช่อง 0 รับ Q ที่ป้อนกลับมา แล้วส่งผลเข้า latch</p>
+            <p class="mono" style="margin: 0;">Qnext = E′Q + ED</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3 -->
+      <section id="dff">
+        <h2><span class="num">3</span>D flip-flop <span class="ref">สไลด์ 11–13</span></h2>
+        <p>Latch เปลี่ยนค่าได้ตลอดช่วงที่ enable แต่ flip-flop จะ <b>เก็บ D เฉพาะตอนขอบ clock ที่ทำงาน</b> จากนั้นจะคงค่าไว้จนถึงขอบถัดไป</p>
+        <div class="two-col">
+          <figure class="figure" style="margin: 0;">
+            <div class="sym-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));" id="dff-symbols"></div>
+            <figcaption>(a) ขอบขาขึ้น · (b) ขอบขาลง (มีวงกลม)</figcaption>
+          </figure>
+          <div>
+            <div class="table-scroll">
+              <table class="tt">
+                <thead><tr><th>D</th><th>Q</th><th>Q⁺</th></tr></thead>
+                <tbody>
+                  <tr><td>0</td><td>0</td><td>0</td></tr>
+                  <tr><td>0</td><td>1</td><td>0</td></tr>
+                  <tr><td>1</td><td>0</td><td>1</td></tr>
+                  <tr><td>1</td><td>1</td><td>1</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="formula">Q⁺ = D<small>ค่าที่ขอบ clock จะถูกคัดลอกไปเป็น Q</small></div>
+          </div>
+        </div>
+        <div class="callout tip">
+          <b>วิธีอ่าน timing diagram ของ D flip-flop</b>
+          ลากเส้นแนวตั้งที่ <b>ขอบที่ทำงาน</b> ทุกขอบ อ่านค่า D ที่เส้นนั้น แล้วให้ Q เป็นค่านั้นจนถึงขอบถัดไป ส่วน D ที่เปลี่ยนระหว่างขอบให้ข้ามไปเลย (ดู <a href="#ex2">แบบฝึกข้อ 2</a> ซึ่งมาจาก Figure 11-14 ในสไลด์ 13)
+        </div>
+      </section>
+
+      <!-- 4 -->
+      <section id="ms">
+        <h2><span class="num">4</span>Master–Slave D flip-flop <span class="ref">สไลด์ 14–15</span></h2>
+        <p>สร้าง D flip-flop ทริกขอบขาขึ้นจาก <b>D latch 2 ตัวต่ออนุกรม</b> โดย clock เข้า latch ตัวหนึ่งโดยตรง และเข้าอีกตัวผ่าน inverter</p>
+        <figure class="figure wide">
+          <svg class="blk" viewBox="0 0 560 160" role="img" aria-label="Master-slave D flip-flop: D เข้า master ที่ enable ด้วย Clk prime ได้ QM ส่งเข้า slave ที่ enable ด้วย Clk ได้ Q">
+            <text class="cap" x="225" y="20" text-anchor="middle">Master (E = Clk′)</text>
+            <text class="cap" x="425" y="20" text-anchor="middle">Slave (E = Clk)</text>
+            <line x1="40" y1="52" x2="170" y2="52"/><text x="30" y="57" text-anchor="end">D</text>
+            <line x1="280" y1="52" x2="370" y2="52"/><text x="325" y="44" text-anchor="middle">QM</text>
+            <line x1="480" y1="52" x2="520" y2="52"/><text x="528" y="57">Q</text>
+            <line x1="480" y1="97" x2="520" y2="97"/><text x="528" y="102">Q′</text>
+            <path d="M40 145 H345 V97 H370"/><text x="30" y="150" text-anchor="end">Clk</text>
+            <path d="M110 145 V97 H120"/><path d="M153 97 H170"/>
+            <path class="inv" d="M120 85 L144 97 L120 109 Z"/><circle cx="148.5" cy="97" r="4.5"/>
+            <circle class="dot" cx="110" cy="145" r="3.5"/>
+            <rect x="170" y="30" width="110" height="90" rx="4"/>
+            <rect x="370" y="30" width="110" height="90" rx="4"/>
+            <text x="180" y="57">D</text><text x="180" y="102">E</text>
+            <text x="270" y="57" text-anchor="end">Q</text><text x="270" y="102" text-anchor="end">Q′</text>
+            <text x="380" y="57">D</text><text x="380" y="102">E</text>
+            <text x="470" y="57" text-anchor="end">Q</text><text x="470" y="102" text-anchor="end">Q′</text>
+          </svg>
+          <figcaption>ตรงกับ (a) ในสไลด์ 14 · Figure 11-15 ในสไลด์ 15 เรียก QM ว่า P</figcaption>
+        </figure>
+        <ol>
+          <li><b>Clk = 0</b>: master เปิด จึงได้ QM ตาม D ไปเรื่อย ๆ ส่วน slave ปิด Q จึงคงเดิม</li>
+          <li><b>Clk ขึ้นเป็น 1</b>: master ปิด (QM ค้างที่ค่า D ณ ขอบนั้น) แล้ว slave เปิดและคัดลอก QM ไปเป็น Q</li>
+          <li><b>Clk = 1</b>: D เปลี่ยนก็ไม่มีผล เพราะ master ปิดอยู่</li>
+        </ol>
+        <div class="callout ok">
+          <b>ทำไม master–slave D ถึงเป็น edge-triggered แท้</b> <span class="ref" style="margin-left:0">ตรวจทานเพิ่ม</span>
+          master เป็น D latch จึงตาม D ไปเรื่อย ๆ และค่าที่ค้างไว้ตอนปิดคือค่า D <b>ณ ขอบพอดี</b> ต่างจาก master–slave SR/JK ที่ latch ตัวหน้า "จำ" พัลส์สั้น ๆ ที่เกิดระหว่างช่วงไว้ได้ (ones catching) ในวงจรจริง D ต้องนิ่งก่อนขอบช่วงหนึ่ง (setup time) และหลังขอบอีกช่วงหนึ่ง (hold time) ไม่เช่นนั้น output อาจไม่แน่นอน
+        </div>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>Clk</th><th>D</th><th>Q</th><th>Qnext</th><th>Qnext′</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>×</td><td>0</td><td>0</td><td>1</td></tr>
+              <tr><td>0</td><td>×</td><td>1</td><td>1</td><td>0</td></tr>
+              <tr><td>1</td><td>×</td><td>0</td><td>0</td><td>1</td></tr>
+              <tr><td>1</td><td>×</td><td>1</td><td>1</td><td>0</td></tr>
+              <tr><td>↑</td><td>0</td><td>×</td><td>0</td><td>1</td></tr>
+              <tr><td>↑</td><td>1</td><td>×</td><td>1</td><td>0</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout tip">
+          <b>อยากได้ขอบขาลง?</b>
+          ย้าย inverter ไปไว้ฝั่ง slave (master ได้ Clk, slave ได้ Clk′) ส่วน Figure 11-15 ในสไลด์ 15 เป็นแบบขอบขาขึ้นเหมือนรูปข้างบน คือ inverter อยู่หน้า G₁ ของ master
+        </div>
+      </section>
+
+      <!-- 5 -->
+      <section id="compare">
+        <h2><span class="num">5</span>Latch vs ขอบขาขึ้น vs ขอบขาลง <span class="ref">สไลด์ 16</span></h2>
+        <p>ป้อน D และ Clk ชุดเดียวกันเข้า 3 ตัว แล้วดูว่า output ต่างกันอย่างไร (ข้อนี้ออกสอบบ่อย)</p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>Output</th><th>ชนิด</th><th>Q เปลี่ยนเมื่อ</th></tr></thead>
+            <tbody>
+              <tr><td>Qa</td><td class="txt">Gated D latch (E = Clk)</td><td class="txt">ตลอดช่วงที่ Clk = 1 (ตาม D ทันที)</td></tr>
+              <tr><td>Qb</td><td class="txt">D FF ขอบขาขึ้น</td><td class="txt">เฉพาะตอน Clk 0 → 1</td></tr>
+              <tr><td>Qc</td><td class="txt">D FF ขอบขาลง</td><td class="txt">เฉพาะตอน Clk 1 → 0</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top: 12px;">ลองทำใน <a href="#ex3">แบบฝึกข้อ 3</a> ซึ่งวาดใหม่จากรูป (b) ในสไลด์ 16</p>
+      </section>
+
+      <!-- 6 -->
+      <section id="dffe">
+        <h2><span class="num">6</span>D flip-flop with Enable <span class="ref">สไลด์ 17</span></h2>
+        <p>D flip-flop รับค่าใหม่ <b>ทุกขอบ clock</b> จึงจำค่าเดิมไว้เองไม่ได้ วิธีแก้คือใส่ MUX หน้า D แล้วให้ <b>E</b> เป็นตัวเลือก</p>
+        <ul>
+          <li><b>E = 1</b>: ส่ง D เข้า flip-flop จึงโหลดค่าใหม่ที่ขอบขาขึ้น</li>
+          <li><b>E = 0</b>: ป้อน Q กลับเข้า D ทำให้ขอบ clock โหลดค่าเดิมซ้ำ จึงเท่ากับจำค่าไว้</li>
+        </ul>
+        <div class="formula">D<sub>FF</sub> = E′Q + ED<small>ยังเปลี่ยนค่าเฉพาะที่ขอบขาขึ้นเหมือนเดิม</small></div>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>Clk</th><th>E</th><th>D</th><th>Q</th><th>Qnext</th><th>Qnext′</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>×</td><td>×</td><td>0</td><td>0</td><td>1</td></tr>
+              <tr><td>0</td><td>×</td><td>×</td><td>1</td><td>1</td><td>0</td></tr>
+              <tr><td>1</td><td>×</td><td>×</td><td>0</td><td>0</td><td>1</td></tr>
+              <tr><td>1</td><td>×</td><td>×</td><td>1</td><td>1</td><td>0</td></tr>
+              <tr><td>↑</td><td>0</td><td>×</td><td>0</td><td>0</td><td>1</td></tr>
+              <tr><td>↑</td><td>0</td><td>×</td><td>1</td><td>1</td><td>0</td></tr>
+              <tr><td>↑</td><td>1</td><td>0</td><td>×</td><td>0</td><td>1</td></tr>
+              <tr><td>↑</td><td>1</td><td>1</td><td>×</td><td>1</td><td>0</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 7 -->
+      <section id="sim">
+        <h2><span class="num">7</span>ลองกดวงจร</h2>
+        <p>กดสลับ input ทีละตัว หรือกด "ส่ง clock 1 ลูก" แล้วสังเกตว่า Q เปลี่ยนตอนไหน ในแท็บ master–slave จะเห็นสัญญาณ QM ใน timing diagram ด้วย</p>
+        <div id="simulator"></div>
+      </section>
+
+      <!-- 8 -->
+      <section id="state">
+        <h2><span class="num">8</span>State diagram & Excitation table <span class="ref">สไลด์ 25</span></h2>
+        <figure class="figure">
+          <svg id="fsm" role="img" aria-label="State diagram ของ D flip-flop: D=1 ไป Q=1, D=0 ไป Q=0"></svg>
+          <figcaption>สถานะถัดไปเท่ากับ D เสมอ ไม่ว่าตอนนี้จะอยู่สถานะไหน</figcaption>
+        </figure>
+        <div class="two-col">
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th>Q</th><th>Qnext</th><th>D</th></tr></thead>
+              <tbody>
+                <tr><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td>0</td><td>1</td><td>1</td></tr>
+                <tr><td>1</td><td>0</td><td>0</td></tr>
+                <tr><td>1</td><td>1</td><td>1</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <p><b>Excitation table ของ D ง่ายที่สุด</b></p>
+            <p>อยากให้ Qnext เป็นอะไร ก็ใส่ <b>D = Qnext</b> ไม่มี × เลย จึงเป็นเหตุผลที่ออกแบบ counter ด้วย D flip-flop ได้ง่าย</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 9 -->
+      <section id="practice">
+        <h2><span class="num">9</span>แบบฝึก timing diagram</h2>
+        <div class="exercise">
+          <p class="q-text"><b>ข้อ 1</b> · D latch with Enable หาค่า Q (เริ่มต้น Q = 0)</p>
+          <div class="wave-scroll"><svg data-exercise="1" role="img" aria-label="แบบฝึกข้อ 1 สัญญาณ E และ D"></svg></div>
+          <div class="actions"><button class="btn primary" type="button" data-reveal="1">ดูเฉลย</button></div>
+          <div class="answer callout ok" data-answer="1" hidden>
+            <b>เฉลยข้อ 1</b>
+            ช่วง E = 1 (t1–t3, t6–t8) Q ตาม D ทุกครั้งที่ D เปลี่ยน (transparent) ส่วนช่วง E = 0 Q ค้างค่าสุดท้ายไว้ ถึงจะมี D = 1 ที่ t9–t10 ก็ไม่มีผล
+          </div>
+        </div>
+
+        <div class="exercise" id="ex2">
+          <p class="q-text"><b>ข้อ 2</b> · D flip-flop ทริกขอบขาลง หาค่า Q (เริ่มต้น Q = 0) <span class="ref">Figure 11-14 สไลด์ 13</span></p>
+          <div class="wave-scroll"><svg data-exercise="2" role="img" aria-label="แบบฝึกข้อ 2 สัญญาณ D และ Ck จากสไลด์ 13"></svg></div>
+          <div class="actions"><button class="btn primary" type="button" data-reveal="2">ดูเฉลย</button></div>
+          <div class="answer callout ok" data-answer="2" hidden>
+            <b>เฉลยข้อ 2</b>
+            อ่าน D ที่ขอบขาลง ↓1–↓6 ได้ 1, 0, 1, 1, 0, 0 ซึ่งก็คือค่า Q หลังขอบแต่ละขอบ พัลส์ D สั้น ๆ ก่อน ↓6 จบไปก่อนถึงขอบ จึงไม่ถูกเก็บ
+          </div>
+        </div>
+
+        <div class="exercise" id="ex3">
+          <p class="q-text"><b>ข้อ 3</b> · หา Qa (D latch, E = Clk), Qb (ขอบขาขึ้น), Qc (ขอบขาลง) ให้ Qb, Qc เริ่มที่ 1 <span class="ref">สไลด์ 16</span></p>
+          <div class="wave-scroll"><svg data-exercise="3" role="img" aria-label="แบบฝึกข้อ 3 สัญญาณ Clk และ D จากสไลด์ 16"></svg></div>
+          <div class="actions"><button class="btn primary" type="button" data-reveal="3">ดูเฉลย</button></div>
+          <div class="answer callout ok" data-answer="3" hidden>
+            <b>เฉลยข้อ 3</b>
+            <ul style="margin: 6px 0 0;">
+              <li><b>Qa</b>: ตาม D ตลอดช่วง Clk = 1 (t0–t1 และ t2–t3) ช่วง Clk = 0 ค้างค่าไว้</li>
+              <li><b>Qb</b>: เปลี่ยนแค่ที่ t2 (ขอบขาขึ้น) ซึ่ง D = 0 จึงได้ Qb = 0</li>
+              <li><b>Qc</b>: เปลี่ยนที่ t1 (D = 0 จึงได้ 0) และ t3 (D = 1 จึงได้ 1)</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 10 -->
+      <section id="recap">
+        <h2><span class="num">10</span>สรุปก่อนสอบ</h2>
+        <div class="table-scroll">
+          <table class="tt stack">
+            <thead><tr><th>ชนิด</th><th>Q เปลี่ยนเมื่อ</th><th>จำค่าเมื่อ</th><th>สมการ</th></tr></thead>
+            <tbody>
+              <tr><td class="txt">D latch (ไม่มี E)</td><td class="txt" data-label="Q เปลี่ยนเมื่อ"><span>ตลอดเวลา</span></td><td class="txt" data-label="จำค่าเมื่อ"><span>จำไม่ได้</span></td><td data-label="สมการ"><span>Qnext = D</span></td></tr>
+              <tr><td class="txt">D latch with Enable</td><td class="txt" data-label="Q เปลี่ยนเมื่อ"><span>ตลอดช่วง E = 1</span></td><td class="txt" data-label="จำค่าเมื่อ"><span>E = 0</span></td><td data-label="สมการ"><span>Qnext = E′Q + ED</span></td></tr>
+              <tr><td class="txt">D flip-flop</td><td class="txt" data-label="Q เปลี่ยนเมื่อ"><span>ขอบ clock ที่ทำงาน</span></td><td class="txt" data-label="จำค่าเมื่อ"><span>ระหว่างขอบ</span></td><td data-label="สมการ"><span>Q⁺ = D</span></td></tr>
+              <tr><td class="txt">D FF with Enable</td><td class="txt" data-label="Q เปลี่ยนเมื่อ"><span>ขอบขาขึ้น และ E = 1</span></td><td class="txt" data-label="จำค่าเมื่อ"><span>E = 0 หรือระหว่างขอบ</span></td><td data-label="สมการ"><span>Q⁺ = E′Q + ED</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn">
+          <b>จุดที่พลาดบ่อย</b>
+          <ul style="margin: 6px 0 0;">
+            <li>สับสน latch (transparent ตลอดช่วง) กับ flip-flop (ดูค่าเฉพาะที่ขอบ)</li>
+            <li>อ่าน D หลังขอบแทนที่จะอ่าน <b>ณ ขอบ</b></li>
+            <li>ลืมว่า D flip-flop ไม่มีสถานะ hold ในตัว ต้องใช้ MUX + E ถึงจะจำค่าได้</li>
+            <li>Master–slave: master เปิดตอน Clk = 0 (ผ่าน inverter) จึงได้ขอบขาขึ้น ถ้าสลับ inverter ไปฝั่ง slave จะได้ขอบขาลง</li>
+            <li>วงกลมที่ขา Clk หมายถึงขอบขาลง ส่วนสามเหลี่ยมอย่างเดียวคือขอบขาขึ้น</li>
+          </ul>
+        </div>
+        <nav class="pager" aria-label="หัวข้อก่อนหน้าและถัดไป">
+          <a href="sr-flipflop.html"><small>← ก่อนหน้า</small>SR Latch & SR Flip-Flop</a>
+          <a class="next" href="jk-flipflop.html"><small>ถัดไป →</small>JK Flip-Flop</a>
+        </nav>
+      </section>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap"><a href="../index.html">← กลับหน้าแรก</a> · CPE 2423 ครึ่งหลัง</div>
+  </footer>
+
+  <script src="../assets/logic-kit.js"></script>
+  <script>
+    (function () {
+      "use strict";
+      const { NOT, schematic, simulate, pulses, isEdge, byQ, twoState, ffSymbol, exercises, ffSim, tocSpy } = LK;
+
+      // ---------- Schematics ----------
+      // NAND latch pair at x = gx: inputs at gx+6 (y 40/60 top, 140/160 bottom), outputs at gx+56.
+      const CROSS = (gx, ox) => ({
+        Q: { d: `M${gx + 56} 50 H${ox} M${gx + 110} 50 V85 L${gx - 30} 115 V140 H${gx + 6}`, dots: [[gx + 110, 50]] },
+        Qn: { d: `M${gx + 56} 150 H${ox} M${gx + 110} 150 V115 L${gx - 30} 85 V60 H${gx + 6}`, dots: [[gx + 110, 150]] },
+      });
+      const SPECS = {
+        dlatch: {
+          viewBox: "0 0 500 200",
+          nets: {
+            D: { d: "M40 100 H90 M90 40 V160 M90 40 H126 M90 160 H236", dots: [[90, 100]] },
+            Sb: { d: "M172 40 H236" },
+            ...CROSS(230, 452),
+          },
+          gates: [["not", 120, 20], ["nand", 230, 30], ["nand", 230, 130]],
+          labels: [["D", 30, 105, "end"], ["S′", 204, 32, "middle"], ["R′", 160, 182, "middle"], ["Q", 460, 55], ["~Q", 460, 155]],
+        },
+        dlatchE: {
+          viewBox: "0 0 610 200",
+          nets: {
+            D: { d: "M40 40 H166 M70 40 V160 H86", dots: [[70, 40]] },
+            Dn: { d: "M132 160 H166" },
+            E: { d: "M40 100 H130 M130 60 V140 M130 60 H166 M130 140 H166", dots: [[130, 100]] },
+            Sp: { d: "M216 50 H270 V40 H336" },
+            Rp: { d: "M216 150 H270 V160 H336" },
+            ...CROSS(330, 560),
+          },
+          gates: [["not", 80, 140], ["nand", 160, 30], ["nand", 160, 130], ["nand", 330, 30], ["nand", 330, 130]],
+          labels: [["D", 30, 45, "end"], ["E", 30, 105, "end"], ["S′", 243, 32, "middle"], ["R′", 243, 180, "middle"], ["Q", 568, 55], ["~Q", 568, 155]],
+        },
+      };
+      document.querySelectorAll("[data-schematic]").forEach((svg) => schematic(svg, SPECS[svg.dataset.schematic]));
+
+      document.getElementById("dff-symbols").innerHTML =
+        ffSymbol({ left: ["D", { name: "Ck", clk: "rise" }], cap: "ขอบขาขึ้น" }) +
+        ffSymbol({ left: ["D", { name: "Ck", clk: "fall" }], cap: "ขอบขาลง" });
+
+      twoState(document.getElementById("fsm"), { up: "D=1", down: "D=0", loop0: "D=0", loop1: "D=1" });
+
+      // ---------- Step functions (prev inputs, inputs, state) → state ----------
+      const latch = (p, i, s) => ({ ...s, Q: i.E ? i.D : s.Q });
+      const edgeD = (edge, clk) => (p, i, s) => (isEdge(p, i, clk, edge) ? { ...s, Q: i.D } : s);
+      // Master is open while Clk = 0, slave while Clk = 1.
+      const masterSlave = (p, i, s) => {
+        const QM = i.Clk ? s.QM : i.D;
+        return { QM, Q: i.Clk ? QM : s.Q };
+      };
+      const dffEnable = (p, i, s) => (isEdge(p, i, "Clk", "rise") ? { Q: i.E ? i.D : s.Q } : s);
+
+      // ---------- Simulator ----------
+      ffSim(document.getElementById("simulator"), {
+        latch: {
+          tab: "D latch + E",
+          symbol: ffSymbol({ left: ["D", "E"], cap: "D latch with Enable" }),
+          inputs: [["E", "E"], ["D", "D"]],
+          start: { E: 0, D: 0 },
+          init: { Q: 0 },
+          step: latch,
+          head: ["E", "D", "Q", "Qnext", ""],
+          rows: [["0", "×", "0", "0", "จำค่าเดิม"], ["0", "×", "1", "1", "จำค่าเดิม"], ["1", "0", "×", "0", "Q ตาม D"], ["1", "1", "×", "1", "Q ตาม D"]],
+          row: (p, i, s, b) => (i.E ? 2 + i.D : byQ(0, b.Q)),
+          describe: (p, i, s) =>
+            i.E ? [`E = 1 (transparent): Q ตาม D จึงได้ Q = ${s.Q}`, "set"] : [`E = 0: จำค่าเดิม Q = ${s.Q} ถึง D จะเปลี่ยนก็ไม่มีผล`, ""],
+        },
+        ms: {
+          tab: "D FF ↑ (master–slave)",
+          symbol: ffSymbol({ left: ["D", { name: "Clk", clk: "rise" }], cap: "D flip-flop ขอบขาขึ้น" }),
+          inputs: [["Clk", "Clk"], ["D", "D"]],
+          start: { Clk: 0, D: 0 },
+          init: { QM: 0, Q: 0 },
+          step: masterSlave,
+          outs: [["QM", "QM"], ["Q", "Q"], ["Qn", "~Q"]],
+          pulse: "Clk",
+          head: ["Clk", "D", "Q", "Qnext", ""],
+          rows: [["↑", "0", "×", "0", "เก็บ D"], ["↑", "1", "×", "1", "เก็บ D"], ["0, 1, ↓", "×", "0", "0", "คงเดิม"], ["0, 1, ↓", "×", "1", "1", "คงเดิม"]],
+          row: (p, i, s, b) => (isEdge(p, i, "Clk", "rise") ? s.Q : byQ(2, b.Q)),
+          describe: (p, i, s) =>
+            isEdge(p, i, "Clk", "rise") ? [`ขอบขาขึ้น ↑: slave คัดลอก QM ไปเป็น Q = ${s.Q}`, "set"]
+            : i.Clk ? [`Clk = 1: master ปิด D เปลี่ยนก็ไม่มีผล (Q = ${s.Q})`, ""]
+            : [`Clk = 0: master เปิด QM ตาม D (QM = ${s.QM}) แต่ Q คงเดิม = ${s.Q}`, ""],
+        },
+        enable: {
+          tab: "D FF + Enable",
+          symbol: ffSymbol({ left: ["D", { name: "Clk", clk: "rise" }, "E"], cap: "D FF with Enable" }),
+          inputs: [["Clk", "Clk"], ["E", "E"], ["D", "D"]],
+          start: { Clk: 0, E: 0, D: 0 },
+          init: { Q: 0 },
+          step: dffEnable,
+          pulse: "Clk",
+          head: ["Clk", "E", "D", "Q", "Qnext", ""],
+          rows: [["↑", "0", "×", "0", "0", "จำค่า (E = 0)"], ["↑", "0", "×", "1", "1", "จำค่า (E = 0)"], ["↑", "1", "0", "×", "0", "โหลด D"], ["↑", "1", "1", "×", "1", "โหลด D"], ["0, 1, ↓", "×", "×", "0", "0", "คงเดิม"], ["0, 1, ↓", "×", "×", "1", "1", "คงเดิม"]],
+          row: (p, i, s, b) => (isEdge(p, i, "Clk", "rise") ? (i.E ? 2 + i.D : byQ(0, b.Q)) : byQ(4, b.Q)),
+          describe: (p, i, s) =>
+            !isEdge(p, i, "Clk", "rise") ? [`ไม่ใช่ขอบขาขึ้น: Q คงเดิม = ${s.Q}`, ""]
+            : i.E ? [`ขอบขาขึ้น และ E = 1: โหลด D จึงได้ Q = ${s.Q}`, "set"]
+            : [`ขอบขาขึ้น แต่ E = 0: MUX ป้อน Q เดิมกลับ จึงได้ Q = ${s.Q}`, ""],
+        },
+      });
+
+      // ---------- Exercises ----------
+      // Slide 13 (Figure 11-14) on a grid of 1/8 clock period; falling edges at 8, 16, …, 48.
+      const ex2 = { Ck: pulses(50, [[4, 8], [12, 16], [20, 24], [28, 32], [36, 40], [44, 48]]), D: pulses(50, [[0, 9], [17, 33], [42, 45]]) };
+      // Slide 16: Clk high for t0–t1 and t2–t3 (8 steps each).
+      const ex3 = { Clk: pulses(32, [[0, 8], [16, 24]]), D: pulses(32, [[0, 2], [10, 12], [13, 15], [18, 20], [22, 26]]) };
+      const qa = simulate({ E: ex3.Clk, D: ex3.D }, latch, { Q: 0 });
+      const qb = simulate(ex3, edgeD("rise", "Clk"), { Q: 1 });
+      const qc = simulate(ex3, edgeD("fall", "Clk"), { Q: 1 });
+
+      exercises({
+        1: {
+          rows: simulate({ E: "011100111000", D: "110100100110" }, latch, { Q: 0 }),
+          signals: [{ key: "E", name: "E" }, { key: "D", name: "D" }, { key: "Q", name: "Q", out: true }],
+          hide: ["Q"],
+        },
+        2: {
+          rows: simulate(ex2, edgeD("fall", "Ck"), { Q: 0 }),
+          signals: [{ key: "D", name: "D" }, { key: "Ck", name: "Ck" }, { key: "Q", name: "Q", out: true }],
+          hide: ["Q"],
+          opts: { ticks: false, marks: [8, 16, 24, 32, 40, 48].map((at, k) => ({ at, text: `↓${k + 1}` })) },
+          minStep: 10,
+        },
+        3: {
+          rows: qa.map((r, t) => ({ Clk: r.E, D: r.D, Qa: r.Q, Qb: qb[t].Q, Qc: qc[t].Q })),
+          signals: [{ key: "Clk", name: "Clk" }, { key: "D", name: "D" }, { key: "Qa", name: "Qa", out: true }, { key: "Qb", name: "Qb", out: true }, { key: "Qc", name: "Qc", out: true }],
+          hide: ["Qa", "Qb", "Qc"],
+          opts: { ticks: false, marks: [0, 8, 16, 24].map((at, k) => ({ at, text: `t${k}` })) },
+          minStep: 14,
+        },
+      });
+
+      tocSpy(document.querySelector(".toc"));
+    })();
+  </script>
+</body>
+</html>

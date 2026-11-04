@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="สรุป T Flip-Flop ตามสไลด์ 06: Qnext = T ⊕ Q, สร้างจาก JK และ D, state diagram, excitation table, ตัวหารความถี่ และแบบฝึก timing diagram">
+  <title>T Flip-Flop · CPE 2423</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <nav class="topbar">
+    <div class="wrap">
+      <a href="../index.html">← CPE 2423 ครึ่งหลัง</a>
+      <span class="crumb">04 · T Flip-Flop</span>
+    </div>
+  </nav>
+
+  <header class="page-head wrap">
+    <p class="eyebrow">หัวข้อ 04 · Latches and Flip-Flops</p>
+    <h1>T Flip-Flop</h1>
+    <p class="lead"><b>T</b> = Toggle มี input ตัวเดียว ถ้า <b>T = 1</b> Q จะกลับค่าทุกขอบ clock ถ้า <b>T = 0</b> จะคงค่าไว้ เป็นตัวหลักของวงจร counter</p>
+    <p class="source">อ้างอิง: สไลด์ <i>06 Introduction to Latches and Flip-Flops</i> หน้า 23, 27, 31</p>
+  </header>
+
+  <div class="wrap layout">
+    <details class="toc" open>
+      <summary>สารบัญ</summary>
+      <ol>
+        <li><a href="#overview">ตารางและสมการ</a></li>
+        <li><a href="#build">สร้างจาก JK และ D</a></li>
+        <li><a href="#timing">Timing (ขอบขาลง)</a></li>
+        <li><a href="#divider">ตัวหารความถี่</a></li>
+        <li><a href="#sim">ลองกดวงจร</a></li>
+        <li><a href="#state">State diagram & Excitation</a></li>
+        <li><a href="#practice">แบบฝึก timing diagram</a></li>
+        <li><a href="#recap">สรุปก่อนสอบ</a></li>
+      </ol>
+    </details>
+
+    <main class="content">
+      <!-- 1 -->
+      <section id="overview">
+        <h2><span class="num">1</span>ตารางความจริงและสมการ <span class="ref">สไลด์ 23, 27</span></h2>
+        <div class="two-col">
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th>T</th><th>Q</th><th>Qnext</th><th>Qnext′</th><th>สถานะ</th></tr></thead>
+              <tbody>
+                <tr><td>0</td><td>0</td><td>0</td><td>1</td><td class="txt" rowspan="2">Hold</td></tr>
+                <tr><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+                <tr><td>1</td><td>0</td><td>1</td><td>0</td><td class="txt" rowspan="2">Toggle</td></tr>
+                <tr><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <figure class="figure" style="margin: 0;">
+            <div class="sym-grid" style="grid-template-columns: minmax(0, 200px); justify-content: center;" id="symbol"></div>
+            <figcaption>Figure 11-22 ในสไลด์เป็นแบบขอบขาลง (มีวงกลม)</figcaption>
+          </figure>
+        </div>
+        <div class="formula">Qnext = T′Q + TQ′ = T ⊕ Q<small>Qnext เป็น 1 เมื่อ T กับ Q ต่างกัน (XOR)</small></div>
+      </section>
+
+      <!-- 2 -->
+      <section id="build">
+        <h2><span class="num">2</span>สร้าง T flip-flop จาก JK และ D <span class="ref">สไลด์ 23 (Figure 11-24), 27 (d)</span></h2>
+        <div class="two-col">
+          <div class="card">
+            <p><b>(a) จาก JK: ต่อ J = K = T</b></p>
+            <ul>
+              <li>T = 0 ได้ JK = 00 จึง Hold</li>
+              <li>T = 1 ได้ JK = 11 จึง Toggle</li>
+            </ul>
+            <p class="mono" style="margin: 0;">JQ′ + K′Q = TQ′ + T′Q ✓</p>
+          </div>
+          <div class="card">
+            <p><b>(b) จาก D: ต่อ D = T ⊕ Q</b></p>
+            <ul>
+              <li>ใช้เกต XOR 1 ตัว input เป็น T และ Q ที่ป้อนกลับมา</li>
+              <li>D flip-flop ได้ Q⁺ = D = T ⊕ Q</li>
+            </ul>
+            <p class="mono" style="margin: 0;">Q⁺ = D = T ⊕ Q ✓</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3 -->
+      <section id="timing">
+        <h2><span class="num">3</span>Timing ของ T flip-flop ขอบขาลง <span class="ref">Figure 11-23 สไลด์ 23</span></h2>
+        <p>ทุกขอบขาลงให้ดูค่า T: ถ้า <b>T = 1</b> ให้ Q กลับค่า ถ้า <b>T = 0</b> ให้ Q คงเดิม (ในสไลด์ Q เปลี่ยนหลังขอบไป t<sub>p</sub>)</p>
+        <p>ลองทำใน <a href="#ex1">แบบฝึกข้อ 1</a> ซึ่งวาดใหม่จาก Figure 11-23</p>
+      </section>
+
+      <!-- 4 -->
+      <section id="divider">
+        <h2><span class="num">4</span>ตัวหารความถี่ (T = 1 ตลอด) <span class="ref">ต่อยอดสไลด์ 31: Counters</span></h2>
+        <p>ถ้าตรึง T = 1 ไว้ Q จะกลับค่าทุกขอบขาลง จึงได้ <b>1 รอบของ Q = 2 รอบของ clock</b> ความถี่ของ Q เท่ากับ <b>ครึ่งหนึ่ง</b> ของ clock ถ้าต่อหลายตัวเป็นทอด ๆ จะหารด้วย 2, 4, 8, … ซึ่งก็คือพื้นฐานของ <b>counter</b></p>
+        <div class="wave-scroll"><svg id="divider-wave" role="img" aria-label="T flip-flop ที่ T เท่ากับ 1 ได้ Q ความถี่ครึ่งหนึ่งของ clock และ Q2 ความถี่หนึ่งในสี่"></svg></div>
+        <p style="font-size: 14px; color: var(--ink-3); margin-top: 8px;">Q₂ คือ T flip-flop ตัวที่ 2 (T = 1) ที่ใช้ Q ของตัวแรกเป็น clock</p>
+      </section>
+
+      <!-- 5 -->
+      <section id="sim">
+        <h2><span class="num">5</span>ลองกดวงจร</h2>
+        <p>ตั้ง T = 1 แล้วกด "ส่ง clock 1 ลูก" หลาย ๆ ครั้ง Q จะสลับทุกลูก ถ้าตั้ง T = 0 Q จะคงที่ (ตัวนี้ทริกขอบขาลง ตามสไลด์)</p>
+        <div id="simulator"></div>
+      </section>
+
+      <!-- 6 -->
+      <section id="state">
+        <h2><span class="num">6</span>State diagram & Excitation table <span class="ref">สไลด์ 27</span></h2>
+        <figure class="figure">
+          <svg id="fsm" role="img" aria-label="State diagram ของ T flip-flop: T=1 สลับสถานะ, T=0 อยู่ที่เดิม"></svg>
+          <figcaption>T = 1 ทำให้ย้ายฝั่งเสมอ · T = 0 ทำให้อยู่ที่เดิม</figcaption>
+        </figure>
+        <div class="two-col">
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th>Q</th><th>Qnext</th><th>T</th></tr></thead>
+              <tbody>
+                <tr><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td>0</td><td>1</td><td>1</td></tr>
+                <tr><td>1</td><td>0</td><td>1</td></tr>
+                <tr><td>1</td><td>1</td><td>0</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <p><b>สูตรลัด</b></p>
+            <p class="mono">T = Q ⊕ Qnext</p>
+            <p style="margin: 0;">ถ้าค่าต้องเปลี่ยนให้ใส่ T = 1 ถ้าค่าไม่เปลี่ยนให้ใส่ T = 0 ใช้มากตอนออกแบบ counter ด้วย T flip-flop</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7 -->
+      <section id="practice">
+        <h2><span class="num">7</span>แบบฝึก timing diagram</h2>
+        <div class="exercise" id="ex1">
+          <p class="q-text"><b>ข้อ 1</b> · T flip-flop ขอบขาลง เริ่มต้น Q = 0 <span class="ref">Figure 11-23 สไลด์ 23</span></p>
+          <div class="wave-scroll"><svg data-exercise="1" role="img" aria-label="แบบฝึกข้อ 1 สัญญาณ Ck และ T จากสไลด์ 23"></svg></div>
+          <div class="actions"><button class="btn primary" type="button" data-reveal="1">ดูเฉลย</button></div>
+          <div class="answer callout ok" data-answer="1" hidden>
+            <b>เฉลยข้อ 1</b>
+            t1: T = 0 จึงคงที่ 0 · t2: T = 1 จึง Toggle ได้ 1 · t3: T = 0 จึงคงที่ 1 · t4: T = 1 จึง Toggle ได้ 0 (ตรงกับสไลด์ที่ Q ขึ้นหลัง t2 และลงหลัง t4)
+          </div>
+        </div>
+
+        <div class="exercise">
+          <p class="q-text"><b>ข้อ 2</b> · T flip-flop <b>ขอบขาขึ้น</b> เริ่มต้น Q = 0</p>
+          <div class="wave-scroll"><svg data-exercise="2" role="img" aria-label="แบบฝึกข้อ 2 สัญญาณ Ck และ T"></svg></div>
+          <div class="actions"><button class="btn primary" type="button" data-reveal="2">ดูเฉลย</button></div>
+          <div class="answer callout ok" data-answer="2" hidden>
+            <b>เฉลยข้อ 2</b>
+            ค่า T ที่ขอบ ↑1–↑6 คือ 1, 1, 0, 1, 0, 1 จึงได้ Q = 1, 0, 0, 1, 1, 0
+          </div>
+        </div>
+      </section>
+
+      <!-- 8 -->
+      <section id="recap">
+        <h2><span class="num">8</span>สรุปก่อนสอบ</h2>
+        <div class="formula">Qnext = T ⊕ Q<small>excitation: T = Q ⊕ Qnext</small></div>
+        <div class="table-scroll">
+          <table class="tt stack">
+            <thead><tr><th>Flip-flop</th><th>Qnext</th><th>Excitation (0→0, 0→1, 1→0, 1→1)</th></tr></thead>
+            <tbody>
+              <tr><td class="txt">SR</td><td data-label="Qnext"><span>S + R′Q (SR = 0)</span></td><td data-label="Excitation"><span>0×, 10, 01, ×0</span></td></tr>
+              <tr><td class="txt">D</td><td data-label="Qnext"><span>D</span></td><td data-label="Excitation"><span>0, 1, 0, 1</span></td></tr>
+              <tr><td class="txt">JK</td><td data-label="Qnext"><span>JQ′ + K′Q</span></td><td data-label="Excitation"><span>0×, 1×, ×1, ×0</span></td></tr>
+              <tr><td class="txt">T</td><td data-label="Qnext"><span>T ⊕ Q</span></td><td data-label="Excitation"><span>0, 1, 1, 0</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn">
+          <b>จุดที่พลาดบ่อย</b>
+          <ul style="margin: 6px 0 0;">
+            <li>T = 1 คือ "กลับค่าจาก Q ปัจจุบัน" ไม่ใช่ "Q = 1"</li>
+            <li>ลืมดูชนิดขอบ: Figure 11-22 ในสไลด์เป็นขอบขาลง (มีวงกลม)</li>
+            <li>T = 1 ตลอดจะได้ Q ความถี่ครึ่งหนึ่งของ clock ไม่ใช่เท่ากัน</li>
+            <li>สร้าง T จาก D ต้องใช้ XOR (D = T ⊕ Q) ไม่ใช่ D = T</li>
+          </ul>
+        </div>
+        <nav class="pager" aria-label="หัวข้อก่อนหน้าและถัดไป">
+          <a href="jk-flipflop.html"><small>← ก่อนหน้า</small>JK Flip-Flop</a>
+          <a class="next" href="async-inputs.html"><small>ถัดไป →</small>Asynchronous Inputs</a>
+        </nav>
+      </section>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap"><a href="../index.html">← กลับหน้าแรก</a> · CPE 2423 ครึ่งหลัง</div>
+  </footer>
+
+  <script src="../assets/logic-kit.js"></script>
+  <script>
+    (function () {
+      "use strict";
+      const { NOT, simulate, pulses, isEdge, byQ, twoState, ffSymbol, exercises, ffSim, wave, fitStep, tocSpy } = LK;
+
+      document.getElementById("symbol").innerHTML = ffSymbol({ left: ["T", { name: "Ck", clk: "fall" }], cap: "T flip-flop (ขอบขาลง)" });
+      twoState(document.getElementById("fsm"), { up: "T=1", down: "T=1", loop0: "T=0", loop1: "T=0" });
+
+      const tEdge = (edge, clk) => (p, i, s) => (isEdge(p, i, clk, edge) && i.T ? { Q: NOT(s.Q) } : s);
+
+      // Frequency divider: T = 1, Q toggles on every falling edge; Q2 is clocked by Q.
+      const ck = "01".repeat(12);
+      const q1 = simulate({ Ck: ck, T: "1".repeat(24) }, tEdge("fall", "Ck"), { Q: 0 });
+      const q2 = simulate({ Ck: q1.map((r) => r.Q).join(""), T: "1".repeat(24) }, tEdge("fall", "Ck"), { Q: 0 });
+      const dividerRows = q1.map((r, t) => ({ Ck: r.Ck, Q: r.Q, Q2: q2[t].Q }));
+      const dividerSvg = document.getElementById("divider-wave");
+      const drawDivider = () =>
+        wave(dividerSvg, [{ key: "Ck", name: "Ck" }, { key: "Q", name: "Q" , out: true }, { key: "Q2", name: "Q₂", out: true }], dividerRows, {
+          ticks: false,
+          step: fitStep(dividerSvg.parentElement, dividerRows.length, 14),
+        });
+      window.addEventListener("resize", drawDivider);
+      drawDivider();
+
+      ffSim(document.getElementById("simulator"), {
+        t: {
+          tab: "T ขอบขาลง",
+          symbol: ffSymbol({ left: ["T", { name: "Clk", clk: "fall" }], cap: "T flip-flop" }),
+          inputs: [["Clk", "Clk"], ["T", "T"]],
+          start: { Clk: 0, T: 0 },
+          init: { Q: 0 },
+          step: tEdge("fall", "Clk"),
+          pulse: "Clk",
+          head: ["Clk", "T", "Q", "Qnext", ""],
+          rows: [["↓", "0", "0", "0", "Hold"], ["↓", "0", "1", "1", "Hold"], ["↓", "1", "0", "1", "Toggle"], ["↓", "1", "1", "0", "Toggle"], ["0, 1, ↑", "×", "0", "0", "ไม่ใช่ขอบ"], ["0, 1, ↑", "×", "1", "1", "ไม่ใช่ขอบ"]],
+          row: (p, i, s, b) => (isEdge(p, i, "Clk", "fall") ? byQ(i.T * 2, b.Q) : byQ(4, b.Q)),
+          describe: (p, i, s) =>
+            !isEdge(p, i, "Clk", "fall") ? [`ไม่ใช่ขอบขาลง: Q คงเดิม = ${s.Q}`, ""]
+            : i.T ? [`ขอบขาลง ↓ และ T = 1: Toggle ได้ Q = ${s.Q}`, "set"]
+            : [`ขอบขาลง ↓ แต่ T = 0: Hold ได้ Q = ${s.Q}`, ""],
+        },
+      });
+
+      exercises({
+        1: {
+          // Figure 11-23 on a grid of 1/8 clock period; falling edges at 6, 14, 22, 30.
+          rows: simulate({ Ck: pulses(32, [[2, 6], [10, 14], [18, 22], [26, 30]]), T: pulses(32, [[8, 16], [24, 32]]) }, tEdge("fall", "Ck"), { Q: 0 }),
+          signals: [{ key: "Ck", name: "Ck" }, { key: "T", name: "T" }, { key: "Q", name: "Q", out: true }],
+          hide: ["Q"],
+          opts: { ticks: false, marks: [6, 14, 22, 30].map((at, k) => ({ at, text: `t${k + 1}` })) },
+          minStep: 12,
+        },
+        2: {
+          // Rising edges at 2, 6, …, 22; T changes only on multiples of 4.
+          rows: simulate({ Ck: pulses(24, [[2, 4], [6, 8], [10, 12], [14, 16], [18, 20], [22, 24]]), T: pulses(24, [[0, 8], [12, 16], [20, 24]]) }, tEdge("rise", "Ck"), { Q: 0 }),
+          signals: [{ key: "Ck", name: "Ck" }, { key: "T", name: "T" }, { key: "Q", name: "Q", out: true }],
+          hide: ["Q"],
+          opts: { ticks: false, marks: [2, 6, 10, 14, 18, 22].map((at, k) => ({ at, text: `↑${k + 1}` })) },
+          minStep: 14,
+        },
+      });
+
+      tocSpy(document.querySelector(".toc"));
+    })();
+  </script>
+</body>
+</html>

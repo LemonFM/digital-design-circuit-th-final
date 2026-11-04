@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="สรุป JK Flip-Flop ตามสไลด์ 06: ตารางความจริง, Qnext = JQ′ + K′Q, toggle, master–slave JK, state diagram, excitation table และแบบฝึก timing diagram">
+  <title>JK Flip-Flop · CPE 2423</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <nav class="topbar">
+    <div class="wrap">
+      <a href="../index.html">← CPE 2423 ครึ่งหลัง</a>
+      <span class="crumb">03 · JK Flip-Flop</span>
+    </div>
+  </nav>
+
+  <header class="page-head wrap">
+    <p class="eyebrow">หัวข้อ 03 · Latches and Flip-Flops</p>
+    <h1>JK Flip-Flop</h1>
+    <p class="lead">หน้าตาเหมือน SR flip-flop (J ทำหน้าที่ Set, K ทำหน้าที่ Reset) แต่เปลี่ยนกรณี <b>J = K = 1</b> จากห้ามใช้ ให้กลายเป็น <b>Toggle</b> (Q กลับค่า) จึงไม่มีสถานะห้ามใช้เลย</p>
+    <p class="source">อ้างอิง: สไลด์ <i>06 Introduction to Latches and Flip-Flops</i> หน้า 20–22, 26</p>
+  </header>
+
+  <div class="wrap layout">
+    <details class="toc" open>
+      <summary>สารบัญ</summary>
+      <ol>
+        <li><a href="#overview">ภาพรวม</a></li>
+        <li><a href="#table">ตารางความจริง</a></li>
+        <li><a href="#equation">Qnext = JQ′ + K′Q</a></li>
+        <li><a href="#timing">Timing และ t<sub>p</sub></a></li>
+        <li><a href="#ms">Master–Slave JK</a></li>
+        <li><a href="#sim">ลองกดวงจร</a></li>
+        <li><a href="#state">State diagram & Excitation</a></li>
+        <li><a href="#practice">แบบฝึก timing diagram</a></li>
+        <li><a href="#recap">สรุปก่อนสอบ</a></li>
+      </ol>
+    </details>
+
+    <main class="content">
+      <!-- 1 -->
+      <section id="overview">
+        <h2><span class="num">1</span>ภาพรวม <span class="ref">สไลด์ 20</span></h2>
+        <p>JK flip-flop เป็นแบบ <b>edge-triggered</b> (Q เปลี่ยนเฉพาะที่ขอบขาขึ้นหรือขอบขาลง) มี input J, K และ clock</p>
+        <div class="keypoints">
+          <div class="kp"><div class="k">JK = 00</div><div class="v">Hold</div><p>Q คงเดิม</p></div>
+          <div class="kp"><div class="k">JK = 01</div><div class="v">Reset</div><p>Q = 0</p></div>
+          <div class="kp"><div class="k">JK = 10</div><div class="v">Set</div><p>Q = 1</p></div>
+          <div class="kp"><div class="k">JK = 11</div><div class="v">Toggle</div><p>Q = Q′ (กลับค่า)</p></div>
+        </div>
+        <div class="two-col">
+          <figure class="figure" style="margin: 0;">
+            <div class="sym-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));" id="symbols"></div>
+            <figcaption>JK flip-flop ขอบขาขึ้น / ขอบขาลง</figcaption>
+          </figure>
+          <div class="callout tip" style="margin: 0;">
+            <b>จำแบบเทียบ SR</b>
+            J ≈ S และ K ≈ R ต่างกันแค่แถว 11: SR ห้ามใช้ ส่วน JK ให้ toggle จำว่า "<b>J</b>ump to 1, <b>K</b>ill to 0"
+          </div>
+        </div>
+      </section>
+
+      <!-- 2 -->
+      <section id="table">
+        <h2><span class="num">2</span>ตารางความจริง <span class="ref">สไลด์ 20, 26 (a)</span></h2>
+        <div class="two-col">
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th>J</th><th>K</th><th>Q</th><th>Qnext</th><th>Qnext′</th><th>สถานะ</th></tr></thead>
+              <tbody>
+                <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td class="txt" rowspan="2">Hold</td></tr>
+                <tr><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+                <tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td class="txt" rowspan="2">Reset</td></tr>
+                <tr><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+                <tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td class="txt" rowspan="2">Set</td></tr>
+                <tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+                <tr><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td><td class="txt" rowspan="2">Toggle</td></tr>
+                <tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th>J</th><th>K</th><th>การทำงาน</th><th>Q = 0 → Qnext</th><th>Q = 1 → Qnext</th></tr></thead>
+              <tbody>
+                <tr><td>0</td><td>0</td><td class="txt">Hold</td><td>0</td><td>1</td></tr>
+                <tr><td>0</td><td>1</td><td class="txt">Reset</td><td>0</td><td>0</td></tr>
+                <tr><td>1</td><td>0</td><td class="txt">Set</td><td>1</td><td>1</td></tr>
+                <tr><td>1</td><td>1</td><td class="txt">Toggle</td><td>1</td><td>0</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3 -->
+      <section id="equation">
+        <h2><span class="num">3</span>สมการคุณลักษณะ <span class="ref">สไลด์ 21, 26 (b)</span></h2>
+        <div class="two-col">
+          <div class="table-scroll">
+            <table class="tt kmap">
+              <thead><tr><th>Q \ JK</th><th>00</th><th>01</th><th>11</th><th>10</th></tr></thead>
+              <tbody>
+                <tr><th>0</th><td>0</td><td>0</td><td class="g1">1</td><td class="g1">1</td></tr>
+                <tr><th>1</th><td class="g2">1</td><td>0</td><td>0</td><td class="g2">1</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size: 15px; margin: 0;">
+            <span class="chip g1">JQ′</span> แถว Q = 0 ที่ J = 1 (คอลัมน์ 11, 10)<br>
+            <span class="chip g2">K′Q</span> แถว Q = 1 ที่ K = 0 (คอลัมน์ 00, 10 ซ้อนหัวท้าย)
+          </p>
+        </div>
+        <div class="formula">Qnext = JQ′ + K′Q<small>ไม่มีเงื่อนไขห้ามใช้เหมือน SR</small></div>
+        <div class="callout tip">
+          <b>สร้าง JK จาก D flip-flop</b> <span class="ref" style="margin-left:0">สไลด์ 26 (d)</span>
+          ป้อน <b>D = JQ′ + K′Q</b> (AND 2 ตัว + OR 1 ตัว โดย Q และ Q′ ป้อนกลับมา) เข้า D flip-flop
+        </div>
+      </section>
+
+      <!-- 4 -->
+      <section id="timing">
+        <h2><span class="num">4</span>Timing และ propagation delay <span class="ref">สไลด์ 21</span></h2>
+        <p>Figure 11-20 เป็น JK ที่ <b>Q เปลี่ยนที่ขอบขาขึ้น</b> และในรูปจะเห็นว่า Q เปลี่ยนหลังขอบเล็กน้อย ระยะนี้คือ <b>t<sub>p</sub> (propagation delay)</b> ซึ่งเป็นเวลาที่วงจรใช้ในการตอบสนอง</p>
+        <ul>
+          <li>ดูค่า J, K <b>ก่อนขอบนิดเดียว</b> แล้วตัดสินว่า Q จะเป็นอะไร</li>
+          <li>Q จะเปลี่ยนหลังขอบไป t<sub>p</sub> ถ้าโจทย์ไม่ได้ให้ t<sub>p</sub> มา ให้วาดเปลี่ยนตรงขอบได้เลย</li>
+        </ul>
+        <p>ลองทำใน <a href="#ex1">แบบฝึกข้อ 1</a> ซึ่งวาดใหม่จากรูป (c) ในสไลด์ 21</p>
+      </section>
+
+      <!-- 5 -->
+      <section id="ms">
+        <h2><span class="num">5</span>Master–Slave JK flip-flop <span class="ref">สไลด์ 22</span></h2>
+        <p>โครงเหมือน master–slave SR แต่ <b>ป้อน Q และ Q′ กลับมา AND กับ J, K</b> ก่อนเข้า master (Figure 11-21)</p>
+        <figure class="figure wide">
+          <svg class="blk" viewBox="0 0 560 176" role="img" aria-label="Master-slave JK flip-flop: J AND Q prime เป็น S1, K AND Q เป็น R1 ของ master ที่ enable ด้วย CLK prime, ส่ง P และ P prime ให้ slave ที่ enable ด้วย CLK">
+            <text class="cap" x="225" y="20" text-anchor="middle">Master (E = CLK′)</text>
+            <text class="cap" x="425" y="20" text-anchor="middle">Slave (E = CLK)</text>
+            <line x1="76" y1="52" x2="170" y2="52"/><text x="70" y="57" text-anchor="end">J·Q′</text>
+            <line x1="76" y1="112" x2="170" y2="112"/><text x="70" y="117" text-anchor="end">K·Q</text>
+            <line x1="280" y1="52" x2="370" y2="52"/><text x="325" y="44" text-anchor="middle">P</text>
+            <line x1="280" y1="112" x2="370" y2="112"/><text x="325" y="104" text-anchor="middle">P′</text>
+            <line x1="480" y1="52" x2="520" y2="52"/><text x="528" y="57">Q</text>
+            <line x1="480" y1="112" x2="520" y2="112"/><text x="528" y="117">Q′</text>
+            <path d="M76 160 H345 V82 H370"/><text x="70" y="165" text-anchor="end">CLK</text>
+            <path d="M110 160 V82 H120"/><path d="M153 82 H170"/>
+            <path class="inv" d="M120 70 L144 82 L120 94 Z"/><circle cx="148.5" cy="82" r="4.5"/>
+            <circle class="dot" cx="110" cy="160" r="3.5"/>
+            <rect x="170" y="30" width="110" height="104" rx="4"/>
+            <rect x="370" y="30" width="110" height="104" rx="4"/>
+            <text x="180" y="57">S₁</text><text x="180" y="87">E</text><text x="180" y="117">R₁</text>
+            <text x="270" y="57" text-anchor="end">P</text><text x="270" y="117" text-anchor="end">P′</text>
+            <text x="380" y="57">S₂</text><text x="380" y="87">E</text><text x="380" y="117">R₂</text>
+            <text x="470" y="57" text-anchor="end">Q</text><text x="470" y="117" text-anchor="end">Q′</text>
+          </svg>
+          <figcaption>ในสไลด์ Q และ Q′ จะวิ่งกลับไปที่เกต AND หน้า master (ในรูปนี้เขียนเป็นป้าย J·Q′ และ K·Q)</figcaption>
+        </figure>
+        <ul>
+          <li>ถ้า Q = 0 จะมีแค่ J ที่ผ่าน (J·Q′) จึงทำได้แค่ Set · ถ้า Q = 1 จะมีแค่ K ที่ผ่าน (K·Q) จึงทำได้แค่ Reset</li>
+          <li>เมื่อ J = K = 1 ฝั่งที่ผ่านคือฝั่งที่ทำให้ Q กลับค่าพอดี จึงได้ <b>toggle</b> และ S₁, R₁ ไม่มีทางเป็น 1 พร้อมกัน</li>
+          <li>master รับค่าตอน CLK = 0 แล้ว slave ส่งออกตอน CLK ขึ้น จึงได้ Q เปลี่ยนที่ <b>ขอบขาขึ้น</b></li>
+        </ul>
+        <div class="callout warn">
+          <b>Ones catching: ข้อเสียของ master–slave JK</b> <span class="ref" style="margin-left:0">ตรวจทานเพิ่ม</span>
+          master เปิดรับ input <b>ตลอดช่วง CLK = 0</b> ถ้า Q = 0 แล้ว J เด้งเป็น 1 แป๊บเดียว master จะถูก set และกลับไม่ได้ (เพราะ K·Q = 0) พอถึงขอบ Q ก็กลายเป็น 1 ทั้งที่ ณ ขอบ J = 0 จึงเรียก master–slave JK ว่า <b>pulse-triggered</b> ส่วน JK แบบ edge-triggered แท้จะดูค่า J, K เฉพาะ ณ ขอบ (โจทย์ timing ในหน้านี้ถือเป็นแบบ edge-triggered)
+        </div>
+        <div class="callout warn">
+          <b>ทำไม JK ต้องเป็น edge-triggered</b> <span class="ref" style="margin-left:0">เสริม ไม่มีในสไลด์</span>
+          ถ้าเป็น latch แบบ level-triggered แล้ว J = K = 1 ตลอดช่วง clock = 1 Q จะ toggle วนไปเรื่อย ๆ จนผลบอกไม่ได้ (race-around) การใช้ขอบหรือ master–slave ทำให้ toggle ได้แค่ครั้งเดียวต่อ 1 ลูก clock
+        </div>
+      </section>
+
+      <!-- 6 -->
+      <section id="sim">
+        <h2><span class="num">6</span>ลองกดวงจร</h2>
+        <p>ตั้ง J, K แล้วกด "ส่ง clock 1 ลูก" ลองตั้ง J = K = 1 แล้วกดหลาย ๆ ครั้ง จะเห็น Q สลับทุกลูก</p>
+        <div id="simulator"></div>
+      </section>
+
+      <!-- 7 -->
+      <section id="state">
+        <h2><span class="num">7</span>State diagram & Excitation table <span class="ref">สไลด์ 26</span></h2>
+        <figure class="figure">
+          <svg id="fsm" role="img" aria-label="State diagram ของ JK flip-flop"></svg>
+          <figcaption>ทุกลูกศรมี 2 เงื่อนไข จึงเกิด × ใน excitation table</figcaption>
+        </figure>
+        <div class="two-col">
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th>Q</th><th>Qnext</th><th>J</th><th>K</th></tr></thead>
+              <tbody>
+                <tr><td>0</td><td>0</td><td>0</td><td>×</td></tr>
+                <tr><td>0</td><td>1</td><td>1</td><td>×</td></tr>
+                <tr><td>1</td><td>0</td><td>×</td><td>1</td></tr>
+                <tr><td>1</td><td>1</td><td>×</td><td>0</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <p><b>วิธีคิด</b></p>
+            <ul>
+              <li><b>0 → 0</b>: JK = 00 หรือ 01 จึงได้ J = 0, K = ×</li>
+              <li><b>0 → 1</b>: JK = 10 หรือ 11 จึงได้ J = 1, K = ×</li>
+              <li><b>1 → 0</b>: JK = 01 หรือ 11 จึงได้ J = ×, K = 1</li>
+              <li><b>1 → 1</b>: JK = 00 หรือ 10 จึงได้ J = ×, K = 0</li>
+            </ul>
+            <p style="margin: 0;">เทคนิค: ถ้า Q = 0 ตอนนี้ K เป็น × เสมอ ถ้า Q = 1 J เป็น × เสมอ</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 8 -->
+      <section id="practice">
+        <h2><span class="num">8</span>แบบฝึก timing diagram</h2>
+        <div class="exercise" id="ex1">
+          <p class="q-text"><b>ข้อ 1</b> · JK flip-flop ขอบขาขึ้น เริ่มต้น Q = 0 <span class="ref">Figure 11-20 (c) สไลด์ 21</span></p>
+          <div class="wave-scroll"><svg data-exercise="1" role="img" aria-label="แบบฝึกข้อ 1 สัญญาณ Clock J K จากสไลด์ 21"></svg></div>
+          <div class="actions"><button class="btn primary" type="button" data-reveal="1">ดูเฉลย</button></div>
+          <div class="answer callout ok" data-answer="1" hidden>
+            <b>เฉลยข้อ 1</b>
+            <ul style="margin: 6px 0 0;">
+              <li>t1: J = 1, K = 0 ทำให้ Set ได้ Q = 1 (J, K เปลี่ยนหลังขอบไปแล้ว จึงไม่มีผล)</li>
+              <li>t2: J = 0, K = 1 ทำให้ Reset ได้ Q = 0</li>
+              <li>t3: J = 1, K = 1 ทำให้ Toggle จาก 0 เป็น 1</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="exercise">
+          <p class="q-text"><b>ข้อ 2</b> · JK flip-flop <b>ขอบขาลง</b> เริ่มต้น Q = 0</p>
+          <div class="wave-scroll"><svg data-exercise="2" role="img" aria-label="แบบฝึกข้อ 2 สัญญาณ Clock J K"></svg></div>
+          <div class="actions"><button class="btn primary" type="button" data-reveal="2">ดูเฉลย</button></div>
+          <div class="answer callout ok" data-answer="2" hidden>
+            <b>เฉลยข้อ 2</b>
+            ↓1: JK = 10 จึง Set ได้ 1 · ↓2: 11 จึง Toggle ได้ 0 · ↓3: 00 จึง Hold ได้ 0 · ↓4: 11 จึง Toggle ได้ 1 · ↓5: 01 จึง Reset ได้ 0 · ↓6: 11 จึง Toggle ได้ 1
+          </div>
+        </div>
+      </section>
+
+      <!-- 9 -->
+      <section id="recap">
+        <h2><span class="num">9</span>สรุปก่อนสอบ</h2>
+        <div class="formula">Qnext = JQ′ + K′Q<small>JK: 00 Hold · 01 Reset · 10 Set · 11 Toggle</small></div>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>Q → Qnext</th><th>J</th><th>K</th></tr></thead>
+            <tbody>
+              <tr><td>0 → 0</td><td>0</td><td>×</td></tr>
+              <tr><td>0 → 1</td><td>1</td><td>×</td></tr>
+              <tr><td>1 → 0</td><td>×</td><td>1</td></tr>
+              <tr><td>1 → 1</td><td>×</td><td>0</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn">
+          <b>จุดที่พลาดบ่อย</b>
+          <ul style="margin: 6px 0 0;">
+            <li>ตอบ JK = 11 ว่าห้ามใช้เหมือน SR (ที่ถูกคือ Toggle)</li>
+            <li>Toggle ต้องกลับค่าจาก <b>Q ก่อนขอบ</b> ไม่ใช่ค่าเริ่มต้นของโจทย์</li>
+            <li>สลับตำแหน่ง × ใน excitation table (Q = 0 ได้ K = ×, Q = 1 ได้ J = ×)</li>
+            <li>ดูชนิดขอบจากสัญลักษณ์: สามเหลี่ยมคือขอบขาขึ้น ส่วนวงกลมกับสามเหลี่ยมคือขอบขาลง</li>
+          </ul>
+        </div>
+        <nav class="pager" aria-label="หัวข้อก่อนหน้าและถัดไป">
+          <a href="d-flipflop.html"><small>← ก่อนหน้า</small>D Latch & D Flip-Flop</a>
+          <a class="next" href="t-flipflop.html"><small>ถัดไป →</small>T Flip-Flop</a>
+        </nav>
+      </section>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap"><a href="../index.html">← กลับหน้าแรก</a> · CPE 2423 ครึ่งหลัง</div>
+  </footer>
+
+  <script src="../assets/logic-kit.js"></script>
+  <script>
+    (function () {
+      "use strict";
+      const { NOT, simulate, pulses, isEdge, byQ, twoState, ffSymbol, exercises, ffSim, tocSpy } = LK;
+
+      document.getElementById("symbols").innerHTML =
+        ffSymbol({ left: ["J", { name: "Ck", clk: "rise" }, "K"], cap: "ขอบขาขึ้น" }) +
+        ffSymbol({ left: ["J", { name: "Ck", clk: "fall" }, "K"], cap: "ขอบขาลง" });
+
+      twoState(document.getElementById("fsm"), { up: "JK=10, 11", down: "JK=01, 11", loop0: "JK=00, 01", loop1: "JK=00, 10" });
+
+      const jk = (i, q) => (i.J && i.K ? NOT(q) : i.J ? 1 : i.K ? 0 : q);
+      const jkEdge = (edge, clk) => (p, i, s) => (isEdge(p, i, clk, edge) ? { Q: jk(i, s.Q) } : s);
+      const ACTION = ["Hold", "Reset", "Set", "Toggle"];
+
+      ffSim(document.getElementById("simulator"), {
+        jk: {
+          tab: "JK ขอบขาขึ้น",
+          symbol: ffSymbol({ left: ["J", { name: "Clk", clk: "rise" }, "K"], cap: "JK flip-flop" }),
+          inputs: [["Clk", "Clk"], ["J", "J"], ["K", "K"]],
+          start: { Clk: 0, J: 0, K: 0 },
+          init: { Q: 0 },
+          step: jkEdge("rise", "Clk"),
+          pulse: "Clk",
+          head: ["Clk", "J", "K", "Q", "Qnext", ""],
+          rows: [
+            ["↑", "0", "0", "0", "0", "Hold"], ["↑", "0", "0", "1", "1", "Hold"],
+            ["↑", "0", "1", "0", "0", "Reset"], ["↑", "0", "1", "1", "0", "Reset"],
+            ["↑", "1", "0", "0", "1", "Set"], ["↑", "1", "0", "1", "1", "Set"],
+            ["↑", "1", "1", "0", "1", "Toggle"], ["↑", "1", "1", "1", "0", "Toggle"],
+            ["0, 1, ↓", "×", "×", "0", "0", "ไม่ใช่ขอบ"], ["0, 1, ↓", "×", "×", "1", "1", "ไม่ใช่ขอบ"],
+          ],
+          row: (p, i, s, b) => (isEdge(p, i, "Clk", "rise") ? byQ(i.J * 4 + i.K * 2, b.Q) : byQ(8, b.Q)),
+          describe: (p, i, s) =>
+            isEdge(p, i, "Clk", "rise")
+              ? [`ขอบขาขึ้น ↑: JK = ${i.J}${i.K} จึง ${ACTION[i.J * 2 + i.K]} ได้ Q = ${s.Q}`, "set"]
+              : [`ไม่ใช่ขอบขาขึ้น: Q คงเดิม = ${s.Q} (ตั้ง J, K ไว้ก่อนแล้วค่อยส่ง clock)`, ""],
+        },
+      });
+
+      exercises({
+        1: {
+          // Slide 21 on a grid of 1/8 clock period; rising edges at 6, 14, 22.
+          rows: simulate({ Clock: pulses(26, [[0, 2], [6, 10], [14, 18], [22, 26]]), J: pulses(26, [[0, 8], [16, 26]]), K: pulses(26, [[8, 26]]) }, jkEdge("rise", "Clock"), { Q: 0 }),
+          signals: [{ key: "Clock", name: "Clock" }, { key: "J", name: "J" }, { key: "K", name: "K" }, { key: "Q", name: "Q", out: true }],
+          hide: ["Q"],
+          opts: { ticks: false, marks: [6, 14, 22].map((at, k) => ({ at, text: `t${k + 1}` })) },
+          minStep: 14,
+        },
+        2: {
+          // Falling edges at 3, 7, …, 23; J, K only change on multiples of 4.
+          rows: simulate({ Clock: pulses(24, [[1, 3], [5, 7], [9, 11], [13, 15], [17, 19], [21, 23]]), J: pulses(24, [[0, 8], [12, 16], [20, 24]]), K: pulses(24, [[4, 8], [12, 24]]) }, jkEdge("fall", "Clock"), { Q: 0 }),
+          signals: [{ key: "Clock", name: "Clock" }, { key: "J", name: "J" }, { key: "K", name: "K" }, { key: "Q", name: "Q", out: true }],
+          hide: ["Q"],
+          opts: { ticks: false, marks: [3, 7, 11, 15, 19, 23].map((at, k) => ({ at, text: `↓${k + 1}` })) },
+          minStep: 14,
+        },
+      });
+
+      tocSpy(document.querySelector(".toc"));
+    })();
+  </script>
+</body>
+</html>

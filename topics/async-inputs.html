@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="สรุป Asynchronous Inputs (Preset / Clear) ตามสไลด์ 06: PreN, ClrN แบบ active-low, ลำดับความสำคัญเหนือ clock, วงจรระดับเกต และแบบฝึก timing diagram ของ D และ JK flip-flop">
+  <title>Asynchronous Inputs · CPE 2423</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <nav class="topbar">
+    <div class="wrap">
+      <a href="../index.html">← CPE 2423 ครึ่งหลัง</a>
+      <span class="crumb">05 · Asynchronous Inputs</span>
+    </div>
+  </nav>
+
+  <header class="page-head wrap">
+    <p class="eyebrow">หัวข้อ 05 · Latches and Flip-Flops</p>
+    <h1>Asynchronous Inputs (Preset / Clear)</h1>
+    <p class="lead">ขา <b>PreN</b> (Preset) และ <b>ClrN</b> (Clear) บังคับ Q เป็น 1 หรือ 0 ได้ <b>ทันทีโดยไม่รอ clock</b> ใช้ตั้งค่าเริ่มต้นหรือ reset ทั้งระบบ</p>
+    <p class="source">อ้างอิง: สไลด์ <i>06 Introduction to Latches and Flip-Flops</i> หน้า 28–30</p>
+  </header>
+
+  <div class="wrap layout">
+    <details class="toc" open>
+      <summary>สารบัญ</summary>
+      <ol>
+        <li><a href="#overview">Synchronous vs Asynchronous</a></li>
+        <li><a href="#table">ตาราง D-FF + PreN, ClrN</a></li>
+        <li><a href="#gate">วงจรระดับเกต</a></li>
+        <li><a href="#sim">ลองกดวงจร</a></li>
+        <li><a href="#practice">แบบฝึก timing diagram</a></li>
+        <li><a href="#recap">สรุปก่อนสอบ</a></li>
+      </ol>
+    </details>
+
+    <main class="content">
+      <!-- 1 -->
+      <section id="overview">
+        <h2><span class="num">1</span>Synchronous vs Asynchronous</h2>
+        <div class="two-col">
+          <div class="card">
+            <p><b>Synchronous inputs</b></p>
+            <p>D, J, K, T, S, R จะมีผล <b>เฉพาะที่ขอบ clock</b> เท่านั้น</p>
+          </div>
+          <div class="card">
+            <p><b>Asynchronous inputs</b></p>
+            <p>PreN, ClrN (หรือ Set′, Clear′) มีผล <b>ทันที</b> ไม่ต้องรอ clock และ <b>มีสิทธิ์เหนือกว่า</b> input แบบ synchronous</p>
+          </div>
+        </div>
+        <div class="keypoints">
+          <div class="kp"><div class="k">PreN = 0</div><div class="v">Q = 1 ทันที</div><p>Preset หรือ Set</p></div>
+          <div class="kp"><div class="k">ClrN = 0</div><div class="v">Q = 0 ทันที</div><p>Clear หรือ Reset</p></div>
+          <div class="kp"><div class="k">ทั้งคู่ = 1</div><div class="v">ทำงานปกติ</div><p>ปล่อยให้ clock กับ D/JK คุมต่อ</p></div>
+          <div class="kp"><div class="k">ทั้งคู่ = 0</div><div class="v">ห้ามใช้</div><p>ชิปจริงให้ Q = Q′ = 1 และไม่คงที่เมื่อปล่อย</p></div>
+        </div>
+        <div class="callout tip">
+          <b>ตัว N และวงกลมแปลว่า active-low</b>
+          PreN และ ClrN ลงท้ายด้วย N (Negative) และในสัญลักษณ์มีวงกลมที่ขา แปลว่า <b>ใส่ 0 เพื่อสั่งงาน</b> ตอนใช้งานปกติต้องตั้งไว้ที่ 1
+        </div>
+
+        <h3>Synchronous clear เทียบกับ asynchronous clear <span class="ref">เสริม</span></h3>
+        <p>clear (reset) ทำได้ 2 แบบ ต่างกันที่ "รอ clock หรือไม่"</p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th></th><th>Asynchronous clear (ClrN)</th><th>Synchronous clear (SCLR)</th></tr></thead>
+            <tbody>
+              <tr><td class="txt">ต่อที่ไหน</td><td class="txt">เข้า latch ภายใน flip-flop โดยตรง</td><td class="txt">ผ่านเกตหน้าขา D: D<sub>FF</sub> = D · SCLR′</td></tr>
+              <tr><td class="txt">Q = 0 เมื่อ</td><td class="txt"><b>ทันที</b> ที่ ClrN = 0</td><td class="txt">ที่ <b>ขอบ clock ถัดไป</b> ขณะ SCLR = 1</td></tr>
+              <tr><td class="txt">พัลส์สั้นระหว่างขอบ</td><td class="txt">มีผล</td><td class="txt">ไม่มีผล</td></tr>
+              <tr><td class="txt">ใช้เมื่อ</td><td class="txt">reset ตอนเปิดเครื่องหรือฉุกเฉิน</td><td class="txt">reset ตามจังหวะเดียวกับวงจรอื่น</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top: 10px;">ลองเทียบทั้งสองแบบใน <a href="../exam.html#timing">แนวข้อสอบ T5</a></p>
+      </section>
+
+      <!-- 2 -->
+      <section id="table">
+        <h2><span class="num">2</span>D flip-flop with Clear and Preset <span class="ref">Figure 11-25 สไลด์ 28</span></h2>
+        <div class="two-col">
+          <figure class="figure" style="margin: 0;">
+            <div class="sym-grid" style="grid-template-columns: minmax(0, 200px); justify-content: center;" id="symbol"></div>
+            <figcaption>วงกลมที่ PreN และ ClrN = active-low</figcaption>
+          </figure>
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th>Ck</th><th>D</th><th>PreN</th><th>ClrN</th><th>Q</th><th>Q⁺</th></tr></thead>
+              <tbody>
+                <tr class="bad"><td>×</td><td>×</td><td>0</td><td>0</td><td>×</td><td class="txt">(not allowed)</td></tr>
+                <tr><td>×</td><td>×</td><td>0</td><td>1</td><td>×</td><td>1</td></tr>
+                <tr><td>×</td><td>×</td><td>1</td><td>0</td><td>×</td><td>0</td></tr>
+                <tr><td>↑</td><td>0</td><td>1</td><td>1</td><td>×</td><td>0</td></tr>
+                <tr><td>↑</td><td>1</td><td>1</td><td>1</td><td>×</td><td>1</td></tr>
+                <tr><td>0, 1, ↓</td><td>×</td><td>1</td><td>1</td><td>0</td><td>0 (no change)</td></tr>
+                <tr><td>0, 1, ↓</td><td>×</td><td>1</td><td>1</td><td>1</td><td>1 (no change)</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="callout tip">
+          <b>อ่านตารางจากบนลงล่าง = ลำดับความสำคัญ</b>
+          เช็ก PreN, ClrN ก่อนเสมอ ถ้าตัวใดเป็น 0 ให้ตอบตามนั้นเลยไม่ต้องดู Ck กับ D ถ้าเป็น 1 ทั้งคู่จึงค่อยดูขอบ clock แบบ D flip-flop ปกติ
+        </div>
+        <div class="callout warn">
+          <b>ทำไม PreN = ClrN = 0 ถึงห้ามใช้</b> <span class="ref" style="margin-left:0">ตรวจทานจาก datasheet 74LS74</span>
+          ระหว่างที่เป็น 0 ทั้งคู่ ชิปจะให้ <b>Q = Q′ = 1</b> ซึ่งผิดนิยาม (เหมือนสถานะห้ามใช้ของ NAND latch) และ datasheet ระบุว่าเป็นสภาวะ <i>nonstable</i>: ถ้าปล่อยทั้งสองกลับเป็น 1 พร้อมกัน จะบอกไม่ได้ว่า Q จะเป็นอะไร
+        </div>
+      </section>
+
+      <!-- 3 -->
+      <section id="gate">
+        <h2><span class="num">3</span>วงจรระดับเกต <span class="ref">สไลด์ 28 (a)</span></h2>
+        <p>เอา D latch with Enable มาเพิ่ม input ตัวที่ 3 ให้ NAND ทั้งสองตัวของ latch</p>
+        <figure class="figure wide">
+          <svg data-schematic="gated" role="img" aria-label="Gated D latch ที่ Set prime เข้า NAND ตัวบนของ latch และ Clear prime เข้า NAND ตัวล่าง"></svg>
+          <figcaption>Set′ เข้า NAND ที่ให้ Q · Clear′ เข้า NAND ที่ให้ Q′ (ทั้งสองไม่ผ่านเกตของ E)</figcaption>
+        </figure>
+        <ul>
+          <li><b>Set′ = 0</b>: NAND ตัวบนได้ input เป็น 0 จึงได้ Q = 1 ทันที ไม่ว่า E, D จะเป็นอะไร</li>
+          <li><b>Clear′ = 0</b>: NAND ตัวล่างได้ Q′ = 1 จึงได้ Q = 0 ทันที</li>
+          <li>เพราะต่อตรงเข้า latch โดยไม่ผ่านเกตของ E จึงเป็น <b>asynchronous</b></li>
+        </ul>
+        <div class="callout tip">
+          <b>หมายเหตุ</b> <span class="ref" style="margin-left:0">ตรวจทานเพิ่ม</span>
+          รูปในสไลด์ 28 (a) เป็น <b>latch</b> ที่มี Set′/Clear′ ถ้าเป็น flip-flop แบบ master–slave ต้องต่อ Set′/Clear′ เข้า <b>ทั้ง master และ slave</b> ไม่เช่นนั้นพอ clock เปลี่ยน slave อาจคัดลอกค่าเก่าจาก master มาทับ
+        </div>
+      </section>
+
+      <!-- 4 -->
+      <section id="sim">
+        <h2><span class="num">4</span>ลองกดวงจร</h2>
+        <p>D flip-flop ขอบขาขึ้นที่มี PreN, ClrN ลองตั้ง ClrN = 0 แล้วส่ง clock พร้อม D = 1 จะเห็นว่า Q ยังเป็น 0 เพราะ Clear มีสิทธิ์เหนือกว่า</p>
+        <div id="simulator"></div>
+      </section>
+
+      <!-- 5 -->
+      <section id="practice">
+        <h2><span class="num">5</span>แบบฝึก timing diagram</h2>
+        <div class="exercise">
+          <p class="q-text"><b>ข้อ 1</b> · D flip-flop ขอบขาขึ้น พร้อม ClrN, PreN แบบ asynchronous <span class="ref">Figure 11-26 สไลด์ 29</span></p>
+          <div class="wave-scroll"><svg data-exercise="1" role="img" aria-label="แบบฝึกข้อ 1 สัญญาณ CLK D ClrN PreN จากสไลด์ 29"></svg></div>
+          <div class="actions"><button class="btn primary" type="button" data-reveal="1">ดูเฉลย</button></div>
+          <div class="answer callout ok" data-answer="1" hidden>
+            <b>เฉลยข้อ 1</b>
+            <ul style="margin: 6px 0 0;">
+              <li>ต้น ~ t1: ClrN = 0 จึงได้ Q = 0 (ที่ t1 ถึง D = 1 ก็ไม่มีผล เพราะ Clear ยังทำงานอยู่)</li>
+              <li>t2: ClrN = PreN = 1 และ D = 1 จึงได้ Q = 1</li>
+              <li>t3: D = 0 จึงได้ Q = 0</li>
+              <li>ระหว่าง t3–t4: PreN = 0 จึงได้ Q = 1 <b>ทันที</b> ไม่รอขอบ</li>
+              <li>t4: D = 0 จึงได้ Q = 0</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="exercise">
+          <p class="q-text"><b>ข้อ 2</b> · JK flip-flop <b>ขอบขาลง</b> พร้อม ClrN, PreN เริ่มต้น Q = 0 <span class="ref">สไลด์ 30</span></p>
+          <div class="wave-scroll"><svg data-exercise="2" role="img" aria-label="แบบฝึกข้อ 2 สัญญาณ ClrN PreN J K Clock จากสไลด์ 30"></svg></div>
+          <div class="actions"><button class="btn primary" type="button" data-reveal="2">ดูเฉลย</button></div>
+          <div class="answer callout ok" data-answer="2" hidden>
+            <b>เฉลยข้อ 2</b>
+            <ul style="margin: 6px 0 0;">
+              <li>PreN = 0 ตั้งแต่ช่วงต้น จึงได้ Q = 1 ทันที (↓1 อยู่ในช่วง Preset จึงไม่มีผล)</li>
+              <li>↓2: JK = 01 จึง Reset ได้ Q = 0</li>
+              <li>↓3: JK = 10 จึง Set ได้ Q = 1</li>
+              <li>ClrN = 0 จึงได้ Q = 0 ทันที (↓4 อยู่ในช่วง Clear จึงไม่มีผล)</li>
+              <li>↓5: JK = 11 จึง Toggle จาก 0 เป็น 1</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6 -->
+      <section id="recap">
+        <h2><span class="num">6</span>สรุปก่อนสอบ</h2>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>PreN</th><th>ClrN</th><th>ผล</th></tr></thead>
+            <tbody>
+              <tr class="bad"><td>0</td><td>0</td><td class="txt">ห้ามใช้</td></tr>
+              <tr><td>0</td><td>1</td><td class="txt">Q = 1 ทันที (ไม่สน clock)</td></tr>
+              <tr><td>1</td><td>0</td><td class="txt">Q = 0 ทันที (ไม่สน clock)</td></tr>
+              <tr><td>1</td><td>1</td><td class="txt">ทำงานปกติตามขอบ clock</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn">
+          <b>จุดที่พลาดบ่อย</b>
+          <ul style="margin: 6px 0 0;">
+            <li>รอให้ถึงขอบ clock ก่อนค่อยเปลี่ยน Q ตอน PreN/ClrN = 0 (ที่ถูกคือเปลี่ยนทันที)</li>
+            <li>ลืมว่าเป็น active-low: ใส่ 1 คือปิดการทำงาน ส่วน 0 คือสั่งงาน</li>
+            <li>ใช้ D/JK ที่ขอบ clock ทั้งที่ ClrN หรือ PreN ยังเป็น 0 อยู่</li>
+            <li>พอ PreN/ClrN กลับเป็น 1 แล้ว Q <b>ไม่เด้งกลับ</b> แต่ค้างค่าไว้จนถึงขอบ clock ถัดไป</li>
+          </ul>
+        </div>
+        <div class="callout ok">
+          <b>การใช้งานของ latch และ flip-flop</b> <span class="ref" style="margin-left:0">สไลด์ 31–32</span>
+          เก็บข้อมูล (memory), counter, shift register และนาฬิกาดิจิทัล เช่นวงจร reaction timer ในสไลด์ 32 ใช้ D flip-flop + BCD counter + 7-segment
+        </div>
+        <nav class="pager" aria-label="หัวข้อก่อนหน้า">
+          <a href="t-flipflop.html"><small>← ก่อนหน้า</small>T Flip-Flop</a>
+        </nav>
+      </section>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap"><a href="../index.html">← กลับหน้าแรก</a> · CPE 2423 ครึ่งหลัง</div>
+  </footer>
+
+  <script src="../assets/logic-kit.js"></script>
+  <script>
+    (function () {
+      "use strict";
+      const { NOT, schematic, simulate, pulses, isEdge, byQ, ffSymbol, exercises, ffSim, tocSpy } = LK;
+
+      document.getElementById("symbol").innerHTML = ffSymbol({ left: ["D", { name: "Ck", clk: "rise" }], top: "PreN", bottom: "ClrN", cap: "D FF + PreN, ClrN" });
+
+      // Gated D latch with Set′ on the Q gate and Clear′ on the Q′ gate (three-input NANDs).
+      schematic(document.querySelector('[data-schematic="gated"]'), {
+        viewBox: "-50 0 660 200",
+        nets: {
+          D: { d: "M40 40 H166 M70 40 V160 H86", dots: [[70, 40]] },
+          Dn: { d: "M132 160 H166" },
+          E: { d: "M40 100 H130 M130 60 V140 M130 60 H166 M130 140 H166", dots: [[130, 100]] },
+          Sp: { d: "M216 50 H336" },
+          Rp: { d: "M216 150 H336" },
+          Set: { d: "M40 12 H316 V40 H336" },
+          Clr: { d: "M40 188 H316 V160 H336" },
+          Q: { d: "M386 50 H560 M440 50 V85 L300 115 V140 H336", dots: [[440, 50]] },
+          Qn: { d: "M386 150 H560 M440 150 V115 L300 85 V60 H336", dots: [[440, 150]] },
+        },
+        gates: [["not", 80, 140], ["nand", 160, 30], ["nand", 160, 130], ["nand", 330, 30], ["nand", 330, 130]],
+        labels: [["Set′", 34, 17, "end"], ["D", 30, 45, "end"], ["E", 30, 105, "end"], ["Clear′", 34, 193, "end"], ["Q", 568, 55], ["~Q", 568, 155]],
+      });
+
+      // Asynchronous inputs win over the clock; otherwise fall back to the synchronous behaviour.
+      const withAsync = (sync) => (p, i, s) =>
+        !i.PreN && !i.ClrN ? { Q: null } : !i.PreN ? { Q: 1 } : !i.ClrN ? { Q: 0 } : sync(p, i, s);
+      const dRise = withAsync((p, i, s) => (isEdge(p, i, "CLK", "rise") ? { Q: i.D } : s));
+      const jkFall = withAsync((p, i, s) =>
+        isEdge(p, i, "Clock", "fall") ? { Q: i.J && i.K ? NOT(s.Q) : i.J ? 1 : i.K ? 0 : s.Q } : s);
+
+      ffSim(document.getElementById("simulator"), {
+        d: {
+          tab: "D FF + PreN, ClrN",
+          symbol: ffSymbol({ left: ["D", { name: "CLK", clk: "rise" }], top: "PreN", bottom: "ClrN", cap: "D flip-flop" }),
+          inputs: [["CLK", "CLK"], ["D", "D"], ["PreN", "PreN"], ["ClrN", "ClrN"]],
+          start: { CLK: 0, D: 0, PreN: 1, ClrN: 1 },
+          init: { Q: 0 },
+          step: dRise,
+          pulse: "CLK",
+          head: ["Ck", "D", "PreN", "ClrN", "Q", "Q⁺"],
+          rows: [["×", "×", "0", "0", "×", "not allowed"], ["×", "×", "0", "1", "×", "1"], ["×", "×", "1", "0", "×", "0"], ["↑", "0", "1", "1", "×", "0"], ["↑", "1", "1", "1", "×", "1"], ["0, 1, ↓", "×", "1", "1", "0", "0"], ["0, 1, ↓", "×", "1", "1", "1", "1"]],
+          row: (p, i, s, b) => (!i.PreN && !i.ClrN ? 0 : !i.PreN ? 1 : !i.ClrN ? 2 : isEdge(p, i, "CLK", "rise") ? 3 + i.D : byQ(5, b.Q)),
+          describe: (p, i, s) =>
+            !i.PreN && !i.ClrN ? ["ห้ามใช้: PreN และ ClrN เป็น 0 พร้อมกัน (ชิปจริงให้ Q = Q′ = 1 และไม่แน่นอนเมื่อปล่อย จึงแสดงเป็น ?)", "bad"]
+            : !i.PreN ? ["PreN = 0 (Preset): Q = 1 ทันทีโดยไม่รอ clock", "set"]
+            : !i.ClrN ? ["ClrN = 0 (Clear): Q = 0 ทันทีโดยไม่รอ clock", "set"]
+            : isEdge(p, i, "CLK", "rise") ? [`ขอบขาขึ้น ↑: Q = D = ${s.Q}`, "set"]
+            : [`PreN = ClrN = 1 แต่ไม่ใช่ขอบขาขึ้น: Q คงเดิม = ${s.Q === null ? "?" : s.Q}`, ""],
+        },
+      });
+
+      exercises({
+        1: {
+          // Figure 11-26 on a grid of 1/8 clock period; rising edges at 4, 12, 20, 28.
+          rows: simulate({
+            CLK: pulses(36, [[4, 8], [12, 16], [20, 24], [28, 32]]),
+            D: pulses(36, [[0, 16]]),
+            ClrN: pulses(36, [[7, 36]]),
+            PreN: pulses(36, [[0, 22], [26, 36]]),
+          }, dRise, { Q: 0 }),
+          signals: [{ key: "CLK", name: "CLK" }, { key: "D", name: "D" }, { key: "ClrN", name: "ClrN" }, { key: "PreN", name: "PreN" }, { key: "Q", name: "Q", out: true }],
+          hide: ["Q"],
+          opts: { ticks: false, marks: [4, 12, 20, 28].map((at, k) => ({ at, text: `t${k + 1}` })) },
+          minStep: 12,
+        },
+        2: {
+          // Slide 30 on a grid of 1/8 clock period; falling edges at 8, 16, 24, 32, 40.
+          rows: simulate({
+            ClrN: pulses(44, [[0, 26], [34, 44]]),
+            PreN: pulses(44, [[0, 2], [10, 44]]),
+            J: pulses(44, [[18, 44]]),
+            K: pulses(44, [[0, 18], [34, 44]]),
+            Clock: pulses(44, [[4, 8], [12, 16], [20, 24], [28, 32], [36, 40]]),
+          }, jkFall, { Q: 0 }),
+          signals: [{ key: "ClrN", name: "ClrN" }, { key: "PreN", name: "PreN" }, { key: "J", name: "J" }, { key: "K", name: "K" }, { key: "Clock", name: "Clock" }, { key: "Q", name: "Q", out: true }],
+          hide: ["Q"],
+          opts: { ticks: false, marks: [8, 16, 24, 32, 40].map((at, k) => ({ at, text: `↓${k + 1}` })) },
+          minStep: 10,
+        },
+      });
+
+      tocSpy(document.querySelector(".toc"));
+    })();
+  </script>
+</body>
+</html>
