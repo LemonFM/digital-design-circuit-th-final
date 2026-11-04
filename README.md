@@ -11,6 +11,7 @@
 3. [JK Flip-Flop](topics/jk-flipflop.html)
 4. [T Flip-Flop](topics/t-flipflop.html)
 5. [Asynchronous Inputs (Preset / Clear)](topics/async-inputs.html)
+6. [Register & Shift Register](topics/shift-registers.html)
 
 ## แท็บ
 

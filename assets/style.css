@@ -186,7 +186,7 @@ a.topic .topic-no { color: var(--accent); }
 }
 .type-tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
 .type-tabs small { display: block; font-size: 13px; font-weight: 400; color: var(--ink-3); }
-.topic-tabs { display: flex; gap: 4px; margin-top: 14px; border-bottom: 1px solid var(--line-2); overflow-x: auto; scrollbar-width: none; }
+.topic-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 14px; border-bottom: 1px solid var(--line-2); }
 .topic-tabs::-webkit-scrollbar { display: none; }
 .topic-tabs button {
   font: inherit; font-size: 15px; font-weight: 500; cursor: pointer; white-space: nowrap;
@@ -223,6 +223,7 @@ a.topic .topic-no { color: var(--accent); }
 .tt.fill th { white-space: nowrap; }
 .tt.fill td.ok select { border-color: var(--ok); background: var(--ok-soft); }
 .tt.fill td.bad select { border-color: var(--x); background: var(--x-soft); }
+.fill-sub { font-weight: 600; margin: 14px 0 6px; }
 .fill-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
 .fill-result { font-size: 15px; color: var(--ink-2); }
 
@@ -260,6 +261,7 @@ a.topic .topic-no { color: var(--accent); }
 .toc a { display: block; padding: 5px 0 5px 14px; margin-left: -1px; color: var(--ink-2); text-decoration: none; border-left: 2px solid transparent; }
 .toc a:hover { color: var(--ink); }
 .toc a.active { color: var(--accent); border-left-color: var(--accent); font-weight: 500; }
+.exam-hint { display: inline-block; margin-left: 6px; padding: 0 8px; border-radius: 999px; background: var(--hi); color: #fff; font-size: 12px; font-weight: 600; line-height: 19px; vertical-align: 1px; white-space: nowrap; }
 
 .content > section { padding: 8px 0 40px; }
 .content > section + section { border-top: 1px solid var(--line); padding-top: 40px; }
@@ -282,6 +284,7 @@ a.topic .topic-no { color: var(--accent); }
 .figure svg { display: block; width: 100%; height: auto; max-width: 560px; margin-inline: auto; }
 .sym-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; max-width: 680px; margin-inline: auto; }
 @media (max-width: 560px) { .sym-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 4px; } }
+.figure.reg-fig svg { max-width: none; }
 .figure figcaption, .figure .caption { font-size: 14px; color: var(--ink-3); text-align: center; margin-top: 8px; }
 
 .two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; align-items: start; }
@@ -368,6 +371,9 @@ a.topic .topic-no { color: var(--accent); }
 .blk text { font-family: var(--mono); font-size: 14px; fill: var(--ink); }
 .blk text.cap { font-family: var(--font); font-size: 13px; fill: var(--ink-2); }
 .sym text.cap { font-family: var(--font); font-size: 13px; fill: var(--ink-2); }
+.sym circle.jn { fill: var(--ink); stroke: none; }
+.sym path.fb { stroke-dasharray: 6 4; }
+.schem.sym .dot { stroke: none; }
 
 /* ---------- Timing diagram SVG ---------- */
 
@@ -426,6 +432,7 @@ a.topic .topic-no { color: var(--accent); }
 .sw[aria-pressed="true"] .sw-val { background: var(--hi); color: #fff; }
 
 .outs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.outs.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .out { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; display: flex; align-items: baseline; justify-content: space-between; }
 .out span { font-family: var(--mono); font-weight: 600; font-size: 18px; }
 .out b { font-family: var(--mono); font-size: 30px; color: var(--lo); }
@@ -512,6 +519,7 @@ a.topic .topic-no { color: var(--accent); }
   /* Wide circuits keep a readable size and scroll sideways instead of shrinking */
   .figure.wide { overflow-x: auto; }
   .figure.wide svg { min-width: 520px; }
+  .figure.reg-fig svg { min-width: 760px; }
   .formula { padding: 18px 8px; }
 
   /* Diagrams scale down with the viewBox, so enlarge their text to stay readable */
@@ -555,6 +563,7 @@ a.topic .topic-no { color: var(--accent); }
 .review > summary::after { content: "▾"; margin-left: auto; color: var(--ink-3); transition: transform 0.15s; }
 .review[open] > summary::after { transform: rotate(180deg); }
 .review-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; padding: 0 16px 16px; }
+.review-grid.wide { grid-template-columns: minmax(0, 1fr); }
 .review-grid figure { margin: 0; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
 .review-grid svg { display: block; width: 100%; height: auto; }
 .review-grid figcaption { margin-top: 6px; font-size: 14px; color: var(--ink-2); text-align: center; }
@@ -582,7 +591,7 @@ a.topic .topic-no { color: var(--accent); }
   .p-answers { break-before: page; }
   .p-topic { font-size: 13.5pt; color: var(--accent); margin: 16px 0 6px; break-after: avoid; }
   .p-group { font-size: 11.5pt; color: #444; margin: 12px 0 6px; break-after: avoid; }
-  .p-item { break-inside: avoid; margin: 0 0 14px; }
+  .p-item { break-inside: avoid; margin: 0 0 14px; padding-top: 6px; }
   .p-q { margin: 0 0 4px; }
   .p-opts { list-style: none; margin: 0 0 0 1.4em; padding: 0; columns: 2; column-gap: 24px; }
   .p-tf { margin: 0 0 0 1.4em; }
@@ -590,6 +599,9 @@ a.topic .topic-no { color: var(--accent); }
   .p-note, .p-answer { margin: 6px 0 0; font-size: 10.5pt; }
   .p-notes { margin: 4px 0 0; padding-left: 1.4em; font-size: 10pt; }
   .p-fig { display: block; max-width: 420px; height: auto; margin-top: 6px; }
+  .p-circuit { margin: 6px 0; }
+  .p-sub { margin: 8px 0 4px; font-size: 10.5pt; font-weight: 600; }
+  .p-circuit svg { display: block; width: 100%; height: auto; }
   #print-root .tt { width: auto; font-size: 10pt; background: #fff; }
   #print-root .tt th, #print-root .tt td { padding: 3px 9px; }
   #print-root .p-key { width: 100%; }

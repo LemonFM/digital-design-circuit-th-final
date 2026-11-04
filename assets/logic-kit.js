@@ -267,6 +267,98 @@
     return `<svg class="sym" viewBox="0 0 160 ${capY + 8}" role="img" aria-label="สัญลักษณ์ ${cap || ""}">${s}</svg>`;
   }
 
+  // Fully wired 4-bit register as an <svg> string: D flip-flops Q3…Q0, each fed by a 4-to-1 MUX. `wiring` gives what each
+  // channel does, one letter per channel 0–3: H hold (own Q), L load (D), S shift right (bit to the left or Serial_in),
+  // R rotate right (bit to the left or Q0). Every signal is a real wire with an arrow at its input end. Wires carry their
+  // net for setLevels; `live` also adds a [data-mux] line per MUX for the caller to aim at the selected channel.
+  function shiftRegister(wiring = "HLSR", { live = false } = {}) {
+    const INK = 'stroke="#16191d" stroke-width="2"';
+    const W = (net, d) => `<path class="wire" data-net="${net}" d="${d}"/>`;
+    const DOT = (net, x, y) => `<circle class="dot" data-net="${net}" cx="${x}" cy="${y}" r="3.5"/>`;
+    const TX = (str, x, y, anchor = "start") => `<text x="${x}" y="${y}" text-anchor="${anchor}">${str}</text>`;
+    const ARROW = { r: (x, y) => `M${x} ${y} l-9 -5 v10 z`, u: (x, y) => `M${x} ${y} l-5 9 h10 z` };
+    const TIP = (net, dir, x, y) => `<path class="dot" data-net="${net}" d="${ARROW[dir](x, y)}"/>`;
+    const xs = [150, 375, 600, 825], last = xs[3], busS1 = 275, busS0 = 290, busClk = 305, wrap = 330;
+    const chY = (op) => 125 + 30 * wiring.indexOf(op), yH = chY("H"), yL = chY("L"), yS = chY("S"), yR = chY("R");
+    let s = W("Q0", `M${last + 185} 170 V${wrap} H${xs[0] - 50} V${yR} H${xs[0]}`) + TIP("Q0", "r", xs[0], yR);
+    s += W("SI", `M${xs[0] - 90} ${yS} H${xs[0]}`) + TIP("SI", "r", xs[0], yS) + TX("Serial_in", xs[0] - 94, yS + 5, "end");
+    s += DOT("Q0", last + 185, 170) + W("Q0", `M${last + 185} 170 H${last + 225}`) + TIP("Q0", "r", last + 225, 170) + TX("Serial_out", last + 192, 160);
+    xs.forEach((x, i) => {
+      const b = 3 - i, left = x - 40, q = `Q${b}`, d = `D${b}`, prev = `Q${b + 1}`, m = `M${i}`;
+      s += W("CLK", `M${x + 62} ${busClk} V215 H${x + 80}`) + W("S1", `M${x + 14} ${busS1} V235`) + W("S0", `M${x + 30} ${busS0} V229`);
+      s += `<path d="M${x} 100 L${x + 45} 118 V222 L${x} 240 Z" fill="#fff" ${INK}/>`;
+      if (live) s += `<path class="wire" data-net="${m}" data-mux="${x}"/>`;
+      [0, 1, 2, 3].forEach((k) => (s += TX(k, x + 10, 130 + k * 30)));
+      s += TIP("S1", "u", x + 14, 235) + TIP("S0", "u", x + 30, 229);
+      s += W(q, `M${x + 165} 170 H${x + 185} V30`) + W(m, `M${x + 45} 170 H${x + 80}`);
+      s += `<rect x="${x + 80}" y="145" width="85" height="100" rx="4" fill="#fff" ${INK}/>` + TX("D", x + 88, 175) + TX(q, x + 157, 175, "end");
+      s += `<path d="M${x + 80} 207 L${x + 92} 215 L${x + 80} 223" fill="none" ${INK}/>` + TX("Ck", x + 96, 220);
+      s += TIP(m, "r", x + 80, 170) + TIP("CLK", "r", x + 80, 215) + TIP(q, "u", x + 185, 30) + TX(q, x + 178, 20, "middle");
+      s += DOT(q, x + 185, 70) + W(q, `M${x + 185} 70 H${x - 12} V${yH} H${x}`) + TIP(q, "r", x, yH);
+      s += W(d, `M${x - 26} 28 V${yL} H${x}`) + TIP(d, "r", x, yL) + TX(d, x - 18, 20, "middle");
+      if (i) {
+        s += W(prev, `M${left} 170 V${yS} H${x}`) + W(prev, `M${left} 170 V${yR} H${x}`) + DOT(prev, left, 170) + TIP(prev, "r", x, yS) + TIP(prev, "r", x, yR);
+        // Junctions: anything above the Q tap branches off the Q line; below it, only the nearer of two branches.
+        [yS, yR].filter((y) => y < 170).forEach((y) => (s += DOT(prev, left, y)));
+        if (yS > 170 && yR > 170) s += DOT(prev, left, Math.min(yS, yR));
+      }
+      if (i < 3) s += DOT("S1", x + 14, busS1) + DOT("S0", x + 30, busS0) + DOT("CLK", x + 62, busClk);
+    });
+    s += W("S1", `M92 ${busS1} H${last + 14}`) + W("S0", `M92 ${busS0} H${last + 30}`) + W("CLK", `M92 ${busClk} H${last + 62}`);
+    s += TX("SHSel₁", 88, busS1 + 5, "end") + TX("SHSel₀", 88, busS0 + 5, "end") + TX("Clock", 88, busClk + 5, "end");
+    return `<svg class="schem" viewBox="-40 0 1160 ${wrap + 14}" role="img" aria-label="วงจร shift register 4 บิต D flip-flop และ MUX 4 ต่อ 1">${s}</svg>`;
+  }
+
+  // Combinational 4-bit shifter/rotator as an <svg> string. Each output has a 4-to-1 MUX (select s1 s0); `ch` gives what each
+  // channel does, one letter per channel 0–3: P pass (own d), R right (bit to the left), L left (bit to the right).
+  // The end bits take the small 2-to-1 MUXes (select s2): left feeds y3 on R, right feeds y0 on L. Each small MUX has a
+  // constant `fill` on one input and the rotated bit on the other; `swap` moves the rotated bit to input 0.
+  function shifterCircuit({ ch = "RPLP", left = { fill: 1 }, right = { fill: 0 } } = {}) {
+    const INK = 'stroke="#16191d" stroke-width="2"';
+    const W = (d) => `<path class="wire" d="${d}"/>`;
+    const DOT = (x, y) => `<circle class="dot" cx="${x}" cy="${y}" r="3.5"/>`;
+    const TX = (str, x, y, anchor = "start") => `<text x="${x}" y="${y}" text-anchor="${anchor}">${str}</text>`;
+    const ARROW = { r: (x, y) => `M${x} ${y} l-9 -5 v10 z`, d: (x, y) => `M${x} ${y} l-5 -9 h10 z` };
+    const TIP = (dir, x, y) => `<path class="dot" d="${ARROW[dir](x, y)}"/>`;
+    const xs = [200, 420, 640, 860], rail = [70, 100, 130, 160], muxTop = 290, feed = 276, busS2 = 258, busS1 = 386, busS0 = 402;
+    const pin = (x, k) => x + [110, 80, 50, 20][k];
+    const lx = 60, rx = 1040, smallTop = 190, smallBot = 232;
+    const leftD0 = left.swap ? lx + 68 : lx + 22, leftFill = left.swap ? lx + 22 : lx + 68;
+    const rightD3 = right.swap ? rx + 68 : rx + 22, rightFill = right.swap ? rx + 22 : rx + 68;
+    let s = "";
+    // Parallel inputs and their rails; d3 runs on to the right MUX, d0 back to the left MUX.
+    s += W(`M170 ${rail[0]} H${rightD3} V${smallTop}`) + TIP("d", rightD3, smallTop);
+    s += W(`M170 ${rail[1]} H${xs[3] + 125}`) + W(`M170 ${rail[2]} H${xs[3] + 125}`);
+    s += W(`M${leftD0} ${smallTop} V${rail[3]} H${xs[3] + 125}`) + TIP("d", leftD0, smallTop);
+    xs.forEach((x, i) => {
+      const b = 3 - i;
+      s += W(`M${x + 65} 28 V${rail[i]}`) + DOT(x + 65, rail[i]) + TX(`d${b}`, x + 65, 20, "middle");
+      [...ch].forEach((op, k) => {
+        const px = pin(x, k), from = op === "P" ? i : op === "R" ? i - 1 : i + 1;
+        if (from >= 0 && from <= 3) s += W(`M${px} ${rail[from]} V${muxTop}`) + DOT(px, rail[from]);
+        else if (from < 0) s += W(`M${lx + 45} ${smallBot} V${feed} H${px} V${muxTop}`);
+        else s += W(`M${rx + 45} ${smallBot} V${feed} H${px} V${muxTop}`);
+        s += TIP("d", px, muxTop);
+      });
+      s += `<path d="M${x} ${muxTop} H${x + 130} L${x + 112} ${muxTop + 60} H${x + 18} Z" fill="#fff" ${INK}/>`;
+      [0, 1, 2, 3].forEach((k) => (s += TX(k, pin(x, k), muxTop + 20, "middle")));
+      s += W(`M${x - 34} ${busS1} V${muxTop + 26} H${x + 8}`) + TIP("r", x + 8, muxTop + 26) + TX("s1", x + 16, muxTop + 40);
+      s += W(`M${x - 16} ${busS0} V${muxTop + 44} H${x + 14}`) + TIP("r", x + 14, muxTop + 44) + TX("s0", x + 34, muxTop + 54);
+      s += W(`M${x + 65} ${muxTop + 60} V436`) + TIP("d", x + 65, 436) + TX(`y${b}`, x + 65, 456, "middle");
+      if (i < 3) s += DOT(x - 34, busS1) + DOT(x - 16, busS0);
+    });
+    // Small MUXes with their fill constants.
+    [[lx, leftFill, left.fill], [rx, rightFill, right.fill]].forEach(([x, px, fill]) => {
+      s += W(`M${px} 128 V${smallTop}`) + TX(fill, px, 120, "middle") + TIP("d", px, smallTop);
+      s += `<path d="M${x} ${smallTop} H${x + 90} L${x + 76} ${smallBot} H${x + 14} Z" fill="#fff" ${INK}/>`;
+      s += TX(1, x + 22, smallTop + 18, "middle") + TX(0, x + 68, smallTop + 18, "middle");
+    });
+    s += W(`M28 ${busS2} H${rx - 26} V211 H${rx + 7}`) + TIP("r", rx + 7, 211) + W(`M${lx - 22} ${busS2} V211 H${lx + 7}`) + TIP("r", lx + 7, 211) + DOT(lx - 22, busS2);
+    s += W(`M28 ${busS1} H${xs[3] - 34}`) + W(`M28 ${busS0} H${xs[3] - 16}`);
+    s += TX("s2", 22, busS2 + 5, "end") + TX("s1", 22, busS1 + 5, "end") + TX("s0", 22, busS0 + 5, "end");
+    return `<svg class="schem" viewBox="-14 0 1170 470" role="img" aria-label="วงจร shifter 4 บิต MUX 4 ต่อ 1 สี่ตัว และ MUX 2 ต่อ 1 สองตัว">${s}</svg>`;
+  }
+
   // ---------- Exercises ----------
 
   // Timing-diagram drills: <svg data-exercise=id>, <button data-reveal=id>, <div data-answer=id hidden>.
@@ -407,6 +499,6 @@
 
   global.LK = {
     NOT, AND, OR, NAND, NOR, settle, label, gate, schematic, setLevels, wave, fitStep, tocSpy,
-    steps, pulses, isEdge, simulate, byQ, twoState, ffSymbol, exercises, ffSim,
+    steps, pulses, isEdge, simulate, byQ, twoState, ffSymbol, shiftRegister, shifterCircuit, exercises, ffSim,
   };
 })(window);

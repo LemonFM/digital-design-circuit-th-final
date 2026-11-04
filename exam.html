@@ -24,7 +24,7 @@
   </div>
 
   <header class="page-head wrap">
-    <p class="eyebrow">บท 06 · Latches and Flip-Flops</p>
+    <p class="eyebrow">บท 06 Latches and Flip-Flops · บท 09 Shift Registers</p>
     <h1>แนวข้อสอบ</h1>
     <p class="lead">เลือก <b>ปรนัย</b> หรือ <b>อัตนัย</b> แล้วเลือกเรื่องที่จะซ้อม ปรนัยจะตรวจทันทีที่ตอบ ส่วนอัตนัยให้ลองทำในกระดาษก่อนแล้วค่อยกดดูเฉลย</p>
     <div class="callout tip" style="max-width: 46em;">
@@ -69,7 +69,7 @@
   <script>
     (function () {
       "use strict";
-      const { NOT, NAND, NOR, settle, simulate, pulses, isEdge, exercises, gate, twoState, wave, schematic, ffSymbol } = LK;
+      const { NOT, NAND, NOR, settle, simulate, pulses, isEdge, exercises, gate, twoState, wave, schematic, ffSymbol, shiftRegister: shselFig, shifterCircuit } = LK;
 
       const TOPICS = [
         ["sr", "SR flip-flop"],
@@ -78,6 +78,7 @@
         ["jd", "JK FF → D FF"],
         ["sync", "Input synchronous"],
         ["gen", "JK / T / ทั่วไป"],
+        ["pipo", "Shift register 4 บิต"],
       ];
       const TOPIC_NAME = Object.fromEntries(TOPICS);
 
@@ -149,6 +150,26 @@
         { t: "gen", q: "Excitation ของ JK: Q 1 → 0 ต้องใช้ J, K เท่าไร", o: ["J = ×, K = 1", "J = 0, K = 1", "J = 1, K = ×", "J = ×, K = 0"], a: 0, e: "ทำได้ทั้ง Reset (01) และ Toggle (11)" },
         { t: "gen", q: "Excitation ของ T: Q 1 → 1 ต้องใช้ T เท่าไร", o: ["0", "1", "×", "Q"], a: 0, e: "ค่าไม่เปลี่ยนจึงได้ T = 0" },
         { t: "gen", q: "Counter แบบ ripple ต่างจาก synchronous counter อย่างไร", o: ["ripple: flip-flop แต่ละตัวใช้ output ของตัวก่อนหน้าเป็น clock", "ripple ใช้ clock ร่วมกันทุกตัว", "synchronous ไม่ใช้ clock", "ไม่ต่างกัน"], a: 0, e: "synchronous counter ใช้ clock ร่วมกันและใช้ logic คุม J, K หรือ T" },
+        { t: "pipo", q: "วงจรสไลด์ 14: SHSel = 0 ที่ขอบ clock register ทำอะไร", o: ["คงค่าเดิม", "Parallel load", "Shift right", "Rotate right"], a: 0, e: "ช่อง 0 ป้อน Q ตัวเองกลับ" },
+        { t: "pipo", q: "วงจรสไลด์ 14: SHSel = 1 ที่ขอบ clock register ทำอะไร", o: ["คงค่าเดิม", "Parallel load", "Shift right", "Rotate right"], a: 1, e: "ช่อง 1 รับ D3–D0" },
+        { t: "pipo", q: "วงจรสไลด์ 14: SHSel = 2 ที่ขอบ clock register ทำอะไร", o: ["คงค่าเดิม", "Parallel load", "Shift right", "Rotate right"], a: 2, e: "ช่อง 2: Q3 รับ Serial_in บิตอื่นรับบิตทางซ้าย" },
+        { t: "pipo", q: "วงจรสไลด์ 14: SHSel = 3 ที่ขอบ clock register ทำอะไร", o: ["คงค่าเดิม", "Parallel load", "Shift right", "Rotate right"], a: 3, e: "ช่อง 3: Q3 รับ Q0 เดิม บิตอื่นรับบิตทางซ้าย" },
+        { t: "pipo", q: "วงจรสไลด์ 14: SHSel = 1, D3–D0 = 1010, Q3–Q0 = 0110 ที่ขอบ clock ได้ Q3–Q0 เท่าไร", o: ["1010", "0110", "0011", "1011"], a: 0, e: "Parallel load รับ D ทั้ง 4 บิต" },
+        { t: "pipo", q: "วงจรสไลด์ 14: SHSel = 2, Serial_in = 1, Q3–Q0 = 0110 ที่ขอบ clock ได้ Q3–Q0 เท่าไร", o: ["1011", "0011", "0110", "1100"], a: 0, e: "Q3 รับ Serial_in = 1 แล้วบิตอื่นเลื่อนขวา: 1, 0, 1, 1" },
+        { t: "pipo", q: "วงจรสไลด์ 14: SHSel = 3, Serial_in = 1, Q3–Q0 = 0110 ที่ขอบ clock ได้ Q3–Q0 เท่าไร", o: ["0011", "1011", "1100", "0110"], a: 0, e: "Rotate ไม่ใช้ Serial_in: Q0 เดิม (0) เข้า Q3" },
+        { t: "pipo", q: "วงจรสไลด์ 14: MUX ของบิต Q2 ช่อง 2 ต่อกับอะไร", o: ["Q3", "Q2", "Q1", "D2"], a: 0, e: "เลื่อนขวาจึงรับจากบิตทางซ้าย" },
+        { t: "pipo", q: "วงจรสไลด์ 14: MUX ของบิต Q3 ช่อง 3 ต่อกับอะไร", o: ["Q0", "Q3", "Serial_in", "D3"], a: 0, e: "Rotate right วน Q0 กลับเข้า Q3" },
+        { t: "pipo", q: "วงจรสไลด์ 14: ช่อง 2 กับช่อง 3 ของ MUX ต่างกันที่บิตไหน", o: ["Q3 บิตเดียว", "Q0 บิตเดียว", "ทุกบิต", "ไม่ต่างกัน"], a: 0, e: "Q2–Q0 รับบิตทางซ้ายเหมือนกัน ต่างแค่ Q3 รับ Serial_in หรือ Q0" },
+        { t: "pipo", q: "ต้อง Rotate right กี่ครั้งข้อมูลจึงกลับมาเหมือนเดิม", o: ["4", "2", "3", "8"], a: 0, e: "register 4 บิต หมุนครบ 4 ครั้ง" },
+        { t: "pipo", q: "Serial_out ต่อกับบิตใด", o: ["Q0", "Q3", "Q1", "D0"], a: 0, e: "เลื่อนขวาแล้วบิตออกทาง Q0" },
+        { t: "pipo", q: "วงจร SHSel 4 บิตนี้ใช้อุปกรณ์อะไรบ้าง", o: ["D FF 4 ตัว และ MUX 4-to-1 4 ตัว", "D FF 2 ตัว และ MUX 4-to-1 1 ตัว", "D FF 4 ตัว และ MUX 2-to-1 4 ตัว", "D FF 4 ตัว และ MUX 8-to-1 4 ตัว"], a: 0, e: "บิตละ 1 D FF และ 1 MUX ที่มี select 2 ขา" },
+        { t: "pipo", q: "ใส่ข้อมูล 4 บิตแบบ Parallel load ใช้ clock กี่ลูก", o: ["1", "2", "3", "4"], a: 0, e: "โหลดทุกบิตในขอบเดียว" },
+        { t: "pipo", q: "วงจร s2 s1 s0 (shifter): y3–y0 เปลี่ยนเมื่อใด", o: ["ทันทีที่ d หรือ s เปลี่ยน", "ที่ขอบขาขึ้นของ clock", "เมื่อ s2 = 1 เท่านั้น", "เมื่อ s1 = 1 เท่านั้น"], a: 0, e: "วงจรนี้มีแต่ MUX ไม่มี flip-flop จึงเป็น combinational" },
+        { t: "pipo", q: "วงจร s2 s1 s0 (shifter): s2 s1 s0 = 0 0 0, d3–d0 = 1010 ได้ y3–y0 เท่าไร", o: ["1101", "0101", "0100", "1010"], a: 0, e: "ช่อง 0 เลื่อนขวา y3 รับค่าจาก MUX ซ้าย ซึ่ง s2 = 0 ให้ 1" },
+        { t: "pipo", q: "วงจร s2 s1 s0 (shifter): s2 s1 s0 = 1 0 0, d3–d0 = 1010 ได้ y3–y0 เท่าไร", o: ["0101", "1101", "0100", "1010"], a: 0, e: "s2 = 1 ทำให้ y3 รับ d0 จึงเป็น rotate right" },
+        { t: "pipo", q: "วงจร s2 s1 s0 (shifter): s2 s1 s0 = 0 1 0, d3–d0 = 1011 ได้ y3–y0 เท่าไร", o: ["0110", "0111", "1101", "1011"], a: 0, e: "ช่อง 2 เลื่อนซ้าย y0 รับค่าจาก MUX ขวา ซึ่ง s2 = 0 ให้ 0" },
+        { t: "pipo", q: "วงจร s2 s1 s0 (shifter): s2 s1 s0 = 1 1 0, d3–d0 = 1011 ได้ y3–y0 เท่าไร", o: ["0111", "0110", "1101", "1011"], a: 0, e: "s2 = 1 ทำให้ y0 รับ d3 จึงเป็น rotate left" },
+        { t: "pipo", q: "วงจร s2 s1 s0 (shifter): s0 = 1 ได้ผลอย่างไร", o: ["y = d ไม่ว่า s2, s1 เป็นอะไร", "เลื่อนขวาเสมอ", "เลื่อนซ้ายเสมอ", "y = 0000"], a: 0, e: "ช่อง 1 และ 3 ต่อ d ของบิตตัวเองทั้งคู่" },
         { t: "gen", q: "Race-around ของ JK เกิดเมื่อใด", o: ["J = K = 1 และ clock = 1 นานกว่า propagation delay ในแบบ level-triggered", "J = K = 0", "ใช้แบบ edge-triggered", "ClrN = 0"], a: 0, e: "Q toggle วนไปเรื่อย ๆ ตลอดช่วง clock = 1" },
       ];
 
@@ -181,6 +202,16 @@
         ["sync", "Synchronous reset ทำให้ Q = 0 ที่ขอบ clock ถัดไปเมื่อ reset ทำงาน", true, "เพราะผ่านทางขา D"],
         ["sync", "พอ ClrN กลับเป็น 1 แล้ว Q จะกลับไปเป็นค่าก่อนถูก clear ทันที", false, "Q ค้างที่ 0 จนถึงขอบถัดไป"],
         ["sync", "พัลส์ reset สั้น ๆ ที่เกิดระหว่างขอบ clock มีผลกับ synchronous reset", false, "synchronous ดูเฉพาะ ณ ขอบ"],
+        ["pipo", "วงจร s2 s1 s0 (shifter) ต้องรอขอบ clock จึงจะได้ค่า y ใหม่", false, "ไม่มี flip-flop และไม่มี clock"],
+        ["pipo", "วงจร s2 s1 s0 (shifter): s2 มีผลเฉพาะตอน s0 = 0", true, "s0 = 1 เลือกช่องส่งผ่านซึ่งไม่ผ่าน MUX เล็ก"],
+        ["pipo", "วงจรสไลด์ 14: SHSel = 0 คงค่าได้เพราะ MUX ป้อน Q ตัวเองกลับเข้าขา D", true, "Q⁺ = Q"],
+        ["pipo", "วงจรสไลด์ 14: SHSel = 1 ทำให้ Q เปลี่ยนตาม D ทันทีโดยไม่รอ clock", false, "เปลี่ยนเฉพาะที่ขอบ clock"],
+        ["pipo", "Rotate right ใช้ Serial_in เข้า Q3", false, "Rotate ใช้ Q0 เข้า Q3"],
+        ["pipo", "Shift right ทำให้ค่า Q0 เดิมหลุดออกจาก register", true, "ออกทาง Serial_out"],
+        ["pipo", "Rotate right ไม่ทำให้ข้อมูลหาย", true, "Q0 วนกลับเข้า Q3"],
+        ["pipo", "วงจรนี้เลื่อนซ้ายได้", false, "มีแค่ shift right และ rotate right"],
+        ["pipo", "Q3–Q0 อ่านได้ตลอดเวลาโดยไม่ต้องรอ clock", true, "ต่อออกขนานอยู่แล้ว"],
+        ["pipo", "ทุกบิตใช้ SHSel₁ SHSel₀ ชุดเดียวกัน จึงเลือกโหมดแยกทีละบิตไม่ได้", true, "เลือกพร้อมกันทั้ง register"],
         ["gen", "T FF ที่ T = 1 ตลอดทำหน้าที่หารความถี่ด้วย 2", true, "Q กลับค่าทุกขอบ"],
         ["gen", "JK = 11 ใน JK flip-flop เป็นสถานะห้ามใช้", false, "คือ Toggle"],
       ].map(([t, q, ans, e]) => ({ t, q, o: ["ถูก", "ผิด"], a: ans ? 0 : 1, e }));
@@ -581,9 +612,9 @@
         return vals.flatMap((v, k) => [0, 1, 2, 3].map((j) => (glitch.includes(k) && j === spot(k) ? 1 - v : v))).concat([vals.at(-1), vals.at(-1)]).join("");
       };
       const qv = (x) => (x === null ? "?" : x);
-      function edgeTiming({ q, pre, clk = "CLK", edge = "rise", inputs, glitch = {}, model, init = { Q: 0 }, show, hide, derive = (r) => r, fmt, minStep = 12 }) {
+      function edgeTiming({ q, pre, clk = "CLK", edge = "rise", inputs, glitch = {}, model, init = { Q: 0 }, show, hide, derive = (r) => r, fmt, minStep = 12, fig }) {
         return {
-          kind: "timing", q, pre,
+          kind: "timing", q, pre, fig,
           build: () => {
             const n = Object.values(inputs)[0].length;
             const seq = { [clk]: clkOf(n, edge) };
@@ -837,6 +868,161 @@
             show: [S("Clock"), S("J"), S("K"), O("Q")], hide: ["Q"], fmt: jkFmt }),
         ],
       };
+      // ----- 4-bit shift register of D flip-flops with SHSel₁ SHSel₀ (slide 14). Q3 is the leftmost bit. -----
+      const REG = ["Q3", "Q2", "Q1", "Q0"], REG_D = ["D3", "D2", "D1", "D0"];
+      const regOf = (r, keys = REG) => keys.map((k) => r[k]).join("");
+      const regFrom = (bits, keys = REG) => Object.fromEntries(keys.map((k, n) => [k, +bits[n]]));
+      const OP_NAME = { H: "คงค่าเดิม", L: "Parallel load", S: "Shift right", R: "Rotate right" };
+      const shselNext = (op, i, s) => {
+        const right = (si) => ({ Q3: si, Q2: s.Q3, Q1: s.Q2, Q0: s.Q1 });
+        return { H: s, L: regFrom(regOf(i, REG_D)), S: right(i.SI), R: right(s.Q0) }[op];
+      };
+      // ops: one letter per clock cycle (see shselFig). wiring decides which SHSel value selects each op, so the same
+      // sequence gets different codes per question. d: one value throughout (in the question) or one per cycle (a column).
+      const shselDrill = ({ q, ops, wiring, si, d, init = "0000", glitch, pre }) => {
+        const shown = Array.isArray(d), codes = [...ops].map((op) => wiring.indexOf(op)), cycles = shown ? d : codes.map(() => d);
+        const mapping = [...wiring].map((op, k) => `${k} = ${OP_NAME[op]}`).join(", ");
+        return { ...edgeTiming({
+          q: `Register 4 บิต (D FF) ${q}${shown ? "" : ` D3–D0 = ${d} ตลอด`} เริ่ม Q3Q2Q1Q0 = ${init}`, pre: `วงจรข้อนี้ SHSel ${mapping}${pre ? ` · ${pre}` : ""}`, glitch, edge: "rise", init: regFrom(init), fig: () => shselFig(wiring),
+          inputs: { Sel1: codes.map((c) => c >> 1), Sel0: codes.map((c) => c & 1), SI: si, ...Object.fromEntries(REG_D.map((k, n) => [k, cycles.map((v) => +v[n])])) },
+          model: (p, i, s) => (isEdge(p, i, "CLK", "rise") ? shselNext(wiring[i.Sel1 * 2 + i.Sel0], i, s) : s),
+          show: [S("CLK"), S("Sel1", "SHSel₁"), S("Sel0", "SHSel₀"), S("SI", "Serial_in"), ...(shown ? REG_D.map((k) => S(k)) : []), ...REG.map((k) => O(k))], hide: REG,
+        }), wiring };
+      };
+      const ans = (bits) => [...bits].map((b) => f(b));
+      const SYM = ["Q3", "Q2", "Q1", "Q0", "D3", "D2", "D1", "D0", "Serial_in"], sym = (...keys) => keys.map((k) => f(k, SYM));
+      // What each output takes for each SHSel₁ SHSel₀, as read off that question's circuit.
+      const TAKES = { H: ["Q3", "Q2", "Q1", "Q0"], L: ["D3", "D2", "D1", "D0"], S: ["Serial_in", "Q3", "Q2", "Q1"], R: ["Q0", "Q3", "Q2", "Q1"] };
+      const controlOf = (wiring) => ({ head: ["SHSel₁", "SHSel₀", "Q3⁺", "Q2⁺", "Q1⁺", "Q0⁺"], rows: [...wiring].map((op, k) => [String(k >> 1), String(k & 1), ...sym(...TAKES[op])]) });
+      const OPS = ["คงค่าเดิม", "Parallel load", "Shift right", "Rotate right"], CODE = ["0", "1", "2", "3"], READ = ["Q3–Q0", "Serial_out"];
+      const CK = ["0", "1", "3", "4"], WIRE = ["1", "4"];
+
+      // ----- combinational shifter/rotator (s2 s1 s0): see shifterCircuit for the meaning of ch, left and right. -----
+      const SEL3 = [0, 1, 2, 3, 4, 5, 6, 7].map((k) => [k >> 2, (k >> 1) & 1, k & 1]);
+      const smallMux = ({ fill, swap }, s2, rotated) => (Boolean(s2) !== Boolean(swap) ? rotated : String(fill));
+      // One row as names: y3 y2 y1 y0 for this select.
+      const shifterRow = ({ ch, left, right }, [s2, s1, s0]) => {
+        const d = ["d3", "d2", "d1", "d0"], op = ch[s1 * 2 + s0];
+        if (op === "P") return d;
+        if (op === "R") return [smallMux(left, s2, "d0"), ...d.slice(0, 3)];
+        return [...d.slice(1), smallMux(right, s2, "d3")];
+      };
+      const shifterOp = (cfg, [s2, s1, s0]) => {
+        const op = cfg.ch[s1 * 2 + s0];
+        if (op === "P") return "ส่งผ่าน";
+        const name = op === "R" ? "right" : "left", end = op === "R" ? smallMux(cfg.left, s2, "d0") : smallMux(cfg.right, s2, "d3");
+        return /d/.test(end) ? `Rotate ${name}` : `Shift ${name} เติม ${end}`;
+      };
+      const SHIFT_SYM = ["d3", "d2", "d1", "d0", "0", "1"];
+      const SHIFT_OPS = ["ส่งผ่าน", "Shift right เติม 0", "Shift right เติม 1", "Rotate right", "Shift left เติม 0", "Shift left เติม 1", "Rotate left"];
+      const shifterDrill = ({ q, cfg, tests }) => ({
+        kind: "fill", q: `${q} · ดูการต่อจากรูป เติมตาราง control แล้วแทนค่า`, fig: () => shifterCircuit(cfg), shifter: cfg, tableName: "ตารางแทนค่า",
+        control: { head: ["s2", "s1", "s0", "y3", "y2", "y1", "y0", "Operation"],
+          rows: SEL3.map((sel) => [...sel.map(String), ...shifterRow(cfg, sel).map((v) => f(v, SHIFT_SYM)), f(shifterOp(cfg, sel), SHIFT_OPS)]) },
+        head: ["s2", "s1", "s0", "d3–d0", "y3", "y2", "y1", "y0"],
+        rows: tests.map(([s2, s1, s0, d]) => {
+          const value = (v) => (v[0] === "d" ? d[3 - +v[1]] : v);
+          return [String(s2), String(s1), String(s0), d, ...shifterRow(cfg, [s2, s1, s0]).map((v) => f(value(v)))];
+        }),
+        note: `s1 s0 เลือกช่องของ MUX ใหญ่ · s2 เลือก input ของ MUX เล็ก · วงจรนี้ไม่มี flip-flop จึงไม่มี clock`,
+      });
+      const SHIFTERS = [
+        { q: "Shifter 4 บิต (วงจรใน lecture)", cfg: { ch: "RPLP", left: { fill: 1 }, right: { fill: 0 } }, tests: [[0, 0, 0, "1010"], [1, 0, 0, "1010"], [0, 1, 0, "1011"], [1, 1, 0, "1011"], [0, 0, 1, "0110"], [1, 1, 1, "0110"]] },
+        { q: "Shifter 4 บิต (เปลี่ยนค่าคงที่ที่ MUX เล็ก)", cfg: { ch: "RPLP", left: { fill: 0 }, right: { fill: 1 } }, tests: [[0, 0, 0, "1101"], [1, 0, 0, "1101"], [0, 1, 0, "0110"], [1, 1, 0, "1001"], [1, 0, 1, "0011"]] },
+        { q: "Shifter 4 บิต (สลับช่องของ MUX ใหญ่)", cfg: { ch: "PRPL", left: { fill: 1 }, right: { fill: 0 } }, tests: [[0, 0, 1, "1001"], [1, 0, 1, "1001"], [0, 1, 1, "0111"], [1, 1, 1, "0111"], [0, 0, 0, "1100"]] },
+        { q: "Shifter 4 บิต (สลับช่องของ MUX ใหญ่)", cfg: { ch: "LPRP", left: { fill: 0 }, right: { fill: 0 } }, tests: [[0, 0, 0, "1011"], [1, 0, 0, "1011"], [0, 1, 0, "0111"], [1, 1, 0, "0111"], [1, 1, 1, "0101"]] },
+        { q: "Shifter 4 บิต (สลับ input ของ MUX เล็ก)", cfg: { ch: "RPLP", left: { fill: 1, swap: true }, right: { fill: 1, swap: true } }, tests: [[0, 0, 0, "0110"], [1, 0, 0, "0110"], [0, 1, 0, "0110"], [1, 1, 0, "1000"], [0, 1, 1, "1000"]] },
+        { q: "Shifter 4 บิต (สลับทั้ง MUX ใหญ่และ MUX เล็ก)", cfg: { ch: "PPRL", left: { fill: 0, swap: true }, right: { fill: 1 } }, tests: [[0, 1, 0, "1110"], [1, 1, 0, "1110"], [0, 1, 1, "0100"], [1, 1, 1, "0100"], [1, 0, 1, "1010"]] },
+      ];
+
+      SUB.pipo = [
+        { kind: "fill", q: "วงจรตามสไลด์ 14: เติม Operation ของแต่ละค่า SHSel", head: ["SHSel₁", "SHSel₀", "SHSel", "Operation"],
+          rows: [["0", "0", "0", f("คงค่าเดิม", OPS)], ["0", "1", "1", f("Parallel load", OPS)], ["1", "0", "2", f("Shift right", OPS)], ["1", "1", "3", f("Rotate right", OPS)]],
+          note: "SHSel คือ SHSel₁SHSel₀ อ่านเป็นตัวเลข 0–3 ซึ่งก็คือหมายเลขช่องของ MUX · ตารางข้อ 1–8 ใช้วงจรตามสไลด์ 14 ส่วนข้อ 9–18 สลับช่องของ MUX ไม่เหมือนกัน ให้ดูจากรูปของข้อนั้น · ข้อ 19–24 เป็นวงจร shifter s2 s1 s0" },
+        { kind: "fill", q: "วงจรตามสไลด์ 14: ดูจากรูปแล้วเติมตาราง control", fig: () => shselFig(), ...controlOf("HLSR"),
+          note: "แถว 1 0 กับ 1 1 ต่างกันแค่ที่ Q3⁺" },
+        { kind: "fill", q: "จากรูปในข้อ 2 เติมว่าแต่ละช่องของ MUX ต่อกับอะไร", head: ["บิต", "ช่อง 0", "ช่อง 1", "ช่อง 2", "ช่อง 3"],
+          rows: [["Q3", ...sym("Q3", "D3", "Serial_in", "Q0")], ["Q2", ...sym("Q2", "D2", "Q3", "Q3")], ["Q1", ...sym("Q1", "D1", "Q2", "Q2")], ["Q0", ...sym("Q0", "D0", "Q1", "Q1")]],
+          note: "ตารางนี้กับตาราง control คือข้อมูลชุดเดียวกัน แค่เรียงคนละแบบ" },
+        { kind: "fill", q: "เติม Q3⁺–Q0⁺ ที่ขอบ clock", head: ["SHSel", "Serial_in", "D3–D0", "Q3–Q0", "Q3⁺", "Q2⁺", "Q1⁺", "Q0⁺"],
+          rows: [["0", "1", "1010", "0110", ...ans("0110")], ["1", "0", "1010", "0110", ...ans("1010")], ["2", "1", "1010", "0110", ...ans("1011")], ["2", "0", "0000", "1001", ...ans("0100")], ["3", "0", "1111", "1001", ...ans("1100")], ["3", "1", "0000", "0110", ...ans("0011")]],
+          note: "Rotate ไม่ใช้ Serial_in และ D" },
+        { kind: "fill", q: "วงจรตามสไลด์ 14: ต้องการผลลัพธ์นี้ ต้องตั้ง SHSel เป็นเท่าไร", head: ["ต้องการ", "SHSel"],
+          rows: [["คงค่าเดิม", f("0", CODE)], ["รับ D3–D0 ทั้ง 4 บิต", f("1", CODE)], ["ให้ Serial_in เข้า Q3", f("2", CODE)], ["ให้ Q0 วนกลับเข้า Q3", f("3", CODE)]] },
+        { kind: "fill", q: "Q3–Q0 เดิม = 1011, D3–D0 = 0110, Serial_in = 0 ดูผลหลังขอบ clock แล้วบอก Operation", head: ["Q3–Q0 เดิม", "Q3⁺–Q0⁺", "Operation"],
+          rows: [["1011", "1011", f("คงค่าเดิม", OPS)], ["1011", "0110", f("Parallel load", OPS)], ["1011", "0101", f("Shift right", OPS)], ["1011", "1101", f("Rotate right", OPS)]],
+          note: "Shift right เติม Serial_in = 0 · Rotate เอา Q0 = 1 เข้า Q3" },
+        { kind: "fill", q: "วงจรตามสไลด์ 14: ใช้เป็นแต่ละประเภท ต้องตั้ง SHSel เท่าไร และอ่านจากที่ไหน", head: ["ใช้เป็น", "SHSel ตอนใส่ข้อมูล", "SHSel ตอนเก็บหรือส่งออก", "อ่านจาก"],
+          rows: [["PIPO", f("1", CODE), f("0", CODE), f("Q3–Q0", READ)], ["SIPO", f("2", CODE), f("0", CODE), f("Q3–Q0", READ)], ["PISO", f("1", CODE), f("2", CODE), f("Serial_out", READ)], ["SISO", f("2", CODE), f("2", CODE), f("Serial_out", READ)]],
+          note: "Serial_out = Q0" },
+        { kind: "fill", q: "เทียบการใช้งานแต่ละประเภท: เติมจำนวน clock และจำนวนสายข้อมูล (4 บิต)", head: ["ชนิด", "ใส่ 4 บิตใช้ clock", "อ่านครบใช้ clock เพิ่ม", "สายเข้า", "สายออก"],
+          rows: [["SISO", f("4", CK), f("3", CK), f("1", WIRE), f("1", WIRE)], ["SIPO", f("4", CK), f("0", CK), f("1", WIRE), f("4", WIRE)], ["PISO", f("1", CK), f("3", CK), f("4", WIRE), f("1", WIRE)], ["PIPO", f("1", CK), f("0", CK), f("4", WIRE), f("4", WIRE)]],
+          note: "PISO และ SISO: บิตแรกอยู่ที่ Q0 แล้ว จึงเลื่อนอีก 3 ครั้งก็อ่านครบ" },
+
+        shselDrill({ q: "ใช้เฉพาะ Parallel load กับคงค่า", ops: "LHHLHL", wiring: "HLSR", si: [0, 0, 0, 0, 0, 0], d: ["1011", "0110", "1110", "0101", "1000", "1100"], pre: "D เปลี่ยนตอนคงค่าไม่มีผล" }),
+        shselDrill({ q: "ใช้เป็น PISO", ops: "LSSSSH", wiring: "LHRS", si: [0, 0, 0, 0, 0, 0], d: "1011", pre: "Q0 ออกเป็น 1, 1, 0, 1 คือ D0, D1, D2, D3" }),
+        shselDrill({ q: "ใช้เป็น SIPO", ops: "SSSSH", wiring: "SRHL", si: [1, 0, 1, 1, 0], d: "0000", pre: "บิตแรกที่เข้าไปอยู่ที่ Q0 หลังครบ 4 ขอบ" }),
+        shselDrill({ q: "Rotate right 4 ครั้ง", ops: "LRRRR", wiring: "RSLH", si: [0, 0, 0, 0, 0], d: "1001", pre: "หมุนครบ 4 ครั้งกลับมาเหมือนหลังโหลด" }),
+        shselDrill({ q: "Rotate right สลับกับคงค่า", ops: "RRHRRH", wiring: "HRLS", si: [1, 1, 1, 1, 1, 1], d: "0000", init: "1100", pre: "Rotate ไม่ใช้ Serial_in" }),
+        shselDrill({ q: "ใช้ครบทุกโหมด", ops: "LSRSHRL", wiring: "LSRH", si: [0, 1, 0, 0, 1, 1, 0], d: "1101", pre: "ดู Serial_in เฉพาะตอน Shift right" }),
+        shselDrill({ q: "ใช้ครบทุกโหมด (D เปลี่ยนทุกขั้น)", ops: "SLRHSLRS", wiring: "RLHS", si: [1, 0, 0, 1, 0, 1, 1, 0], d: ["0000", "1010", "1111", "0101", "0011", "0110", "1000", "0001"], pre: "ดู D เฉพาะตอน Parallel load" }),
+        shselDrill({ q: "เริ่มจากค่าที่ไม่ใช่ศูนย์", ops: "HSRLSSR", wiring: "SHRL", si: [1, 1, 0, 0, 0, 1, 0], d: "1010", init: "0110" }),
+        shselDrill({ q: "Shift right สลับกับ Rotate right", ops: "SRSRHLRS", wiring: "HSRL", si: [0, 1, 0, 0, 0, 0, 0, 1], d: "0011", init: "1111" }),
+        shselDrill({ q: "มีพัลส์ SHSel หลอกระหว่างขอบ", ops: "LHSHRH", wiring: "LRSH", si: [1, 1, 1, 1, 1, 1], d: "1010", glitch: { Sel0: [1], Sel1: [1] }, pre: "แถวที่ Ck ไม่ใช่ขอบ Q ไม่เปลี่ยน แม้ SHSel จะเปลี่ยนชั่วขณะ" }),
+
+        { kind: "text", q: "เขียนสมการ Q3⁺ ถึง Q0⁺ ในรูป SHSel₁, SHSel₀",
+          a: "<span class='mono'>Q3⁺ = SHSel₁′SHSel₀′·Q3 + SHSel₁′SHSel₀·D3 + SHSel₁SHSel₀′·Serial_in + SHSel₁SHSel₀·Q0</span> · <span class='mono'>Q2⁺ = SHSel₁′SHSel₀′·Q2 + SHSel₁′SHSel₀·D2 + SHSel₁·Q3</span> · <span class='mono'>Q1⁺ = SHSel₁′SHSel₀′·Q1 + SHSel₁′SHSel₀·D1 + SHSel₁·Q2</span> · <span class='mono'>Q0⁺ = SHSel₁′SHSel₀′·Q0 + SHSel₁′SHSel₀·D0 + SHSel₁·Q1</span> · Q2–Q0 ยุบ 2 เทอมสุดท้ายเหลือ SHSel₁ เพราะช่อง 2 กับ 3 ต่อสายเดียวกัน" },
+        { kind: "text", q: "ออกแบบวงจรนี้: ใช้อุปกรณ์อะไร ต่ออย่างไร",
+          a: "D FF 4 ตัว และ MUX 4-to-1 4 ตัว ใช้ Clock และ SHSel₁, SHSel₀ ร่วมกันทุกบิต · ช่อง 0 = Q ตัวเอง · ช่อง 1 = D ของบิตนั้น · ช่อง 2 = บิตทางซ้าย (Q3 รับ Serial_in) · ช่อง 3 = บิตทางซ้าย (Q3 รับ Q0) · Serial_out = Q0" },
+        { kind: "text", q: "ทำไมSHSel = 0 จึงคงค่าได้ทั้งที่ D flip-flop รับค่าทุกขอบ",
+          a: "ช่อง 0 ต่อ Q ของตัวเองกลับเข้า D จึงได้ Q⁺ = Q ทุกขอบ · ไม่ต้องหยุด clock ซึ่งเสี่ยงเกิด glitch และ clock skew" },
+        { kind: "text", q: "ช่อง 2 กับช่อง 3 ของ MUX ต่างกันอย่างไร และเกิดผลอะไร",
+          a: "ต่างกันแค่บิต Q3: ช่อง 2 รับ Serial_in ส่วนช่อง 3 รับ Q0 · SHSel = 2 จึงรับข้อมูลใหม่และ Q0 เดิมหลุดออก · SHSel = 3 จึงวน Q0 กลับ ข้อมูลไม่หาย" },
+        { kind: "text", q: "โหลด 1011 แล้วใช้SHSel = 2 จำนวน 4 ครั้ง (Serial_in = 0) เขียน Q3–Q0 ทีละขั้น และบอกว่า Serial_out ออกบิตอะไรตามลำดับ",
+          a: "1011 → 0101 → 0010 → 0001 → 0000 · Serial_out (Q0) เป็น 1, 1, 0, 1 คือ D0, D1, D2, D3 แล้วตามด้วย 0 · ใช้ Load 1 ขอบ + เลื่อน 3 ขอบก็อ่านครบ 4 บิต" },
+        { kind: "text", q: "เริ่ม 0000 ใช้SHSel = 2 ป้อน Serial_in = 1, 0, 1, 1 ทีละขอบ จะได้ Q3–Q0 อย่างไร",
+          a: "1000 → 0100 → 1010 → 1101 · บิตแรกที่เข้า (1) ไปอยู่ที่ Q0 ส่วนบิตสุดท้ายอยู่ที่ Q3 แล้วตั้งSHSel = 0 เพื่อเก็บไว้" },
+        { kind: "text", q: "Q3–Q0 = 1000 ใช้SHSel = 3 จำนวน 4 ครั้ง เขียน Q3–Q0 ทีละขั้น",
+          a: "1000 → 0100 → 0010 → 0001 → 1000 · ครบ 4 ครั้งกลับมาค่าเดิม" },
+        { kind: "text", q: "ถ้าต่อ Serial_in เข้ากับ Q0 แล้วใช้SHSel = 2 จะได้ผลอย่างไร",
+          a: "Q3 รับ Q0 เหมือนกับSHSel = 3 จึงทำงานเป็น Rotate right" },
+        { kind: "text", q: "ถ้า MUX ของ Q3 ช่อง 3 ต่อผิดเป็น Serial_in แทน Q0 จะเกิดอะไร",
+          a: "ช่อง 2 กับ 3 เหมือนกันทุกบิต SHSel = 3 จึงกลายเป็น Shift right และ register หมุนวนไม่ได้" },
+        { kind: "text", q: "ถ้าต่อสายสลับช่อง 1 กับช่อง 2 ของทุกบิต รหัสแต่ละตัวจะทำงานอย่างไร",
+          a: "SHSel = 0 คงค่าเหมือนเดิม · SHSel = 1 กลายเป็น Shift right · SHSel = 2 กลายเป็น Parallel load · SHSel = 3 ยังเป็น Rotate right" },
+        { kind: "text", q: "ทำไมวงจร shifter s2 s1 s0 จึงไม่มี clock ต่างจาก register อย่างไร",
+          a: "วงจรนี้มีแต่ MUX ซึ่งเป็น combinational ไม่มี flip-flop ค่า y จึงเปลี่ยนทันทีตาม d และ s และเก็บค่าไว้ไม่ได้ ส่วน register มี D flip-flop จึงเปลี่ยนที่ขอบ clock และจำค่าไว้" },
+        { kind: "text", q: "วงจร shifter s2 s1 s0: s2 ทำหน้าที่อะไร",
+          a: "s2 เป็น select ของ MUX เล็ก 2 ตัว เลือกว่าบิตปลายจะรับค่าคงที่ (s2 = 0: y3 ได้ 1, y0 ได้ 0) หรือรับบิตจากอีกด้าน (s2 = 1: y3 ได้ d0, y0 ได้ d3) จึงเปลี่ยน shift เป็น rotate · มีผลเฉพาะตอน s0 = 0" },
+        { kind: "text", q: "ถ้าต้องการให้วงจร shifter เก็บผลลัพธ์ไว้ได้ ต้องเพิ่มอะไร",
+          a: "ต่อ y3–y0 เข้า D flip-flop 4 ตัวที่ใช้ clock ร่วมกัน ค่าจะถูกเก็บที่ขอบ clock · ถ้าป้อน Q กลับเข้า d3–d0 จะเลื่อนหรือหมุนต่อเนื่องได้ทุกขอบ" },
+        { kind: "text", q: "ทำไม register นี้จึงใช้ D flip-flop",
+          a: "D flip-flop มี Q⁺ = D จึงส่งค่าจาก MUX เข้า Q ได้ตรง ๆ และไม่มีสถานะห้ามใช้" },
+      ];
+      // The drills are practised as truth tables, not timing diagrams: one row per active clock edge, plus a row for
+      // each input pulse between edges. Every row gives the inputs and current Q; Q⁺ is the answer.
+      const toTruthTable = (it) => {
+        const def = it.build(), clk = def.signals[0].key;
+        const inputs = def.signals.slice(1).filter((x) => !x.out), outs = def.signals.filter((x) => x.out).map((x) => x.key);
+        const edgeAt = new Map(def.opts.marks.map((m) => [m.at, m.text]));
+        const bus = inputs.filter((x) => /^(D[0-3]|IN[1-4])$/.test(x.key)), single = inputs.filter((x) => !bus.includes(x) && !x.key.startsWith("Sel"));
+        const span = (keys) => `${keys[0]}–${keys.at(-1)}`;
+        const head = ["ขั้น", "Ck", "SHSel", ...single.map((x) => x.name), ...(bus.length ? [span(bus.map((x) => x.key))] : []), span(outs), ...outs.map((k) => `${k}⁺`)];
+        const rows = [];
+        def.rows.forEach((r, t) => {
+          const p = def.rows[t - 1], next = def.rows[t + 1];
+          if (!p) return;
+          const edge = edgeAt.get(t);
+          const blip = single.concat(inputs.filter((x) => x.key.startsWith("Sel"))).some((x) => r[x.key] !== p[x.key] && next && next[x.key] === p[x.key]);
+          if (!edge && !blip) return;
+          rows.push([edge || "–", edge ? edge[0] : String(r[clk]), String(r.Sel1 * 2 + r.Sel0), ...single.map((x) => String(r[x.key])), ...(bus.length ? [regOf(r, bus.map((x) => x.key))] : []), regOf(p, outs), ...ans(regOf(r, outs))]);
+        });
+        return { kind: "fill", q: `${it.q} · ดูการต่อช่องของ MUX จากรูป เติมตาราง control แล้วเติม ${outs[0]}⁺–${outs.at(-1)}⁺ ทีละขั้น`, head, rows, note: it.pre, fig: it.fig, wiring: it.wiring, control: controlOf(it.wiring) };
+      };
+      SUB.pipo = SUB.pipo.map((it) => (it.kind === "timing" ? toTruthTable(it) : it));
+      // Fill tables first, then the shifters, then the written answers (the page groups by kind in array order).
+      SUB.pipo.splice(SUB.pipo.findIndex((it) => it.kind === "text"), 0, ...SHIFTERS.map(shifterDrill));
+
       for (const [t, items] of Object.entries(EXTRA)) SUB[t].push(...items);
       // Sync timing order: PreN/ClrN drills (SR → D → JK → T), then PreN = ClrN = 0, then async vs sync, SCLR last.
       const syncRank = ({ q }) =>
@@ -917,15 +1103,20 @@
           ${tf.length ? `<section><h2><span class="num">ข</span>ถูก / ผิด (${tf.length} ข้อ)</h2>${tf.map((it) => optionCard(it, ++n)).join("")}</section>` : ""}`;
       }
 
+      const fillGrid = ({ head, rows }) => `
+        <div class="table-scroll"><table class="tt fill">
+          <thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
+          <tbody>${rows.map((r) => `<tr>${r.map((c) => typeof c === "string" ? `<td>${c}</td>`
+            : `<td><select data-ans="${c.a}" aria-label="คำตอบ"><option value="">–</option>${c.c.map((o) => `<option>${o}</option>`).join("")}</select></td>`).join("")}</tr>`).join("")}</tbody>
+        </table></div>`;
+
       function fillCard(it, n) {
         return `
           <div class="fill-card" data-fill data-note="${encodeURIComponent(it.note || "")}">
             <div class="q-head"><span class="q-no">${n}</span><span class="q-text">${it.q}</span></div>
-            <div class="table-scroll"><table class="tt fill">
-              <thead><tr>${it.head.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
-              <tbody>${it.rows.map((r) => `<tr>${r.map((c) => typeof c === "string" ? `<td>${c}</td>`
-                : `<td><select data-ans="${c.a}" aria-label="คำตอบ"><option value="">–</option>${c.c.map((o) => `<option>${o}</option>`).join("")}</select></td>`).join("")}</tr>`).join("")}</tbody>
-            </table></div>
+            ${it.fig ? `<figure class="figure wide reg-fig">${it.fig()}</figure>` : ""}
+            ${it.control ? `<p class="fill-sub">ตาราง control</p>${fillGrid(it.control)}<p class="fill-sub">${it.tableName || "ตารางทีละขั้น"}</p>` : ""}
+            ${fillGrid(it)}
             <div class="fill-actions">
               <button class="btn primary" type="button" data-check>ตรวจ</button>
               <button class="btn" type="button" data-solve>เฉลย</button>
@@ -939,6 +1130,7 @@
         return `
           <div class="exercise">
             <p class="q-text"><b>${n}.</b> ${it.q}</p>
+            ${it.fig ? `<figure class="figure wide reg-fig">${it.fig()}</figure>` : ""}
             <div class="wave-scroll"><svg data-exercise="${id}" role="img" aria-label="โจทย์ timing ข้อ ${n}"></svg></div>
             <div class="actions"><button class="btn primary" type="button" data-reveal="${id}">ดูเฉลย</button></div>
             <div class="answer callout ok" data-answer="${id}" hidden>
@@ -1185,12 +1377,16 @@
           ["Ripple counter 2 บิต (T = 1, ขอบขาลง)", rippleCounter],
           ["Synchronous counter 2 บิต: J₀ = K₀ = 1, J₁ = K₁ = Q₀", syncCounterFig],
         ],
+        pipo: [
+          ["Register 4 บิต (D FF) ตามสไลด์ 14: 0 คงค่า, 1 Parallel load, 2 Shift right, 3 Rotate right", () => shselFig()],
+          ["Shifter 4 บิต s2 s1 s0 (ไม่มี flip-flop): s1 s0 = 0 ขวา, 1 ส่งผ่าน, 2 ซ้าย, 3 ส่งผ่าน · s2 = 0 เติมค่าคงที่, s2 = 1 หมุน", () => shifterCircuit()],
+        ],
       };
 
       const reviewHTML = (t) => `
         <details class="review">
           <summary>ดูวงจรทบทวน · ${TOPIC_NAME[t]} <span>(${REVIEW[t].length} รูป)</span></summary>
-          <div class="review-grid">${REVIEW[t].map(([cap, draw]) => `<figure>${draw()}<figcaption>${cap}</figcaption></figure>`).join("")}</div>
+          <div class="review-grid${t === "pipo" ? " wide" : ""}">${REVIEW[t].map(([cap, draw]) => `<figure>${draw()}<figcaption>${cap}</figcaption></figure>`).join("")}</div>
         </details>`;
 
       // ----- panel switching (hash: #obj-sr, #sub-dj …) -----
@@ -1364,10 +1560,10 @@
           if (!group.length) return "";
           return `<h4 class="p-group">${title}</h4>` + group.map(({ it, n }) => {
             let body = "";
-            if (kind === "fill") body = fillTable(it, reveal) + (reveal && it.note ? `<p class="p-note">${it.note}</p>` : "");
+            if (kind === "fill") body = (it.fig && !reveal ? `<div class="p-circuit">${it.fig()}</div>` : "") + (it.control ? `<p class="p-sub">ตาราง control</p>${fillTable(it.control, reveal)}<p class="p-sub">${it.tableName || "ตารางทีละขั้น"}</p>` : "") + fillTable(it, reveal) + (reveal && it.note ? `<p class="p-note">${it.note}</p>` : "");
             if (kind === "timing") {
               const def = defs.get(it) || defs.set(it, it.build()).get(it);
-              body = printWave(def, reveal);
+              body = (it.fig && !reveal ? `<div class="p-circuit">${it.fig()}</div>` : "") + printWave(def, reveal);
               if (reveal) body += `${it.pre ? `<p class="p-note">${it.pre}</p>` : ""}<ul class="p-notes">${notesOf(it, def)}</ul>`;
             }
             if (kind === "text") {
@@ -1391,7 +1587,7 @@
         const part = (reveal) => parts.map(([type, t]) =>
           `<div class="p-topic-block"><h3 class="p-topic">${TOPIC_NAME[t]} · ${TYPE_NAME[type]}</h3>${type === "obj" ? objPart(t, reveal) : subPart(t, reveal, defs)}</div>`).join("");
         printRoot.innerHTML = `
-          <header class="p-head"><h1>แนวข้อสอบ CPE 2423 ครึ่งหลัง</h1><p>${label} · บท 06 Latches and Flip-Flops · โจทย์แต่งขึ้นเพื่อซ้อม ไม่ใช่ข้อสอบจริง</p></header>
+          <header class="p-head"><h1>แนวข้อสอบ CPE 2423 ครึ่งหลัง</h1><p>${label} · บท 06 Latches and Flip-Flops · บท 09 Shift Registers · โจทย์แต่งขึ้นเพื่อซ้อม ไม่ใช่ข้อสอบจริง</p></header>
           <section class="p-section"><h2>ส่วนที่ 1 · โจทย์</h2>${part(false)}</section>
           <section class="p-section p-answers"><h2>ส่วนที่ 2 · เฉลย</h2>${part(true)}</section>`;
         document.body.classList.add("printing");

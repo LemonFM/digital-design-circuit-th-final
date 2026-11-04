@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="สรุป Shift Registers ตามสไลด์ 09: register, SISO, SIPO, PISO, PIPO, shift-around, universal shift register (74194), 74164, 74165, 74166 พร้อมวงจรจำลองและแบบฝึก timing diagram">
+  <title>Shift Registers · CPE 2423</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <nav class="topbar">
+    <div class="wrap">
+      <a href="../index.html">← CPE 2423 ครึ่งหลัง</a>
+      <span class="crumb">06 · Shift Registers</span>
+    </div>
+  </nav>
+
+  <header class="page-head wrap">
+    <p class="eyebrow">หัวข้อ 06 · Shift Registers</p>
+    <h1>Register & Shift Register</h1>
+    <p class="lead"><b>Register</b> คือ D flip-flop หลายตัวที่ใช้ clock ร่วมกัน เก็บข้อมูลได้ตัวละ 1 บิต ส่วน <b>shift register</b> ต่อ flip-flop เป็นทอด ๆ ให้ข้อมูล <b>เลื่อนไปทีละตำแหน่งทุกขอบ clock</b></p>
+    <p class="source">อ้างอิง: สไลด์ <i>09 Shift Registers</i> (Pichai Suwanloylong) หน้า 1–19 · ตรวจทานกับ datasheet ของ 74164, 74165, 74166, 74194 · <b>ออกสอบเรื่อง PIPO</b> เริ่มที่ <a href="#pipo">หัวข้อ 7</a></p>
+  </header>
+
+  <div class="wrap layout">
+    <details class="toc" open>
+      <summary>สารบัญ</summary>
+      <ol>
+        <li><a href="#register">Register คืออะไร</a></li>
+        <li><a href="#types">4 ประเภทของ shift register</a></li>
+        <li><a href="#siso">Serial-in, Serial-out</a></li>
+        <li><a href="#around">Shift-around (หมุนวน)</a></li>
+        <li><a href="#sipo">Serial-in, Parallel-out (74164)</a></li>
+        <li><a href="#piso">Parallel-in, Serial-out (74165 / 74166)</a></li>
+        <li><a href="#pipo">Parallel-in, Parallel-out <span class="exam-hint">ออกสอบ</span></a></li>
+        <li><a href="#universal">ใช้วงจร SHSel เป็นทุกประเภท</a></li>
+        <li><a href="#sim">ลองกดวงจร</a></li>
+        <li><a href="#practice">แบบฝึก</a></li>
+        <li><a href="#apps">การใช้งาน ข้อดี ข้อเสีย</a></li>
+        <li><a href="#check">ตรวจทานสไลด์</a></li>
+        <li><a href="#recap">สรุปก่อนสอบ</a></li>
+      </ol>
+    </details>
+
+    <main class="content">
+      <!-- 1 -->
+      <section id="register">
+        <h2><span class="num">1</span>Register คืออะไร <span class="ref">สไลด์ 1–2</span></h2>
+        <p>Register คือ D flip-flop <b>n ตัว</b> ที่ใช้ <b>clock เส้นเดียวกัน</b> (และมักมีขา enable ร่วมกัน) แต่ละตัวเก็บข้อมูล 1 บิต จึงเก็บข้อมูลได้ n บิตพร้อมกัน</p>
+        <div class="keypoints">
+          <div class="kp"><div class="k">Data storage</div><div class="v">1 FF = 1 บิต</div><p>n บิตใช้ flip-flop n ตัว</p></div>
+          <div class="kp"><div class="k">Data shifting</div><div class="v">เลื่อนทีละตำแหน่ง</div><p>ทุกขอบ clock ไปทางซ้ายหรือขวา</p></div>
+          <div class="kp"><div class="k">Data manipulation</div><div class="v">ย้าย หน่วง แปลง</div><p>serial ↔ parallel, หน่วงเวลา, ×2 / ÷2</p></div>
+        </div>
+        <div class="callout tip">
+          <b>ทำไมเลื่อนได้ "ทีละช่อง" ไม่ทะลุทั้งแถว</b>
+          ทุกตัวใช้ <b>edge-triggered</b> flip-flop จึงจับค่าของตัวข้างหน้า <b>ณ ขอบเดียวกัน</b> (ค่าเก่าก่อนขอบ) แล้วค่อยเปลี่ยน ถ้าใช้ latch (level-sensitive) ข้อมูลจะไหลทะลุหลายตัวในช่วงที่ enable = 1
+        </div>
+      </section>
+
+      <!-- 2 -->
+      <section id="types">
+        <h2><span class="num">2</span>4 ประเภทของ shift register <span class="ref">สไลด์ 3</span></h2>
+        <p>แบ่งตามว่า <b>ข้อมูลเข้า</b> และ <b>ออก</b> ทีละบิต (serial) หรือพร้อมกันทุกบิต (parallel)</p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>ชนิด</th><th>เข้า</th><th>ออก</th><th>ใช้ทำอะไร</th><th>ชิปตัวอย่าง</th></tr></thead>
+            <tbody>
+              <tr><td>SISO</td><td class="txt">ทีละบิต</td><td class="txt">ทีละบิต</td><td class="txt">หน่วงเวลา (delay line), เก็บข้อมูลแบบวน</td><td class="txt">ต่อ D FF เป็นแถว</td></tr>
+              <tr><td>SIPO</td><td class="txt">ทีละบิต</td><td class="txt">ทุกบิตพร้อมกัน</td><td class="txt">แปลง serial → parallel (รับข้อมูล, ขยายขา output)</td><td class="txt">74164</td></tr>
+              <tr><td>PISO</td><td class="txt">ทุกบิตพร้อมกัน</td><td class="txt">ทีละบิต</td><td class="txt">แปลง parallel → serial (ส่งข้อมูล, ขยายขา input)</td><td class="txt">74165, 74166</td></tr>
+              <tr><td>PIPO</td><td class="txt">ทุกบิตพร้อมกัน</td><td class="txt">ทุกบิตพร้อมกัน</td><td class="txt">เก็บข้อมูล n บิต (register ธรรมดา) ถ้าเลื่อนได้ด้วยก็ทำได้ครบทุกแบบ</td><td class="txt">74194 (universal)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout tip">
+          <b>จำง่าย</b>
+          ตัวอักษรตัวที่ 1 คือขาเข้า ตัวที่ 3 คือขาออก: <b>S</b> = serial (ทีละบิต, ใช้ clock n ลูกสำหรับ n บิต), <b>P</b> = parallel (ทุกบิตพร้อมกัน, ใช้ 1 ลูกหรือไม่ต้องใช้ clock เลย)
+        </div>
+      </section>
+
+      <!-- 3 -->
+      <section id="siso">
+        <h2><span class="num">3</span>Serial-in, Serial-out (SISO) <span class="ref">Figure 12-7 สไลด์ 4–5</span></h2>
+        <p>ข้อมูลเข้าทางขาเดียว (SI) เลื่อนผ่าน flip-flop ทีละตัวทุกขอบ แล้วออกที่ตัวสุดท้าย (SO) ด้านล่างคือ right-shift register 4 บิตตามรูป 12-7</p>
+        <figure class="figure wide">
+          <svg data-fig="siso" role="img" aria-label="Right-shift register 4 บิต: SI เข้า D3, Q3 เข้า D2, Q2 เข้า D1, Q1 เข้า D0, Q0 เป็น SO ทุกตัวใช้ Clock และ Shift (CE) ร่วมกัน เส้นประจาก SO กลับมา SI"></svg>
+          <figcaption>Right-shift register · CE (clock enable) ต่อกับ Shift · เส้นประ = ต่อ SO กลับเข้า SI เพื่อหมุนวน</figcaption>
+        </figure>
+        <div class="two-col">
+          <div class="card">
+            <p><b>สมการ (เมื่อ Shift = 1)</b></p>
+            <p class="mono">Q3⁺ = SI<br>Q2⁺ = Q3<br>Q1⁺ = Q2<br>Q0⁺ = Q1</p>
+            <p>ถ้า Shift = 0 ทุกตัวคงค่าเดิม (CE = 0)</p>
+          </div>
+          <div class="card">
+            <p><b>ตัวอย่างจากรูป 12-7 (b)</b> เริ่ม Q3Q2Q1Q0 = 0101</p>
+            <div class="table-scroll">
+              <table class="tt">
+                <thead><tr><th>ขอบ</th><th>SI</th><th>Q3 Q2 Q1 Q0</th></tr></thead>
+                <tbody>
+                  <tr><td>เริ่ม</td><td>–</td><td>0 1 0 1</td></tr>
+                  <tr><td>↑1</td><td>1</td><td>1 0 1 0</td></tr>
+                  <tr><td>↑2</td><td>1</td><td>1 1 0 1</td></tr>
+                  <tr><td>↑3</td><td>0</td><td>0 1 1 0</td></tr>
+                  <tr><td>↑4</td><td>1</td><td>1 0 1 1</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <h3>SISO 8 บิตด้วย SR flip-flop <span class="ref">Figure 12-8, 12-9 สไลด์ 6</span></h3>
+        <p>รูป 12-8 ใช้ SR flip-flop โดยต่อ <b>S = SI</b> และ <b>R = SI′</b> (ผ่าน inverter) ทำให้ S, R ตรงข้ามกันเสมอ จึงทำงานเหมือน <b>D flip-flop</b> และไม่มีทางเกิด SR = 11 ตัวถัดไปก็รับ S = Q, R = Q′ จากตัวก่อนหน้า</p>
+        <div class="callout tip">
+          <b>หน่วงกี่ลูก</b>
+          บิตที่ถูกจับเข้า Q7 ที่ขอบลูกที่ k จะออกมาที่ SO (= Q0) ที่ขอบลูกที่ k + 7 คือ <b>n − 1 = 7 คาบ</b> หลังเข้าตัวแรก (ตรงกับ "7 Clock Periods" ในรูป 12-9) หรือนับจาก SI ถึง SO รวม <b>n = 8 ขอบ</b> พัลส์ SI กว้าง 2 คาบ (ลูก 5–6) จึงออกที่ SO กว้าง 2 คาบเหมือนเดิม (ลูก 12–13)
+        </div>
+      </section>
+
+      <!-- 4 -->
+      <section id="around">
+        <h2><span class="num">4</span>Shift-around (หมุนวน) และ storage แบบมี Load <span class="ref">Figure 8.4 สไลด์ 7, 10</span></h2>
+        <p>ถ้าต่อ output ตัวสุดท้ายกลับเข้า input ตัวแรก ข้อมูลจะ <b>หมุนวน</b> อยู่ในวงไม่หายไป เรียกว่า shift-around หรือ <b>rotate</b> (สไลด์ 10 มีแต่หัวข้อ ไม่มีเนื้อหา เพิ่มคำอธิบายจากรูป 8.4 และ 12-7)</p>
+        <figure class="figure wide">
+          <svg data-fig="load" role="img" aria-label="MUX 2 ต่อ 1 เลือกระหว่าง x เมื่อ Load เป็น 1 และ qn ที่ป้อนกลับเมื่อ Load เป็น 0 ส่งเข้า flip-flop ตัวแรก แล้วต่อเป็นแถวถึงตัวที่ n"></svg>
+          <figcaption>D<sub>1</sub> = Load · x + Load′ · q<sub>n</sub> · สไลด์วาดด้วย AND–OR และ SR FF ที่ R = S′ (เท่ากับ D FF) clock ขอบขาลง</figcaption>
+        </figure>
+        <ul>
+          <li><b>Load = 1</b>: รับข้อมูลใหม่จาก x ทีละบิต (shift in)</li>
+          <li><b>Load = 0</b>: q<sub>n</sub> ย้อนกลับเข้าตัวแรก ข้อมูล n บิตวนอยู่ในวง (shift around) หลัง n ขอบจะกลับมาเหมือนเดิม</li>
+        </ul>
+        <div class="callout ok">
+          <b>เทียบกับรูปอื่นในสไลด์</b>
+          เส้นประในรูป 12-7 (SO → SI) คือการหมุนวนแบบเดียวกัน และโหมด "Rotate right" (SHSel = 11) ในสไลด์ 14 ก็คือ shift-around
+        </div>
+      </section>
+
+      <!-- 5 -->
+      <section id="sipo">
+        <h2><span class="num">5</span>Serial-in, Parallel-out: 74164 <span class="ref">Figure 8.5 สไลด์ 8–9</span></h2>
+        <p>ข้อมูลเข้าทีละบิต แต่ดึงออกได้ <b>ทุกบิตพร้อมกัน</b> ที่ q1–q8 หลังป้อนครบ 8 ลูก ข้อมูล 8 บิตจะพร้อมอ่านแบบ parallel</p>
+        <div class="two-col">
+          <div class="card">
+            <p><b>ขาของ 74164</b></p>
+            <ul>
+              <li><b>A, B</b>: ข้อมูลเข้า = <span class="mono">A · B</span> (ใช้ขาหนึ่งเป็น data อีกขาเป็น enable ถ้าไม่ใช้ให้ต่อ 1)</li>
+              <li><b>Clear′</b>: clear แบบ <b>asynchronous</b> active-low ทุก q = 0 ทันที</li>
+              <li><b>q1–q8</b>: output ขนาน (q8 ใช้เป็น serial out ได้)</li>
+            </ul>
+          </div>
+          <div class="card">
+            <p><b>สมการ (ที่ขอบ clock)</b></p>
+            <p class="mono">q1⁺ = A · B<br>q2⁺ = q1<br>⋮<br>q8⁺ = q7</p>
+          </div>
+        </div>
+        <div class="callout warn">
+          <b>ระวัง: ขอบ clock ในรูปกับชิปจริงต่างกัน</b> <span class="ref" style="margin-left:0">ตรวจทานจาก datasheet</span>
+          รูป 8.5 วาดวงกลมที่ขา clock (ขอบขาลง) แต่ datasheet ของ 74HC164 ระบุว่าเลื่อนข้อมูลที่ <b>ขอบขาขึ้น</b> (LOW-to-HIGH) ถ้าโจทย์ให้รูปมา ให้ทำตามรูป ถ้าถามชิปจริงตอบขอบขาขึ้น
+        </div>
+      </section>
+
+      <!-- 6 -->
+      <section id="piso">
+        <h2><span class="num">6</span>Parallel-in, Serial-out: 74165 กับ 74166 <span class="ref">Figure 8.6 สไลด์ 11–12</span></h2>
+        <p>โหลดข้อมูล <b>ทุกบิตพร้อมกัน</b> แล้วเลื่อนออกทีละบิตทางตัวสุดท้าย ใช้ส่งข้อมูลแบบอนุกรม ชิปสองตัวในสไลด์ต่างกันที่ <b>วิธีโหลด</b></p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th></th><th>74165 (รูป a)</th><th>74166 (รูป b)</th></tr></thead>
+            <tbody>
+              <tr><td class="txt">วิธีโหลด</td><td class="txt"><b>Asynchronous</b>: Load′ = 0 ไปเปิด PRE′ หรือ CLR′ ของแต่ละ flip-flop ตามค่า IN จึงโหลด<b>ทันที</b>ไม่รอ clock</td><td class="txt"><b>Synchronous</b>: Load′ เลือกว่า S/R (ขา D) จะรับ IN หรือรับบิตข้างหน้า จึงโหลด<b>ที่ขอบ clock ถัดไป</b></td></tr>
+              <tr><td class="txt">ระหว่างโหลด</td><td class="txt">ปิดการเลื่อน (clock ไม่มีผล)</td><td class="txt">ไม่เลื่อน เพราะ MUX เลือก IN แทน</td></tr>
+              <tr><td class="txt">Clear</td><td class="txt">ไม่มีขา clear แยก</td><td class="txt">Clear′ แบบ asynchronous</td></tr>
+              <tr><td class="txt">หยุดเลื่อน</td><td class="txt">Enable′ (clock inhibit) = 1</td><td class="txt">Enable′ = 1 ผ่าน NOR กับ Clock</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout tip">
+          <b>อ่านรูป 74165 ให้ออก</b>
+          ขณะ Load′ = 0 NAND ด้านบนให้ PRE′ = (IN₂ · Load)′ และ NAND ด้านล่างให้ CLR′ = (IN₂′ · Load)′ ถ้า IN₂ = 1 จะ preset (q₂ = 1) ถ้า IN₂ = 0 จะ clear (q₂ = 0) ไม่มีทางเป็น 0 พร้อมกัน พอ Load′ = 1 ทั้งสองขาเป็น 1 แล้วเลื่อนตาม clock ตามปกติ (S = q₁, R = q₁′)
+        </div>
+        <div class="callout warn">
+          <b>ระวัง: gate clock</b>
+          ทั้งสองรูปเอา Enable′ มา NOR หรือ AND–OR กับ Clock ชิปจริงทำแบบนี้ได้เพราะออกแบบ timing มาให้แล้ว (datasheet ของ 74166 ให้เปลี่ยน clock inhibit เป็น 1 ได้เฉพาะตอน CLK = 1) แต่ในการออกแบบเองควรใช้ enable ผ่าน MUX หน้าขา D แทน (เหมือน D FF with Enable)
+        </div>
+      </section>
+
+      <!-- 7 -->
+      <section id="pipo">
+        <h2><span class="num">7</span>Parallel-in, Parallel-out (PIPO) <span class="exam-hint">ออกสอบ</span> <span class="ref">สไลด์ 14–16</span></h2>
+        <p>ข้อมูล <b>เข้าพร้อมกันทุกบิต</b> และ <b>ออกพร้อมกันทุกบิต</b> ใช้ clock ลูกเดียวก็รับข้อมูลครบ และอ่านค่าได้ทุกบิตตลอดเวลา จึงเป็นแบบที่ใช้เป็น "ที่พักข้อมูล" มากที่สุด เช่น register ใน CPU</p>
+        <div class="keypoints">
+          <div class="kp"><div class="k">Data input</div><div class="v">โหลดทุกบิตพร้อมกัน</div><p>D3–D0 เข้าในขอบ clock เดียว</p></div>
+          <div class="kp"><div class="k">Data storage</div><div class="v">1 FF = 1 บิต</div><p>คงค่าไว้จนกว่าจะสั่งโหลดใหม่</p></div>
+          <div class="kp"><div class="k">Data output</div><div class="v">อ่านทุกบิตพร้อมกัน</div><p>Q3–Q0 ออกขนานตลอดเวลา ไม่ต้องรอ clock</p></div>
+        </div>
+
+        <h3>ทำไมต้องมี MUX หน้าขา D</h3>
+        <div class="two-col">
+          <div class="card">
+            <p><b>ถ้าต่อ D ตรงเข้า flip-flop</b></p>
+            <p>ได้ <span class="mono">Qi⁺ = Di</span> ทุกขอบ จึงโหลดทุกครั้ง เก็บค่าไว้ไม่ได้ และเลื่อนบิตไม่ได้</p>
+          </div>
+          <div class="card">
+            <p><b>การคงค่าทำอย่างไร</b></p>
+            <p>D flip-flop รับค่าขา D ทุกขอบเสมอ จึงต้องส่ง Q ของตัวเองกลับเข้า D (Q⁺ = Q) ไม่ใช่การหยุด clock</p>
+          </div>
+        </div>
+
+        <h3>วงจร SHSel₁ SHSel₀ <span class="ref">Figure 8.7 สไลด์ 14</span></h3>
+        <p>D flip-flop 4 ตัว และ MUX 4-to-1 4 ตัว ใช้ Clock, SHSel₁, SHSel₀ ร่วมกันทุกบิต · ค่า SHSel₁ SHSel₀ อ่านเป็นเลข 0–3 ก็คือหมายเลขช่องของ MUX ที่ถูกเลือก</p>
+        <figure class="figure wide reg-fig" id="shsel-fig"></figure>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>SHSel₁</th><th>SHSel₀</th><th>SHSel</th><th>Q3⁺</th><th>Q2⁺</th><th>Q1⁺</th><th>Q0⁺</th><th>Operation</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>0</td><td>0</td><td>Q3</td><td>Q2</td><td>Q1</td><td>Q0</td><td class="txt">คงค่าเดิม</td></tr>
+              <tr><td>0</td><td>1</td><td>1</td><td>D3</td><td>D2</td><td>D1</td><td>D0</td><td class="txt">Parallel load</td></tr>
+              <tr><td>1</td><td>0</td><td>2</td><td>Serial_in</td><td>Q3</td><td>Q2</td><td>Q1</td><td class="txt">Shift right</td></tr>
+              <tr><td>1</td><td>1</td><td>3</td><td>Q0</td><td>Q3</td><td>Q2</td><td>Q1</td><td class="txt">Rotate right</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul style="margin-top: 12px;">
+          <li><b>ช่อง 0 (คงค่า):</b> ทุกบิตรับ Q ตัวเอง</li>
+          <li><b>ช่อง 1 (Parallel load):</b> ทุกบิตรับ D ของตัวเอง ที่ขอบ clock เท่านั้น (synchronous)</li>
+          <li><b>ช่อง 2 (Shift right):</b> ทุกบิตรับบิตทางซ้าย Q3 รับ Serial_in และค่า Q0 เดิมหลุดออกทาง Serial_out</li>
+          <li><b>ช่อง 3 (Rotate right):</b> ทุกบิตรับบิตทางซ้าย Q3 รับ Q0 ข้อมูลไม่หาย หมุน 4 ครั้งกลับค่าเดิม</li>
+        </ul>
+
+        <h3>ช่องของ MUX และสมการ</h3>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>บิต</th><th>ช่อง 0</th><th>ช่อง 1</th><th>ช่อง 2</th><th>ช่อง 3</th><th>สมการ</th></tr></thead>
+            <tbody>
+              <tr><td>Q3</td><td>Q3</td><td>D3</td><td>Serial_in</td><td>Q0</td><td>Q3⁺ = SHSel₁′SHSel₀′·Q3 + SHSel₁′SHSel₀·D3 + SHSel₁SHSel₀′·Serial_in + SHSel₁SHSel₀·Q0</td></tr>
+              <tr><td>Q2</td><td>Q2</td><td>D2</td><td>Q3</td><td>Q3</td><td>Q2⁺ = SHSel₁′SHSel₀′·Q2 + SHSel₁′SHSel₀·D2 + SHSel₁·Q3</td></tr>
+              <tr><td>Q1</td><td>Q1</td><td>D1</td><td>Q2</td><td>Q2</td><td>Q1⁺ = SHSel₁′SHSel₀′·Q1 + SHSel₁′SHSel₀·D1 + SHSel₁·Q2</td></tr>
+              <tr><td>Q0</td><td>Q0</td><td>D0</td><td>Q1</td><td>Q1</td><td>Q0⁺ = SHSel₁′SHSel₀′·Q0 + SHSel₁′SHSel₀·D0 + SHSel₁·Q1</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top: 10px;">ช่อง 2 กับ 3 ต่างกันแค่ที่ Q3 เท่านั้น Q2–Q0 จึงยุบเหลือ SHSel₁</p>
+
+        <h3>ตัวอย่างไล่ทีละขอบ</h3>
+        <p>เริ่ม Q3Q2Q1Q0 = 0000</p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>ขอบ</th><th>SHSel₁</th><th>SHSel₀</th><th>SHSel</th><th>Serial_in</th><th>D3–D0</th><th>Q ก่อน</th><th>Q หลัง</th><th>เหตุผล</th></tr></thead>
+            <tbody>
+              <tr><td>↑1</td><td>0</td><td>1</td><td>1</td><td>×</td><td>1101</td><td>0000</td><td>1101</td><td class="txt">Parallel load: รับ D ทั้ง 4 บิตในขอบเดียว</td></tr>
+              <tr><td>↑2</td><td>0</td><td>0</td><td>0</td><td>×</td><td>0110</td><td>1101</td><td>1101</td><td class="txt">คงค่า: D เปลี่ยนแต่ไม่มีผล</td></tr>
+              <tr><td>↑3</td><td>1</td><td>0</td><td>2</td><td>0</td><td>×</td><td>1101</td><td>0110</td><td class="txt">Shift right: Serial_in = 0 เข้า Q3 ค่า Q0 เดิม (1) หลุดออก</td></tr>
+              <tr><td>↑4</td><td>1</td><td>1</td><td>3</td><td>×</td><td>×</td><td>0110</td><td>0011</td><td class="txt">Rotate right: Q0 เดิม (0) เข้า Q3</td></tr>
+              <tr><td>↑5</td><td>1</td><td>0</td><td>2</td><td>1</td><td>×</td><td>0011</td><td>1001</td><td class="txt">Shift right: Serial_in = 1 เข้า Q3</td></tr>
+              <tr><td>↑6</td><td>0</td><td>1</td><td>1</td><td>×</td><td>0011</td><td>1001</td><td>0011</td><td class="txt">Parallel load ทับค่าเดิมทั้งหมด</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout tip">
+          <b>แนวข้อสอบ: ช่องของ MUX อาจถูกสลับ</b>
+          อย่าท่องรหัส ให้ดูรูปว่าแต่ละช่องต่อกับอะไร แล้วเขียนตาราง control ก่อนเริ่มไล่ค่า ดูวิธีทีละขั้นได้ที่ <a href="../summary.html#pipo-steps">สรุป หัวข้อ 14</a> และฝึกได้ที่ <a href="../exam.html#sub-pipo">แนวข้อสอบ</a>
+        </div>
+
+        <h3>เทียบ PIPO กับอีก 3 แบบ</h3>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>ชนิด</th><th>ใส่ n บิตใช้ clock</th><th>อ่าน n บิตใช้ clock</th><th>สายเข้า / ออก</th></tr></thead>
+            <tbody>
+              <tr><td>SISO</td><td class="txt">n</td><td class="txt">n − 1 หลังเข้าครบ (ทีละบิตที่ SO)</td><td>1 / 1</td></tr>
+              <tr><td>SIPO</td><td class="txt">n</td><td class="txt">0 (อ่านขนานได้ทันที)</td><td>1 / n</td></tr>
+              <tr><td>PISO</td><td class="txt">1 (74165 ไม่ต้องรอ clock)</td><td class="txt">n − 1 (บิตแรกออกทันทีหลังโหลด)</td><td>n / 1</td></tr>
+              <tr><td>PIPO</td><td class="txt">1</td><td class="txt">0</td><td>n / n</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top: 10px;">PIPO เร็วที่สุด แต่ใช้สายมากที่สุด (2n เส้น) ส่วน serial ประหยัดสายแต่ช้ากว่า n เท่า เป็น trade-off ที่ทำให้ต้องมีตัวแปลง SIPO / PISO</p>
+
+        <h3>ชิปจริงและการใช้งาน <span class="ref">เพิ่มเติม</span></h3>
+        <div class="two-col">
+          <div class="card">
+            <p><b>ชิป PIPO 8 บิต (ตรวจกับ datasheet)</b></p>
+            <ul>
+              <li><b>74HC273</b>: D FF 8 ตัว clock ร่วม ขอบขาขึ้น มี MR′ ล้างข้อมูล (active-low) ไม่มีขา enable จึงโหลดทุกขอบ</li>
+              <li><b>74HC377</b>: D FF 8 ตัว ขอบขาขึ้น มีขา enable E′ (active-low) (E′ = 0 จึงโหลด)</li>
+            </ul>
+          </div>
+          <div class="card">
+            <p><b>ใช้ทำอะไร</b></p>
+            <ul>
+              <li>Register ใน CPU เก็บตัวเลขที่กำลังคำนวณ</li>
+              <li>พักข้อมูลระหว่างวงจรสองส่วน (buffer / pipeline register)</li>
+              <li>ค้างค่าไว้ให้ display แสดงนิ่ง ขณะวงจรอื่นคำนวณค่าถัดไป</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout warn">
+          <b>จุดที่พลาดบ่อยของ PIPO</b>
+          <ul style="margin: 6px 0 0;">
+            <li>คิดว่า Q เปลี่ยนตาม D ทันทีตอน SHSel = 1 (ที่ถูกคือเปลี่ยนเฉพาะที่ขอบ clock)</li>
+            <li>แปลง SHSel₁ SHSel₀ สลับหลัก: 1 0 คือ SHSel = 2 ไม่ใช่ 1</li>
+            <li>Rotate แล้วใส่ Serial_in เข้า Q3 (ที่ถูกคือ Q0 เดิม)</li>
+            <li>ใช้รหัสตามสไลด์ทันทีโดยไม่ดูว่าช่องของ MUX ในรูปต่อกับอะไร</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 8 -->
+      <section id="universal">
+        <h2><span class="num">8</span>ใช้วงจร SHSel เป็นทุกประเภท <span class="ref">สไลด์ 14</span></h2>
+        <p>วงจรในหัวข้อ 7 มีครบทั้งขาขนาน (D3–D0 เข้า, Q3–Q0 ออก) และขา serial (Serial_in เข้า, Serial_out = Q0 ออก) จึงตั้ง SHSel₁ SHSel₀ ให้ทำงานเป็นได้ทั้ง 4 ประเภท</p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>ใช้เป็น</th><th>ใส่ข้อมูล</th><th>เก็บหรือส่งออก</th><th>อ่านจาก</th></tr></thead>
+            <tbody>
+              <tr><td>PIPO</td><td class="txt">SHSel = 1 จำนวน 1 ขอบ</td><td class="txt">SHSel = 0 เพื่อเก็บไว้</td><td class="txt">Q3–Q0 พร้อมกัน</td></tr>
+              <tr><td>SIPO</td><td class="txt">SHSel = 2 ป้อน Serial_in ทีละบิต 4 ขอบ</td><td class="txt">SHSel = 0 เพื่อเก็บไว้</td><td class="txt">Q3–Q0 พร้อมกัน</td></tr>
+              <tr><td>PISO</td><td class="txt">SHSel = 1 จำนวน 1 ขอบ</td><td class="txt">SHSel = 2 เลื่อนออก 3 ขอบ</td><td class="txt">Serial_out ทีละบิต</td></tr>
+              <tr><td>SISO</td><td class="txt">SHSel = 2 ป้อน Serial_in ทีละบิต</td><td class="txt">SHSel = 2 เลื่อนต่อ</td><td class="txt">Serial_out ทีละบิต</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <details class="review" style="margin-top: 16px;">
+          <summary>รูปแบบอื่นในสไลด์ <span>(ไม่ใช้ในแนวข้อสอบ)</span></summary>
+          <div style="padding: 0 16px 16px;">
+            <p>สไลด์ 13 และ 16 ใช้ขาควบคุมคนละชื่อและคนละรหัสกับ SHSel ถ้าเจอให้อ่านตารางของรูปนั้น อย่าเอารหัสมาปนกัน</p>
+            <div class="table-scroll">
+              <table class="tt">
+                <thead><tr><th>สไลด์</th><th>ขาควบคุม</th><th>โหมด</th></tr></thead>
+                <tbody>
+                  <tr><td>13 (74194, Table 8.1)</td><td>S<sub>0</sub> S<sub>1</sub>, Clear′</td><td class="txt">00 Hold · 01 Shift left · 10 Shift right · 11 Load · Clear′ = 0 ล้างทันที</td></tr>
+                  <tr><td>16 (Table 12-1)</td><td>Sh, L</td><td class="txt">00 No change · 01 Load · 1× Right shift (Sh มาก่อน L)</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <!-- 9 -->
+      <section id="sim">
+        <h2><span class="num">9</span>ลองกดวงจร</h2>
+        <p>วงจร SHSel₁ SHSel₀ 4 บิต (Q3 อยู่ซ้ายสุด) ตั้ง SHSel₁, SHSel₀, Serial_in และ D3–D0 แล้วกดส่ง clock</p>
+        <p>ในวงจร สายสีส้มหนาคือ 1 สายสีเทาคือ 0 · เส้นที่ลากผ่านใน MUX คือช่องที่ถูกเลือก · ค่าที่ออกจาก MUX จะเข้า Q ตอนส่ง clock</p>
+        <div class="sim" id="reg-sim">
+          <figure class="figure wide reg-fig" style="margin: 0;">
+            <div class="reg-live"></div>
+            <figcaption class="reg-sel" aria-live="polite"></figcaption>
+          </figure>
+          <div class="sim-grid">
+            <div>
+              <div class="outs four" aria-live="polite"></div>
+              <p class="sim-status"></p>
+              <div class="sim-inputs"></div>
+            </div>
+            <div>
+              <div class="table-scroll"><table class="tt sim-table"></table></div>
+            </div>
+          </div>
+          <div class="sim-wave-head"><h4>Timing diagram ของการกดล่าสุด</h4><button class="btn" type="button" data-reset>เริ่มใหม่</button></div>
+          <div class="wave-scroll"><svg class="sim-wave" role="img" aria-label="timing diagram ของ register"></svg></div>
+        </div>
+      </section>
+
+      <!-- 10 -->
+      <section id="practice">
+        <h2><span class="num">10</span>แบบฝึก</h2>
+        <div class="exercise">
+          <p class="q-text"><b>ข้อ 1</b> · Right-shift register 4 บิต (Shift = 1 ตลอด) เริ่ม Q3Q2Q1Q0 = 0101 หา Q3–Q0 <span class="ref">Figure 12-7 (b) สไลด์ 5</span></p>
+          <div class="wave-scroll"><svg data-exercise="1" role="img" aria-label="แบบฝึกข้อ 1 สัญญาณ Clock SI และ Q3 ถึง Q0"></svg></div>
+          <div class="actions"><button class="btn primary" type="button" data-reveal="1">ดูเฉลย</button></div>
+          <div class="answer callout ok" data-answer="1" hidden>
+            <b>เฉลยข้อ 1</b>
+            ทุกขอบ: Q3 ← SI, Q2 ← Q3 เดิม, Q1 ← Q2 เดิม, Q0 ← Q1 เดิม ได้ 0101 → 1010 → 1101 → 0110 → 1011 (ตรงกับรูปในสไลด์)
+          </div>
+        </div>
+
+        <div class="exercise">
+          <p class="q-text"><b>ข้อ 2</b> · SIPO แบบ 74164 (ข้อมูลเข้า = A · B, ขอบขาขึ้น, Clear′ แบบ asynchronous) เริ่มต้น q = 0 ทั้งหมด หา q1–q4</p>
+          <div class="wave-scroll"><svg data-exercise="2" role="img" aria-label="แบบฝึกข้อ 2 สัญญาณ CLK A B Clear prime และ q1 ถึง q4"></svg></div>
+          <div class="actions"><button class="btn primary" type="button" data-reveal="2">ดูเฉลย</button></div>
+          <div class="answer callout ok" data-answer="2" hidden>
+            <b>เฉลยข้อ 2</b>
+            <ul style="margin: 6px 0 0;" data-notes="2"></ul>
+          </div>
+        </div>
+
+        <div class="exercise">
+          <p class="q-text"><b>ข้อ 3</b> · ใช้วงจร SHSel เป็น PISO ขอบขาขึ้น D3–D0 = 1011 ตลอด Serial_in = 0 เริ่ม Q = 0000 หา Q3–Q0 และบอกว่า Serial_out (Q0) ส่งบิตไหนออกมาตามลำดับ</p>
+          <div class="wave-scroll"><svg data-exercise="3" role="img" aria-label="แบบฝึกข้อ 3 สัญญาณ CLK SHSel1 SHSel0 และ Q3 ถึง Q0"></svg></div>
+          <div class="actions"><button class="btn primary" type="button" data-reveal="3">ดูเฉลย</button></div>
+          <div class="answer callout ok" data-answer="3" hidden>
+            <b>เฉลยข้อ 3</b>
+            <ul style="margin: 6px 0 0;" data-notes="3"></ul>
+            <p style="margin: 8px 0 0;">Q0 หลังโหลดและเลื่อน 3 ครั้งเป็น 1, 1, 0, 1 คือ D0, D1, D2, D3 ตามลำดับ (บิตต่ำออกก่อน)</p>
+          </div>
+        </div>
+
+        <div class="exercise">
+          <p class="q-text"><b>ข้อ 4</b> · ใช้วงจร SHSel เป็น PIPO ขอบขาขึ้น เริ่ม Q = 0000 หา Q3–Q0 <span class="ref">สไลด์ 14–16</span></p>
+          <div class="wave-scroll"><svg data-exercise="4" role="img" aria-label="แบบฝึกข้อ 4 สัญญาณ CLK SHSel1 SHSel0 D3 ถึง D0 และ Q3 ถึง Q0"></svg></div>
+          <div class="actions"><button class="btn primary" type="button" data-reveal="4">ดูเฉลย</button></div>
+          <div class="answer callout ok" data-answer="4" hidden>
+            <b>เฉลยข้อ 4</b>
+            <ul style="margin: 6px 0 0;" data-notes="4"></ul>
+            <p style="margin: 8px 0 0;">D ที่เปลี่ยนระหว่างขอบหรือตอน SHSel = 0 ไม่มีผล Q เปลี่ยนเฉพาะขอบที่ SHSel = 1</p>
+          </div>
+        </div>
+
+        <div class="exercise">
+          <p class="q-text"><b>ข้อ 5</b> · วงจร SHSel เริ่ม Q3Q2Q1Q0 = 1111 เติม Q3–Q0 หลังแต่ละขอบ <span class="ref">สไลด์ 14</span></p>
+          <div class="table-scroll"><table class="tt" id="u-table"></table></div>
+          <div class="actions"><button class="btn primary" type="button" id="u-reveal">ดูเฉลย</button></div>
+          <div class="answer callout ok" id="u-answer" hidden>
+            <b>วิธีคิด</b>
+            อ่าน SHSel₁ SHSel₀ เป็นเลข 0–3 แล้วเปิดตารางในหัวข้อ 7: 0 คงค่า, 1 Parallel load, 2 Shift right, 3 Rotate right
+          </div>
+        </div>
+      </section>
+
+      <!-- 11 -->
+      <section id="apps">
+        <h2><span class="num">11</span>การใช้งาน ข้อดี ข้อเสีย <span class="ref">สไลด์ 17–19</span></h2>
+        <div class="two-col">
+          <div class="card">
+            <p><b>การใช้งาน (ตามสไลด์ + เพิ่มเติม)</b></p>
+            <ul>
+              <li><b>Timing and delay</b>: SISO n บิต หน่วงสัญญาณได้ n คาบ clock</li>
+              <li><b>Data storage</b>: เก็บข้อมูลแบบ serial หรือวนเก็บ (shift-around)</li>
+              <li><b>Digital displays</b>: SIPO ขับ 7-segment หรือ LED หลายดวงด้วยสายข้อมูลไม่กี่เส้น</li>
+              <li><b>Communication</b>: แปลง serial ↔ parallel ตอนส่งและรับข้อมูล (เช่น UART, SPI)</li>
+              <li><span class="ref" style="margin-left:0">เพิ่มเติม</span> เลื่อนซ้าย 1 ครั้ง = ×2, เลื่อนขวา = ÷2 (เลขไม่มีเครื่องหมาย) · ring counter และ Johnson counter · LFSR สร้างเลขสุ่มเทียมและ CRC</li>
+            </ul>
+          </div>
+          <div class="card">
+            <p><b>ข้อดี</b></p>
+            <ul><li>จัดการข้อมูลได้หลายแบบ (data manipulation)</li><li>เก็บข้อมูลได้ (data storage)</li><li>ยืดหยุ่น ใช้ได้หลายงาน (versatility)</li></ul>
+            <p><b>ข้อเสีย</b></p>
+            <ul><li>เก็บได้จำกัด 1 FF ต่อ 1 บิต</li><li>ต้องพึ่ง clock (serial n บิตใช้ n ลูก จึงช้ากว่า parallel)</li><li>ทำงานแบบขนานต้องใช้ MUX และสายเพิ่ม วงจรซับซ้อนขึ้น</li></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 12 -->
+      <section id="check">
+        <h2><span class="num">12</span>ตรวจทานสไลด์</h2>
+        <p>ตรวจกับตำราและ datasheet ของชิปจริงแล้ว เนื้อหาหลักถูกต้อง ทั้งตารางโหมด, รูป timing 12-7 (ไล่ทีละขอบได้ตรง) และ "7 Clock Periods" ในรูป 12-9 มีจุดที่ควรรู้ดังนี้</p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>สไลด์</th><th>ประเด็น</th><th>สรุป</th></tr></thead>
+            <tbody>
+              <tr><td>2, 3, 4, 8, 15</td><td class="txt">รูปประกอบฝั่งขวาเป็นภาพตกแต่งที่สร้างอัตโนมัติ ตัวเลขและเส้นในรูปไม่ใช่วงจรจริง</td><td class="txt">ไม่ต้องอ่านรูปเหล่านี้</td></tr>
+              <tr><td>9</td><td class="txt">รูป 8.5 วาด 74164 เป็นขอบขาลง แต่ชิปจริงเลื่อนที่ขอบขาขึ้น และ Clear′ เป็น asynchronous</td><td class="txt">ทำโจทย์ตามรูป แต่รู้ไว้ว่าชิปจริงเป็นขอบขาขึ้น</td></tr>
+              <tr><td>10</td><td class="txt">หน้า "Shift In-Shift Around Register" มีแต่หัวข้อ</td><td class="txt">เพิ่มคำอธิบายในหัวข้อ 4 แล้ว</td></tr>
+              <tr><td>12</td><td class="txt">ไม่ได้บอกว่า 74165 โหลดแบบ asynchronous และ 74166 โหลดแบบ synchronous</td><td class="txt">ยืนยันจาก datasheet แล้ว (หัวข้อ 6)</td></tr>
+              <tr><td>13</td><td class="txt">หัวตารางเรียง S<sub>0</sub> S<sub>1</sub> ไม่ใช่ S<sub>1</sub> S<sub>0</sub></td><td class="txt">ถูกต้องตาม 74194 แต่ต้องอ่านคอลัมน์ให้ดี</td></tr>
+              <tr><td>13, 14</td><td class="txt">ชื่อ "Figure 8.7" ซ้ำกันแต่เป็นคนละวงจร และรหัสโหมดไม่เหมือนกัน</td><td class="txt">หน้านี้และแนวข้อสอบใช้แบบ SHSel ส่วนแบบอื่นดูในหัวข้อ 8</td></tr>
+              <tr><td>14</td><td class="txt">หัวข้อ "SIPO and PISO" แต่วงจรเป็น universal (load, shift, rotate)</td><td class="txt">ใช้ได้ทั้งสองแบบจริง</td></tr>
+              <tr><td>17</td><td class="txt">Data storage เขียนว่าใช้ใน "serial memory and shift registers" ซึ่งวนกลับมาที่ตัวเอง และไม่ได้กล่าวถึง serial ↔ parallel, ×2/÷2, counter</td><td class="txt">เพิ่มให้ในหัวข้อ 11</td></tr>
+              <tr><td>19</td><td class="txt">"quantum computing may lead to novel shift register architectures" เป็นการคาดการณ์</td><td class="txt">ไม่ใช่เนื้อหาออกสอบ</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 13 -->
+      <section id="recap">
+        <h2><span class="num">13</span>สรุปก่อนสอบ</h2>
+        <div class="keypoints">
+          <div class="kp"><div class="k">Register n บิต</div><div class="v">D FF n ตัว</div><p>clock ร่วมกัน</p></div>
+          <div class="kp"><div class="k">Right shift</div><div class="v">Q3⁺ = SI, Qi⁺ = Qi+1</div><p>ทุกตัวรับค่าเก่าของตัวข้างหน้า</p></div>
+          <div class="kp"><div class="k">SISO n บิต</div><div class="v">หน่วง n คาบ</div><p>n − 1 คาบหลังเข้าตัวแรก</p></div>
+          <div class="kp"><div class="k">Rotate</div><div class="v">SO → SI</div><p>หลัง n ขอบกลับมาเหมือนเดิม</p></div>
+        </div>
+        <div class="callout warn">
+          <b>จุดที่พลาดบ่อย</b>
+          <ul style="margin: 6px 0 0;">
+            <li>ใช้ค่า <b>ใหม่</b> ของตัวข้างหน้าในขอบเดียวกัน (ที่ถูกคือใช้ค่า <b>ก่อนขอบ</b> ทุกตัวเปลี่ยนพร้อมกัน)</li>
+            <li>สลับทิศการเลื่อน หรืออ่าน SHSel₁ SHSel₀ สลับหลัก (1 0 คือ 2)</li>
+            <li>ลืมว่า Clear′ ของ 74164 และ Load′ ของ 74165 มีผลทันทีไม่รอ clock</li>
+            <li>นับหน่วงของ SISO ผิด: บิตเข้าที่ขอบ k ออกจากตัวสุดท้ายที่ขอบ k + n − 1</li>
+          </ul>
+        </div>
+        <nav class="pager" aria-label="หัวข้อก่อนหน้า">
+          <a href="async-inputs.html"><small>← ก่อนหน้า</small>Asynchronous Inputs</a>
+        </nav>
+      </section>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap"><a href="../index.html">← กลับหน้าแรก</a> · CPE 2423 ครึ่งหลัง</div>
+  </footer>
+
+  <script src="../assets/logic-kit.js"></script>
+  <script>
+    (function () {
+      "use strict";
+      const { simulate, pulses, isEdge, exercises, wave, setLevels, shiftRegister, tocSpy } = LK;
+
+      // ---------- figures ----------
+      const P = (d, cls) => `<path d="${d}"${cls ? ` class="${cls}"` : ""}/>`;
+      const T = (s, x, y, a = "start", cls) => `<text x="${x}" y="${y}" text-anchor="${a}"${cls ? ` class="${cls}"` : ""}>${s}</text>`;
+      const DOT = (x, y) => `<circle class="jn" cx="${x}" cy="${y}" r="3.5"/>`;
+      // D flip-flop box 80 × 100 at (x, y): D at y+25, clock at y+55, optional CE at y+85; Q out at y+25.
+      const dff = (x, y, d, q, ce) =>
+        `<rect x="${x}" y="${y}" width="80" height="100" rx="4"/>` + T(d, x + 8, y + 30) + T(q, x + 72, y + 30, "end") +
+        P(`M${x} ${y + 47} L${x + 12} ${y + 55} L${x} ${y + 63}`) + (ce ? T("CE", x + 8, y + 90) : "");
+      const draw = (sel, viewBox, body) => {
+        const svg = document.querySelector(`[data-fig="${sel}"]`);
+        svg.setAttribute("viewBox", viewBox);
+        svg.classList.add("sym");
+        svg.innerHTML = body;
+      };
+
+      // Figure 12-7: SI → Q3 → Q2 → Q1 → Q0 → SO with Shift on every CE.
+      {
+        const xs = [110, 260, 410, 560], y = 40;
+        let s = P(`M50 65 H${xs[0]}`) + T("SI", 40, 70, "end");
+        xs.forEach((x, i) => {
+          s += dff(x, y, `D${3 - i}`, `Q${3 - i}`, true);
+          s += P(`M${x - 30} 200 V95 H${x}`) + P(`M${x - 15} 175 V125 H${x}`);
+          if (i < 3) s += P(`M${x + 80} 65 H${xs[i + 1]}`) + DOT(x - 30, 200) + DOT(x - 15, 175);
+        });
+        s += P(`M50 175 H${xs[3] - 15}`) + P(`M50 200 H${xs[3] - 30}`) + T("Shift", 40, 180, "end") + T("Clock", 40, 205, "end");
+        s += P(`M640 65 H700`) + T("SO", 706, 70) + P("M670 65 V16 H75 V65", "fb") + DOT(670, 65) + DOT(75, 65);
+        draw("siso", "-30 0 770 222", s);
+      }
+
+      // Figure 8.4: 2-to-1 MUX (Load) feeding a chain of n flip-flops; qn loops back to input 0.
+      {
+        const xs = [170, 310, 450, 590], y = 55, names = ["1", "2", "3", "n"];
+        let s = P("M60 45 L110 60 V100 L60 115 Z") + T("1", 68, 66) + T("0", 68, 106) + T("MUX", 86, 86, "middle", "cap");
+        s += P("M40 60 H60") + T("x", 42, 52) + P("M85 108 V215") + T("Load", 85, 234, "middle") + P(`M110 80 H${xs[0]}`);
+        xs.forEach((x, i) => {
+          s += dff(x, y, "D", `q${names[i]}`);
+          s += P(`M${x - 25} 190 V110 H${x}`);
+          if (i < 3) s += P(`M${x + 80} 80 H${xs[i + 1]}`) + DOT(x - 25, 190);
+        });
+        s += P(`M145 190 H${xs[3] - 25}`) + T("Clock", 140, 195, "end");
+        s += P("M670 80 H730") + DOT(700, 80) + P("M700 80 V20 H30 V100 H60");
+        draw("load", "-30 0 790 246", s);
+      }
+
+      document.getElementById("shsel-fig").innerHTML = shiftRegister() + "<figcaption>0 = คงค่า · 1 = Parallel load · 2 = Shift right · 3 = Rotate right · จุดดำคือสายเชื่อมกัน ถ้าไม่มีจุดคือแค่ข้ามกัน</figcaption>";
+
+      // ---------- exercises ----------
+      // n clock cycles of 4 steps, rising edges at 4k+2; each value holds for one cycle (changes away from edges).
+      const clk = (n) => pulses(4 * n + 2, Array.from({ length: n }, (_, k) => [4 * k + 2, 4 * k + 4]));
+      const cyc = (vals) => vals.flatMap((v) => [v, v, v, v]).concat([vals.at(-1), vals.at(-1)]).join("");
+      const edges = (rows) => rows.flatMap((r, t) => (t && isEdge(rows[t - 1], r, "CLK", "rise") ? [t] : []));
+      const marks = (rows) => edges(rows).map((at, k) => ({ at, text: `↑${k + 1}` }));
+      const sig = (key, name, out) => ({ key, name: name || key, out });
+      const bits = (r, keys) => keys.map((k) => r[k]).join("");
+
+      const ex1 = simulate({ CLK: clk(4), SI: pulses(18, [[0, 7], [11, 18]]) },
+        (p, i, s) => (isEdge(p, i, "CLK", "rise") ? { Q3: i.SI, Q2: s.Q3, Q1: s.Q2, Q0: s.Q1 } : s), { Q3: 0, Q2: 1, Q1: 0, Q0: 1 });
+
+      const sipo = (p, i, s) => (!i.ClrN ? { q1: 0, q2: 0, q3: 0, q4: 0 } : isEdge(p, i, "CLK", "rise") ? { q1: i.A & i.B, q2: s.q1, q3: s.q2, q4: s.q3 } : s);
+      const ex2 = simulate({ CLK: clk(7), A: cyc([1, 1, 1, 0, 1, 1, 1]), B: cyc([1, 0, 1, 1, 1, 0, 1]), ClrN: pulses(30, [[0, 19], [21, 30]]) }, sipo, { q1: 0, q2: 0, q3: 0, q4: 0 });
+
+      // The SHSel register: channel 0 hold, 1 parallel load, 2 shift right, 3 rotate right.
+      const OPS = ["คงค่าเดิม", "Parallel load", "Shift right", "Rotate right"];
+      const shsel = (p, i, s) => !isEdge(p, i, "CLK", "rise") ? s : [s, { Q3: i.D3, Q2: i.D2, Q1: i.D1, Q0: i.D0 },
+        { Q3: i.SI, Q2: s.Q3, Q1: s.Q2, Q0: s.Q1 }, { Q3: s.Q0, Q2: s.Q3, Q1: s.Q2, Q0: s.Q1 }][i.S1 * 2 + i.S0];
+      const ZERO = { Q3: 0, Q2: 0, Q1: 0, Q0: 0 };
+      const fixed = (bit) => cyc(Array(6).fill(bit));
+      const ex3 = simulate({ CLK: clk(6), S1: cyc([0, 1, 1, 1, 1, 0]), S0: cyc([1, 0, 0, 0, 0, 0]), SI: fixed(0), D3: fixed(1), D2: fixed(0), D1: fixed(1), D0: fixed(1) }, shsel, ZERO);
+      const ex4 = simulate({ CLK: clk(6), S1: fixed(0), S0: cyc([1, 0, 1, 0, 1, 1]), SI: fixed(0), D3: cyc([1, 0, 0, 1, 1, 0]), D2: cyc([0, 1, 1, 0, 1, 1]), D1: cyc([1, 1, 0, 0, 0, 1]), D0: cyc([1, 0, 1, 1, 0, 0]) }, shsel, ZERO);
+
+      const Q4 = ["Q3", "Q2", "Q1", "Q0"], q4 = ["q1", "q2", "q3", "q4"], D4 = ["D3", "D2", "D1", "D0"];
+      exercises({
+        1: { rows: ex1, signals: [sig("CLK", "Clock"), sig("SI"), ...Q4.map((k) => sig(k, k, 1))], hide: Q4, opts: { ticks: false, marks: marks(ex1) }, minStep: 16 },
+        2: { rows: ex2, signals: [sig("CLK"), sig("A"), sig("B"), sig("ClrN", "Clear′"), ...q4.map((k) => sig(k, k, 1))], hide: q4, opts: { ticks: false, marks: marks(ex2) }, minStep: 12 },
+        3: { rows: ex3, signals: [sig("CLK"), sig("S1", "SHSel₁"), sig("S0", "SHSel₀"), ...Q4.map((k) => sig(k, k, 1))], hide: Q4, opts: { ticks: false, marks: marks(ex3) }, minStep: 12 },
+        4: { rows: ex4, signals: [sig("CLK"), sig("S1", "SHSel₁"), sig("S0", "SHSel₀"), ...D4.map((k) => sig(k)), ...Q4.map((k) => sig(k, k, 1))], hide: Q4, opts: { ticks: false, marks: marks(ex4) }, minStep: 12 },
+      });
+
+      const noteList = (id, rows, fmt) => {
+        const at = edges(rows);
+        document.querySelector(`[data-notes="${id}"]`).innerHTML = at.map((t, k) => `<li>↑${k + 1}: ${fmt(rows[t], rows[t - 1], t)}</li>`).join("");
+      };
+      const clrAt = ex2.findIndex((r) => !r.ClrN);
+      const afterClr = edges(ex2).find((t) => t > clrAt);
+      noteList(2, ex2, (r, p, t) => (t === afterClr ? "(ระหว่างขอบก่อนหน้ากับขอบนี้ Clear′ = 0 ล้างเป็น 0000 ทันที) " : "") +
+        `ข้อมูลเข้า = A·B = ${r.A}·${r.B} = ${r.A & r.B} ได้ q1–q4 = ${bits(r, q4)}`);
+      const shselNote = (r) => `SHSel = ${r.S1 * 2 + r.S0} (${OPS[r.S1 * 2 + r.S0]}) ได้ Q3–Q0 = ${bits(r, Q4)}`;
+      noteList(3, ex3, shselNote);
+      noteList(4, ex4, shselNote);
+
+      // Exercise 5: SHSel step by step, answers computed from the same rules.
+      {
+        const ops = [{ sel: 1, D: "1011" }, { sel: 2, SI: 0 }, { sel: 2, SI: 1 }, { sel: 3 }, { sel: 0 }, { sel: 2, SI: 0 }, { sel: 1, D: "0110" }, { sel: 3 }];
+        let q = "1111";
+        const next = (o, q) => [q, o.D, o.SI + q.slice(0, 3), q[3] + q.slice(0, 3)][o.sel];
+        const rows = ops.map((o) => (q = next(o, q)));
+        const table = document.getElementById("u-table");
+        const render = (show) => {
+          table.innerHTML = "<thead><tr><th>ขอบ</th><th>SHSel₁</th><th>SHSel₀</th><th>Serial_in</th><th>D3–D0</th><th>Q3 Q2 Q1 Q0</th><th>Operation</th></tr></thead><tbody>" +
+            ops.map((o, k) => `<tr><td>↑${k + 1}</td><td>${o.sel >> 1}</td><td>${o.sel & 1}</td><td>${o.SI ?? "×"}</td><td>${o.D ?? "×"}</td>` +
+              `<td>${show ? [...rows[k]].join(" ") : "? ? ? ?"}</td><td class="txt">${show ? OPS[o.sel] : "?"}</td></tr>`).join("") + "</tbody>";
+        };
+        render(false);
+        const btn = document.getElementById("u-reveal"), ans = document.getElementById("u-answer");
+        btn.addEventListener("click", () => {
+          ans.hidden = !ans.hidden;
+          btn.textContent = ans.hidden ? "ดูเฉลย" : "ซ่อนเฉลย";
+          render(!ans.hidden);
+        });
+      }
+
+      // ---------- simulator: the SHSel register (Q3 is the leftmost bit) ----------
+      {
+        const root = document.getElementById("reg-sim");
+        const $ = (sel) => root.querySelector(sel);
+        const NEXT = [(q) => q, (q, i) => [i.D3, i.D2, i.D1, i.D0], (q, i) => [i.SI, q[0], q[1], q[2]], (q) => [q[3], q[0], q[1], q[2]]];
+        const INPUTS = [["S1", "SHSel₁"], ["S0", "SHSel₀"], ["SI", "Serial_in"], ["D3", "D3"], ["D2", "D2"], ["D1", "D1"], ["D0", "D0"]];
+        let inp, q, hist, log, msg, levels;
+        $(".reg-live").innerHTML = shiftRegister("HLSR", { live: true });
+        const live = $(".reg-live svg");
+        const code = () => inp.S1 * 2 + inp.S0;
+        const row = (CLK) => ({ CLK, S1: inp.S1, S0: inp.S0, SI: inp.SI, Q3: q[0], Q2: q[1], Q1: q[2], Q0: q[3] });
+        const push = (r) => { hist.push(r); if (hist.length > 24) hist.shift(); };
+
+        $(".sim-inputs").innerHTML = INPUTS.map(([k, n]) => `<button class="sw" type="button" data-in="${k}"><span class="sw-name">${n}</span><span class="sw-val"></span></button>`).join("") +
+          `<button class="btn" type="button" data-pulse>ส่ง clock 1 ลูก (0→1→0)</button>`;
+
+        function reset() {
+          inp = { S1: 0, S0: 1, SI: 1, D3: 1, D2: 0, D1: 1, D0: 1 };
+          q = [0, 0, 0, 0];
+          hist = [row(0)];
+          log = [];
+          msg = ["ตั้ง SHSel₁ SHSel₀ แล้วกดส่ง clock", ""];
+          render();
+        }
+
+        function render() {
+          root.querySelectorAll(".sw").forEach((b) => {
+            b.setAttribute("aria-pressed", inp[b.dataset.in] === 1);
+            b.querySelector(".sw-val").textContent = inp[b.dataset.in];
+          });
+          $(".outs").innerHTML = q.map((v, k) => `<div class="out"><span>Q${3 - k}</span><b class="${v ? "hi" : ""}">${v}</b></div>`).join("");
+          $(".sim-status").textContent = msg[0];
+          $(".sim-status").className = "sim-status" + (msg[1] ? " " + msg[1] : "");
+          $(".sim-table").innerHTML = "<thead><tr><th>#</th><th>SHSel</th><th>ก่อน</th><th>หลัง</th></tr></thead><tbody>" +
+            (log.length ? log.slice(-8).map((l) => `<tr><td>${l.n}</td><td>${l.sel}</td><td>${l.before}</td><td>${l.after}</td></tr>`).join("")
+              : `<tr><td colspan="4" class="txt">ยังไม่ได้ส่ง clock</td></tr>`) + "</tbody>";
+          // Live circuit: colour every net, draw the selected channel through each MUX.
+          const ch = code(), next = NEXT[ch](q, inp);
+          live.querySelectorAll("[data-mux]").forEach((el) => {
+            const x = +el.dataset.mux;
+            el.setAttribute("d", `M${x + 22} ${125 + 30 * ch} L${x + 45} 170`);
+          });
+          levels = {
+            CLK: 0, S1: inp.S1, S0: inp.S0, SI: inp.SI, Q3: q[0], Q2: q[1], Q1: q[2], Q0: q[3],
+            D3: inp.D3, D2: inp.D2, D1: inp.D1, D0: inp.D0, M0: next[0], M1: next[1], M2: next[2], M3: next[3],
+          };
+          setLevels(live, levels);
+          $(".reg-sel").textContent = `SHSel₁ = ${inp.S1}, SHSel₀ = ${inp.S0} คือ SHSel = ${ch}: ทุก MUX เลือกช่อง ${ch} (${OPS[ch]}) · ขอบ clock ถัดไปจะได้ Q3–Q0 = ${next.join("")}`;
+          const signals = [{ key: "CLK", name: "CLK" }, { key: "S1", name: "SHSel₁" }, { key: "S0", name: "SHSel₀" }, { key: "SI", name: "Serial_in" }, ...Q4.map((k) => ({ key: k, name: k, out: true }))];
+          const svg = $(".sim-wave");
+          wave(svg, signals, hist, { step: 28, ticks: false });
+          svg.parentElement.scrollLeft = svg.parentElement.scrollWidth;
+        }
+
+        root.addEventListener("click", (e) => {
+          const sw = e.target.closest("[data-in]");
+          if (sw) {
+            inp[sw.dataset.in] ^= 1;
+            msg = [`SHSel = ${code()}: ${OPS[code()]} · Q ยังไม่เปลี่ยนจนกว่าจะส่ง clock`, ""];
+            push(row(0));
+            return render();
+          }
+          if (e.target.closest("[data-pulse]")) {
+            const before = q.join("");
+            q = NEXT[code()](q, inp);
+            push(row(1));
+            push(row(0));
+            log.push({ n: log.length + 1, sel: code(), before, after: q.join("") });
+            msg = [`ขอบขาขึ้น: ${OPS[code()]} ได้ Q3Q2Q1Q0 = ${q.join("")}`, "set"];
+            render();
+            // Flash the clock line so the edge is visible on the circuit.
+            setLevels(live, { ...levels, CLK: 1 });
+            setTimeout(() => setLevels(live, levels), 250);
+            return;
+          }
+          if (e.target.closest("[data-reset]")) reset();
+        });
+        reset();
+      }
+
+      tocSpy(document.querySelector(".toc"));
+    })();
+  </script>
+</body>
+</html>

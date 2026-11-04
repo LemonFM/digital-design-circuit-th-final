@@ -24,9 +24,9 @@
   </div>
 
   <header class="page-head wrap">
-    <p class="eyebrow">บท 06 · Latches and Flip-Flops</p>
+    <p class="eyebrow">บท 06 Latches and Flip-Flops · บท 09 Shift Registers</p>
     <h1>สรุปรวมก่อนสอบ</h1>
-    <p class="lead">ทุกตาราง สมการ และวิธีคิดที่ต้องใช้ รวมไว้ในหน้าเดียว ถ้าข้อไหนยังไม่เข้าใจ กดลิงก์ "อ่านเพิ่ม" เพื่อไปที่หน้าเนื้อหาของหัวข้อนั้น</p>
+    <p class="lead">ทุกตาราง สมการ และวิธีคิดที่ต้องใช้ รวมไว้ในหน้าเดียว ถ้าข้อไหนยังไม่เข้าใจ กดลิงก์ "อ่านเพิ่ม" เพื่อไปที่หน้าเนื้อหาของหัวข้อนั้น · เรื่อง shift register แบบ PIPO เริ่มที่ <a href="#sr-basics">หัวข้อ 11</a></p>
   </header>
 
   <div class="wrap layout">
@@ -43,6 +43,11 @@
         <li><a href="#symbols">อ่านสัญลักษณ์</a></li>
         <li><a href="#timing">วิธีทำโจทย์ timing</a></li>
         <li><a href="#pitfalls">จุดที่พลาดบ่อย</a></li>
+        <li><a href="#sr-basics">พื้นฐานก่อนเรียน PIPO</a></li>
+        <li><a href="#pipo">PIPO คืออะไร <span class="exam-hint">ออกสอบ</span></a></li>
+        <li><a href="#shsel">วงจร SHSel และตาราง control <span class="exam-hint">ออกสอบ</span></a></li>
+        <li><a href="#pipo-steps">วิธีทำข้อสอบ PIPO <span class="exam-hint">ออกสอบ</span></a></li>
+        <li><a href="#pipo-pitfalls">จุดที่พลาดบ่อยของ PIPO <span class="exam-hint">ออกสอบ</span></a></li>
       </ol>
     </details>
 
@@ -326,6 +331,190 @@
           </ul>
         </div>
       </section>
+
+      <!-- 11 -->
+      <section id="sr-basics">
+        <h2><span class="num">11</span>พื้นฐานก่อนเรียน PIPO</h2>
+        <p>PIPO ประกอบจาก D flip-flop กับ MUX ถ้าเข้าใจ 4 เรื่องนี้จะอ่านวงจรได้ทันที</p>
+
+        <h3>1. D flip-flop</h3>
+        <div class="two-col">
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th>Ck</th><th>D</th><th>Q</th><th>Q⁺</th></tr></thead>
+              <tbody>
+                <tr><td>↑</td><td>0</td><td>0</td><td>0</td></tr>
+                <tr><td>↑</td><td>0</td><td>1</td><td>0</td></tr>
+                <tr><td>↑</td><td>1</td><td>0</td><td>1</td></tr>
+                <tr><td>↑</td><td>1</td><td>1</td><td>1</td></tr>
+                <tr><td>0, 1, ↓</td><td>×</td><td>0</td><td class="txt">0 (คงเดิม)</td></tr>
+                <tr><td>0, 1, ↓</td><td>×</td><td>1</td><td class="txt">1 (คงเดิม)</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <p><b>จำแค่นี้</b></p>
+            <ul>
+              <li><span class="mono">Q⁺ = D</span> ที่ขอบ clock</li>
+              <li>D เปลี่ยนระหว่างขอบไม่มีผล</li>
+              <li>1 ตัวเก็บ 1 บิต</li>
+              <li>ไม่มีสถานะห้ามใช้</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>2. MUX 4-to-1</h3>
+        <p>MUX คือสวิตช์เลือกสัญญาณ: <b>select 2 ขา</b> เลือกได้ <b>4 ช่อง</b> ส่งค่าช่องนั้นออกไป ค่า select อ่านเป็นเลข 0–3 ก็คือหมายเลขช่อง</p>
+        <div class="two-col">
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th>SHSel₁</th><th>SHSel₀</th><th>SHSel</th><th>ออกจากช่อง</th></tr></thead>
+              <tbody>
+                <tr><td>0</td><td>0</td><td>0</td><td>ช่อง 0</td></tr>
+                <tr><td>0</td><td>1</td><td>1</td><td>ช่อง 1</td></tr>
+                <tr><td>1</td><td>0</td><td>2</td><td>ช่อง 2</td></tr>
+                <tr><td>1</td><td>1</td><td>3</td><td>ช่อง 3</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <p><b>วิธีแปลงเป็นเลข</b></p>
+            <p class="mono">SHSel = 2·SHSel₁ + SHSel₀</p>
+            <p>SHSel₁ เป็นบิตหลักสอง เช่น SHSel₁ = 1, SHSel₀ = 0 คือ SHSel = 2 ไม่ใช่ 1</p>
+          </div>
+        </div>
+
+        <h3>3. การคงค่า</h3>
+        <p>D flip-flop รับค่าขา D ทุกขอบเสมอ จะให้คงค่าเดิมต้อง<b>ป้อน Q ของตัวเองกลับเข้า D</b> จึงได้ <span class="mono">Q⁺ = Q</span> ไม่ใช่การหยุด clock (หยุด clock ด้วยเกตเสี่ยง glitch และ clock skew)</p>
+
+        <h3>4. Register และการเปลี่ยนค่าพร้อมกัน</h3>
+        <ul>
+          <li><b>Register n บิต</b> คือ D flip-flop n ตัวที่ใช้ clock เส้นเดียวกัน</li>
+          <li>ทุกตัวอ่านค่า<b>ก่อนขอบ</b> แล้วเปลี่ยนพร้อมกัน จึงเลื่อนได้ทีละหนึ่งช่อง ไม่ทะลุทั้งแถว</li>
+          <li>ในหน้านี้ Q3 อยู่ซ้ายสุด Q0 อยู่ขวาสุด <b>เลื่อนขวา</b> คือข้อมูลไหลจาก Q3 ไป Q0</li>
+        </ul>
+      </section>
+
+      <!-- 12 -->
+      <section id="pipo">
+        <h2><span class="num">12</span>PIPO คืออะไร <a class="ref" href="topics/shift-registers.html#pipo">อ่านเพิ่ม</a></h2>
+        <p><b>Parallel-in, Parallel-out:</b> ข้อมูล<b>เข้าพร้อมกันทุกบิต</b> และ<b>ออกพร้อมกันทุกบิต</b> จึงโหลด 4 บิตได้ใน clock ลูกเดียว และอ่าน Q3–Q0 ได้ตลอดเวลา</p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>ชนิด</th><th>ข้อมูลเข้า</th><th>ข้อมูลออก</th><th>ใส่ 4 บิตใช้ clock</th><th>อ่านครบใช้ clock เพิ่ม</th></tr></thead>
+            <tbody>
+              <tr><td>SISO</td><td class="txt">ทีละบิต</td><td class="txt">ทีละบิต</td><td>4</td><td>3</td></tr>
+              <tr><td>SIPO</td><td class="txt">ทีละบิต</td><td class="txt">พร้อมกัน</td><td>4</td><td>0</td></tr>
+              <tr><td>PISO</td><td class="txt">พร้อมกัน</td><td class="txt">ทีละบิต</td><td>1</td><td>3</td></tr>
+              <tr class="on"><td>PIPO</td><td class="txt">พร้อมกัน</td><td class="txt">พร้อมกัน</td><td>1</td><td>0</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout tip">
+          <b>ทำไมต้องมี MUX</b>
+          ถ้าต่อ D ตรงเข้า flip-flop ทุกขอบจะโหลดค่าใหม่ เก็บค่าไว้ไม่ได้ จึงใส่ MUX หน้าขา D ทุกบิตเพื่อเลือกว่าขอบนี้จะคงค่า โหลด เลื่อน หรือหมุน
+        </div>
+      </section>
+
+      <!-- 13 -->
+      <section id="shsel">
+        <h2><span class="num">13</span>วงจร SHSel และตาราง control <span class="ref">สไลด์ 14</span></h2>
+        <p>Register 4 บิต: D flip-flop 4 ตัว และ MUX 4-to-1 4 ตัว ใช้ Clock, SHSel₁, SHSel₀ ร่วมกันทุกบิต</p>
+        <figure class="figure wide reg-fig" id="shsel-fig"></figure>
+
+        <h3>ตาราง control ของวงจรนี้</h3>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>SHSel₁</th><th>SHSel₀</th><th>SHSel</th><th>Q3⁺</th><th>Q2⁺</th><th>Q1⁺</th><th>Q0⁺</th><th>Operation</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>0</td><td>0</td><td>Q3</td><td>Q2</td><td>Q1</td><td>Q0</td><td class="txt">คงค่าเดิม</td></tr>
+              <tr><td>0</td><td>1</td><td>1</td><td>D3</td><td>D2</td><td>D1</td><td>D0</td><td class="txt">Parallel load</td></tr>
+              <tr><td>1</td><td>0</td><td>2</td><td>Serial_in</td><td>Q3</td><td>Q2</td><td>Q1</td><td class="txt">Shift right</td></tr>
+              <tr><td>1</td><td>1</td><td>3</td><td>Q0</td><td>Q3</td><td>Q2</td><td>Q1</td><td class="txt">Rotate right</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout tip">
+          <b>4 โหมดนี้จำจากสิ่งที่ต่อเข้าช่อง</b>
+          <ul style="margin: 6px 0 0;">
+            <li><b>คงค่า:</b> ทุกบิตรับ Q ตัวเอง</li>
+            <li><b>Parallel load:</b> ทุกบิตรับ D ของตัวเอง</li>
+            <li><b>Shift right:</b> ทุกบิตรับบิตทางซ้าย Q3 รับ Serial_in ค่า Q0 เดิมหลุดออก</li>
+            <li><b>Rotate right:</b> ทุกบิตรับบิตทางซ้าย Q3 รับ Q0 ข้อมูลไม่หาย หมุน 4 ครั้งกลับค่าเดิม</li>
+          </ul>
+        </div>
+        <h3>สมการ</h3>
+        <div class="table-scroll">
+          <table class="tt">
+            <tbody>
+              <tr><td>Q3⁺ = SHSel₁′SHSel₀′·Q3 + SHSel₁′SHSel₀·D3 + SHSel₁SHSel₀′·Serial_in + SHSel₁SHSel₀·Q0</td></tr>
+              <tr><td>Q2⁺ = SHSel₁′SHSel₀′·Q2 + SHSel₁′SHSel₀·D2 + SHSel₁·Q3</td></tr>
+              <tr><td>Q1⁺ = SHSel₁′SHSel₀′·Q1 + SHSel₁′SHSel₀·D1 + SHSel₁·Q2</td></tr>
+              <tr><td>Q0⁺ = SHSel₁′SHSel₀′·Q0 + SHSel₁′SHSel₀·D0 + SHSel₁·Q1</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top: 10px;">Q2–Q0 ยุบเหลือ SHSel₁ เพราะช่อง 2 กับ 3 ต่อบิตทางซ้ายเหมือนกัน · Serial_out = Q0</p>
+      </section>
+
+      <!-- 14 -->
+      <section id="pipo-steps">
+        <h2><span class="num">14</span>วิธีทำข้อสอบ PIPO <a class="ref" href="exam.html#sub-pipo">ฝึกในแนวข้อสอบ</a></h2>
+        <p>โจทย์อาจสลับช่องของ MUX จึง<b>อย่าท่องรหัส</b> ให้อ่านจากรูปทุกครั้งตาม 3 ขั้นนี้</p>
+        <ol>
+          <li><b>อ่านวงจร:</b> ดู MUX ของ Q3 ว่าแต่ละช่องต่อกับอะไร แล้วบอกโหมดของช่องนั้น
+            <ul>
+              <li>ต่อ Q3 ตัวเอง = คงค่า · ต่อ D3 = โหลด · ต่อ Serial_in = Shift right · ต่อ Q0 = Rotate right</li>
+            </ul>
+          </li>
+          <li><b>เขียนตาราง control:</b> แถว SHSel₁ SHSel₀ แต่ละแถว เติม Q3⁺ Q2⁺ Q1⁺ Q0⁺ ตามโหมด</li>
+          <li><b>ไล่ทีละขั้น:</b> อ่าน SHSel ของแถวนั้น เปิดตาราง control แล้วแทนค่าด้วย Q ก่อนขอบ, D และ Serial_in</li>
+        </ol>
+
+        <h3>ตัวอย่าง: วงจรที่สลับช่อง</h3>
+        <figure class="figure wide reg-fig" id="shsel-example"></figure>
+        <p><b>ขั้น 1:</b> MUX ของ Q3: ช่อง 0 ต่อ Q0 (Rotate), ช่อง 1 ต่อ D3 (Load), ช่อง 2 ต่อ Q3 (คงค่า), ช่อง 3 ต่อ Serial_in (Shift right)</p>
+        <p><b>ขั้น 2:</b> เขียนตาราง control</p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>SHSel₁</th><th>SHSel₀</th><th>Q3⁺</th><th>Q2⁺</th><th>Q1⁺</th><th>Q0⁺</th><th>Operation</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>0</td><td>Q0</td><td>Q3</td><td>Q2</td><td>Q1</td><td class="txt">Rotate right</td></tr>
+              <tr><td>0</td><td>1</td><td>D3</td><td>D2</td><td>D1</td><td>D0</td><td class="txt">Parallel load</td></tr>
+              <tr><td>1</td><td>0</td><td>Q3</td><td>Q2</td><td>Q1</td><td>Q0</td><td class="txt">คงค่าเดิม</td></tr>
+              <tr><td>1</td><td>1</td><td>Serial_in</td><td>Q3</td><td>Q2</td><td>Q1</td><td class="txt">Shift right</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top: 12px;"><b>ขั้น 3:</b> D3–D0 = 1011 ตลอด, Serial_in = 0 ตลอด, เริ่ม Q3–Q0 = 0000</p>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>ขอบ</th><th>SHSel</th><th>Q3–Q0</th><th>Q3⁺–Q0⁺</th><th>เหตุผล</th></tr></thead>
+            <tbody>
+              <tr><td>↑1</td><td>1</td><td>0000</td><td>1011</td><td class="txt">Load รับ D3–D0</td></tr>
+              <tr><td>↑2</td><td>0</td><td>1011</td><td>1101</td><td class="txt">Rotate: Q0 เดิม (1) เข้า Q3 บิตอื่นรับบิตทางซ้าย</td></tr>
+              <tr><td>↑3</td><td>3</td><td>1101</td><td>0110</td><td class="txt">Shift right: Serial_in (0) เข้า Q3 ค่า 1 ของ Q0 หลุดออก</td></tr>
+              <tr><td>↑4</td><td>2</td><td>0110</td><td>0110</td><td class="txt">คงค่า</td></tr>
+              <tr><td>↑5</td><td>0</td><td>0110</td><td>0011</td><td class="txt">Rotate: Q0 เดิม (0) เข้า Q3</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 15 -->
+      <section id="pipo-pitfalls">
+        <h2><span class="num">15</span>จุดที่พลาดบ่อยของ PIPO</h2>
+        <div class="callout warn">
+          <ul style="margin: 0;">
+            <li>ใช้รหัสตามสไลด์ 14 ทันทีโดยไม่ดูรูป (ต้องดูว่าช่องไหนต่อกับอะไร)</li>
+            <li>แปลง SHSel₁ SHSel₀ สลับหลัก: 1 0 คือ 2 ไม่ใช่ 1</li>
+            <li>ใช้ค่าใหม่ของบิตข้าง ๆ ในขอบเดียวกัน (ที่ถูกคือใช้ค่าก่อนขอบทุกบิต)</li>
+            <li>Rotate แล้วใส่ Serial_in เข้า Q3 (ที่ถูกคือ Q0 เดิม)</li>
+            <li>คิดว่า Q เปลี่ยนตามทันทีตอน SHSel หรือ D เปลี่ยน (ที่ถูกคือเปลี่ยนเฉพาะที่ขอบ clock)</li>
+            <li>สับสนทิศ: เลื่อนขวาคือข้อมูลไหลจาก Q3 ไป Q0 และบิตที่หลุดออกคือ Q0</li>
+          </ul>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -337,7 +526,7 @@
   <script>
     (function () {
       "use strict";
-      const { twoState, ffSymbol, tocSpy } = LK;
+      const { twoState, ffSymbol, shiftRegister, tocSpy } = LK;
 
       const FSM = {
         sr: { up: "SR=10", down: "SR=01", loop0: "SR=00, 01", loop1: "SR=00, 10" },
@@ -355,6 +544,9 @@
         ffSymbol({ left: ["J", { name: "Ck", clk: "fall" }, "K"], cap: "JK FF ↓" }),
         ffSymbol({ left: ["D", { name: "Ck", clk: "rise" }], top: "PreN", bottom: "ClrN", cap: "D FF + Pre/Clr" }),
       ].join("");
+
+      document.getElementById("shsel-fig").innerHTML = shiftRegister() + "<figcaption>0 = คงค่า · 1 = Parallel load · 2 = Shift right · 3 = Rotate right · จุดดำคือสายเชื่อมกัน ถ้าไม่มีจุดคือแค่ข้ามกัน</figcaption>";
+      document.getElementById("shsel-example").innerHTML = shiftRegister("RLHS") + "<figcaption>วงจรเดียวกัน แต่ต่อช่องของ MUX สลับกัน</figcaption>";
 
       tocSpy(document.querySelector(".toc"));
     })();
