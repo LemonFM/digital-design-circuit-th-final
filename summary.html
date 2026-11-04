@@ -24,7 +24,7 @@
   </div>
 
   <header class="page-head wrap">
-    <p class="eyebrow">บท 06 Latches and Flip-Flops · บท 09 Shift Registers</p>
+    <p class="eyebrow">บท 06 Latches and Flip-Flops · บท 08 Combinational Components · บท 09 Shift Registers</p>
     <h1>สรุปรวมก่อนสอบ</h1>
     <p class="lead">ทุกตาราง สมการ และวิธีคิดที่ต้องใช้ รวมไว้ในหน้าเดียว ถ้าข้อไหนยังไม่เข้าใจ กดลิงก์ "อ่านเพิ่ม" เพื่อไปที่หน้าเนื้อหาของหัวข้อนั้น · เรื่อง shift register แบบ PIPO เริ่มที่ <a href="#sr-basics">หัวข้อ 11</a></p>
   </header>
@@ -48,6 +48,11 @@
         <li><a href="#shsel">วงจร SHSel และตาราง control <span class="exam-hint">ออกสอบ</span></a></li>
         <li><a href="#pipo-steps">วิธีทำข้อสอบ PIPO <span class="exam-hint">ออกสอบ</span></a></li>
         <li><a href="#pipo-pitfalls">จุดที่พลาดบ่อยของ PIPO <span class="exam-hint">ออกสอบ</span></a></li>
+        <li><a href="#seg7-basics">พื้นฐาน 7-segment <span class="exam-hint">เน้น</span></a></li>
+        <li><a href="#seg7-table">ตารางรูป 0–F <span class="exam-hint">เน้น</span></a></li>
+        <li><a href="#seg7-steps">วิธีทำข้อสอบ 7-segment <span class="exam-hint">เน้น</span></a></li>
+        <li><a href="#seg7-eq">สมการสำเร็จรูป <span class="exam-hint">เน้น</span></a></li>
+        <li><a href="#seg7-pitfalls">จุดที่พลาดบ่อยของ 7-segment <span class="exam-hint">เน้น</span></a></li>
       </ol>
     </details>
 
@@ -515,6 +520,111 @@
           </ul>
         </div>
       </section>
+
+      <!-- 16 -->
+      <section id="seg7-basics">
+        <h2><span class="num">16</span>พื้นฐาน 7-segment</h2>
+        <p>วงจรรับรหัส 4 บิต <b>D C B A</b> (D เป็นบิตสูงสุด) แล้วส่ง 7 เส้น <b>a–g</b> ไปเปิดขีดบนจอ เป็นวงจร combinational ไม่มี clock อ่านเต็มได้ที่<a href="topics/combinational-components.html">บท 08</a></p>
+        <div class="two-col">
+          <figure class="figure" id="seg7-names"><figcaption>a บนสุด ไล่ตามเข็มนาฬิกา · g คือขีดกลาง</figcaption></figure>
+          <div class="table-scroll">
+            <table class="tt">
+              <thead><tr><th>ชนิดจอ</th><th>ขีดติดเมื่อ</th></tr></thead>
+              <tbody>
+                <tr><td class="txt">Common cathode</td><td>output = 1</td></tr>
+                <tr><td class="txt">Common anode</td><td>output = 0 (กลับทุกบิต)</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="table-scroll" style="margin-top:12px;">
+          <table class="tt">
+            <thead><tr><th>โจทย์ให้แสดง</th><th>รหัสที่ใช้</th><th>ช่อง × ใน K-map</th></tr></thead>
+            <tbody>
+              <tr><td class="txt">BCD 0–9 (สไลด์)</td><td>0000–1001</td><td>10–15 (6 ช่อง)</td></tr>
+              <tr><td class="txt">ครบ 0–F</td><td>0000–1111</td><td>ไม่มี</td></tr>
+              <tr><td class="txt">แค่ A–F</td><td>1010–1111</td><td>0–9 (10 ช่อง)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn">
+          <b>ตัวอักษรมี 3 ความหมาย</b>
+          D C B A ตัวใหญ่คือ <b>input</b> · a–g ตัวเล็กคือ<b>ชื่อขีด</b> · A, b, C, d, E, F คือ<b>รูปบนจอ</b> สไลด์เรียก input ว่า i3 i2 i1 i0 ซึ่งตรงกับ D C B A
+        </div>
+      </section>
+
+      <!-- 17 -->
+      <section id="seg7-table">
+        <h2><span class="num">17</span>ตารางรูป 0–F</h2>
+        <p>ตารางนี้ใช้ common cathode (1 = ติด) ถ้าจำรูปได้ก็เขียนตารางได้ทันที</p>
+        <div class="table-scroll" id="seg7-truth"></div>
+        <div class="callout warn">
+          <b>3 รูปที่ต้องระวัง</b>
+          <b>6</b> ต้องติด a ไม่อย่างนั้นซ้ำกับ b · <b>9</b> หน้านี้ติด d แต่สไลด์ 15–17 ให้ d = 0 ถ้าโจทย์ให้ตารางมาให้ใช้ค่าตามโจทย์ · <b>b, d</b> เป็นตัวเล็กเพราะตัวใหญ่จะเหมือน 8 และ 0
+        </div>
+      </section>
+
+      <!-- 18 -->
+      <section id="seg7-steps">
+        <h2><span class="num">18</span>วิธีทำข้อสอบ 7-segment</h2>
+        <ol>
+          <li><b>ตารางความจริง:</b> เขียนทุกรหัสของ input ใส่ a–g ตามรูป รหัสที่โจทย์ไม่ใช้ใส่ × ทั้ง 7 เส้น ถ้าเป็น common anode ให้กลับบิตตั้งแต่ขั้นนี้</li>
+          <li><b>K-map:</b> ทำแยก <b>7 ตาราง</b> ใช้ × ขยายกลุ่มให้ใหญ่ที่สุด แต่ไม่ต้องครอบ ×</li>
+          <li><b>สมการ:</b> อ่านแต่ละกลุ่มเป็นเทอม AND แล้ว OR รวมกัน ได้รูป SOP</li>
+          <li><b>วงจร:</b> ใช้ NOT สร้าง D′ C′ B′ A′ ตามที่ใช้ แต่ละเทอมคือ AND 1 ตัว แล้ว OR รวมเป็น 1 output ต่อขีด</li>
+        </ol>
+        <div class="callout tip">
+          <b>ห้ามใช้ exclusive</b>
+          รูป SOP จาก K-map ใช้แค่ AND, OR, NOT อยู่แล้ว จึงหยุดที่ขั้นสมการได้เลย ไม่ต้องย่อเป็น XOR หรือ XNOR
+        </div>
+        <div class="callout tip">
+          <b>กรณีพิเศษ</b>
+          ถ้าทุกช่องของขีดนั้นเป็น 1 หรือ × สมการคือ <span class="mono">1</span> ต่อค่าคงที่ได้เลย · ถ้าทุกช่องเป็น 0 หรือ × สมการคือ <span class="mono">0</span> · เทอมที่ซ้ำกันหลายขีดใช้ AND ตัวเดียวแยกสายได้
+        </div>
+        <h3>ตัวอย่าง: แสดงแค่ A–F (รหัส 0000–1001 เป็น ×)</h3>
+        <div class="table-scroll" id="seg7-af-table"></div>
+        <div class="design-maps" id="seg7-af-maps" style="margin-top:12px;"></div>
+      </section>
+
+      <!-- 19 -->
+      <section id="seg7-eq">
+        <h2><span class="num">19</span>สมการสำเร็จรูป</h2>
+        <p>ทุกสมการเป็น SOP ที่น้อยที่สุด ใช้ตารางในหัวข้อ 17 ช่อง * คือมีคำตอบอื่นที่น้อยเท่ากัน</p>
+        <div class="table-scroll" id="seg7-eqs"></div>
+        <p style="margin-top:10px;">ถ้าใช้ตารางสไลด์ที่เลข 9 มี d = 0 สมการ BCD ของขีด d คือ <span class="mono">C′A′ + BA′ + C′B + CB′A</span> ขีดอื่นเท่าเดิม</p>
+        <h3>แปลงรูป exclusive กลับเป็น AND, OR, NOT</h3>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>รูปในสไลด์ 17</th><th>ไม่ใช้ exclusive</th></tr></thead>
+            <tbody>
+              <tr><td>X ⊕ Y</td><td>XY′ + X′Y</td></tr>
+              <tr><td>X ⊙ Y</td><td>XY + X′Y′</td></tr>
+              <tr><td>a = D + B + (C ⊙ A)</td><td>a = D + B + CA + C′A′</td></tr>
+              <tr><td>b = C′ + (B ⊙ A)</td><td>b = C′ + BA + B′A′</td></tr>
+              <tr><td>g = D + (C ⊕ B) + BA′</td><td>g = D + CB′ + C′B + BA′</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 20 -->
+      <section id="seg7-pitfalls">
+        <h2><span class="num">20</span>จุดที่พลาดบ่อยของ 7-segment</h2>
+        <div class="callout warn">
+          <ul style="margin: 0;">
+            <li>สับสน input D กับขีด d และรูป d บนจอ</li>
+            <li>ทำ K-map ตารางเดียว (ต้องทำ 7 ตาราง ขีดละ 1 ตาราง)</li>
+            <li>ใส่ 0 ในรหัสที่ไม่ใช้แทน × ทำให้สมการยาวเกินจำเป็น</li>
+            <li>ใส่ × ทั้งที่โจทย์ให้แสดงครบ 0–F</li>
+            <li>ลืมกลับบิตเมื่อโจทย์เป็น common anode</li>
+            <li>สร้างกลุ่มเพื่อครอบ × อย่างเดียว</li>
+            <li>เขียน b, d เป็นตัวใหญ่ หรือใช้เลข 6 ที่ไม่ติด a ในโจทย์ 0–F</li>
+            <li>เรียงหัว K-map ผิด: ต้องเป็น 00, 01, 11, 10 และดูแถวกับคอลัมน์ตามโจทย์</li>
+            <li>ใช้ XOR หรือ XNOR ทั้งที่โจทย์ห้าม</li>
+          </ul>
+        </div>
+        <p>ฝึกทำได้ที่<a href="exam.html#sub-seg7">แนวข้อสอบ 7-segment</a></p>
+      </section>
     </main>
   </div>
 
@@ -526,7 +636,7 @@
   <script>
     (function () {
       "use strict";
-      const { twoState, ffSymbol, shiftRegister, tocSpy } = LK;
+      const { twoState, ffSymbol, shiftRegister, tocSpy, seg7, SEG7_HEX, SEG7_GLYPH, kmapPrimeInfo, kmapSOP, kmapSvg } = LK;
 
       const FSM = {
         sr: { up: "SR=10", down: "SR=01", loop0: "SR=00, 01", loop1: "SR=00, 10" },
@@ -547,6 +657,27 @@
 
       document.getElementById("shsel-fig").innerHTML = shiftRegister() + "<figcaption>0 = คงค่า · 1 = Parallel load · 2 = Shift right · 3 = Rotate right · จุดดำคือสายเชื่อมกัน ถ้าไม่มีจุดคือแค่ข้ามกัน</figcaption>";
       document.getElementById("shsel-example").innerHTML = shiftRegister("RLHS") + "<figcaption>วงจรเดียวกัน แต่ต่อช่องของ MUX สลับกัน</figcaption>";
+
+      // 7-segment: every table and equation is solved from the display table.
+      const SEGS = [..."abcdefg"], ALL = [...SEG7_HEX.keys()], $ = (id) => document.getElementById(id);
+      const bits = (i) => [...i.toString(2).padStart(4, "0")];
+      const cells = (row) => [...row].map((b) => `<td${b === "0" ? ' class="off"' : ""}>${b}</td>`).join("");
+      const solveSeg = (shown) => SEGS.map((s, k) => {
+        const ones = shown.filter((i) => SEG7_HEX[i][k] === "1"), dcs = ALL.filter((i) => !shown.includes(i));
+        const info = kmapPrimeInfo(4, ones, dcs), terms = [...info.essential, ...info.choices[0]];
+        return { s, terms, ties: info.choices.length, eq: kmapSOP(4, terms), map: ALL.map((i) => (ones.includes(i) ? "1" : dcs.includes(i) ? "×" : "0")) };
+      });
+      const BCD = solveSeg(ALL.slice(0, 10)), HEX = solveSeg(ALL), AF = solveSeg(ALL.slice(10));
+
+      $("seg7-names").insertAdjacentHTML("afterbegin", `<div style="text-align:center;">${seg7("0000000", { size: 96, names: true })}</div>`);
+      const head = `<thead><tr><th>ค่า</th><th>D</th><th>C</th><th>B</th><th>A</th><th>จอ</th>${SEGS.map((s) => `<th>${s}</th>`).join("")}</tr></thead>`;
+      const rows = (list) => list.map((i) => `<tr><td><b>${SEG7_GLYPH[i]}</b></td>${bits(i).map((b) => `<td>${b}</td>`).join("")}<td>${seg7(SEG7_HEX[i], { size: 18 })}</td>${cells(SEG7_HEX[i])}</tr>`).join("");
+      $("seg7-truth").innerHTML = `<table class="tt cc-truth">${head}<tbody>${rows(ALL)}</tbody></table>`;
+      $("seg7-af-table").innerHTML = `<table class="tt cc-truth">${head}<tbody><tr><td class="txt" colspan="6">รหัส 0000 ถึง 1001</td>${SEGS.map(() => "<td>×</td>").join("")}</tr>${rows(ALL.slice(10))}</tbody></table>`;
+      $("seg7-af-maps").innerHTML = AF.map((x) => `<figure>${kmapSvg(4, x.map, { groups: x.terms })}<figcaption>${x.s} = ${x.eq}</figcaption></figure>`).join("");
+      const eqCell = (x) => `<td>${x.eq}${x.ties > 1 ? " *" : ""}</td>`;
+      $("seg7-eqs").innerHTML = `<table class="tt"><thead><tr><th>ขีด</th><th>BCD 0–9 (× ที่ 10–15)</th><th>ครบ 0–F (ไม่มี ×)</th><th>แค่ A–F (× ที่ 0–9)</th></tr></thead><tbody>` +
+        SEGS.map((s, k) => `<tr><td>${s}</td>${eqCell(BCD[k])}${eqCell(HEX[k])}${eqCell(AF[k])}</tr>`).join("") + "</tbody></table>";
 
       tocSpy(document.querySelector(".toc"));
     })();

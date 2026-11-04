@@ -487,6 +487,125 @@
     return `<svg class="kmap" viewBox="0 0 ${width} ${height}" style="max-width:${Math.round(width * scale)}px" role="img" aria-label="K-map ${names.join("")}">${s}${marks}</svg>`;
   }
 
+  // ---------- Seven-segment display and rail-style gate circuits ----------
+
+  // Values 0–F as "abcdefg" (1 = lit). 6 keeps its top bar so it differs from b; 9 lights d.
+  const SEG7_HEX = ["1111110", "0110000", "1101101", "1111001", "0110011", "1011011", "1011111", "1110000", "1111111", "1111011", "1110111", "0011111", "1001110", "0111101", "1001111", "1000111"];
+  const SEG7_GLYPH = "0123456789AbCdEF";
+  const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+
+  const hbar = (y) => `12,${y} 17,${y - 5} 43,${y - 5} 48,${y} 43,${y + 5} 17,${y + 5}`;
+  const vbar = (x, y1, y2) => `${x},${y1} ${x + 5},${y1 + 5} ${x + 5},${y2 - 5} ${x},${y2} ${x - 5},${y2 - 5} ${x - 5},${y1 + 5}`;
+  const BARS = [hbar(10), vbar(50, 12, 48), vbar(50, 52, 88), hbar(90), vbar(10, 52, 88), vbar(10, 12, 48), hbar(50)];
+  const NAME_AT = [[30, 14], [50, 35], [50, 75], [30, 94], [10, 75], [10, 35], [30, 54]];
+  // bits: "abcdefg" as a string of 0 and 1.
+  function seg7(bits, { size = 30, names = false } = {}) {
+    const bars = BARS.map((p, k) => `<polygon class="${bits[k] === "1" ? "on" : ""}" points="${p}"/>`).join("");
+    const text = names ? NAME_AT.map(([x, y], k) => `<text x="${x}" y="${y}" text-anchor="middle">${"abcdefg"[k]}</text>`).join("") : "";
+    return `<svg class="seg7" viewBox="0 0 60 100" style="width:${size}px" role="img" aria-label="จอ 7-segment">${bars}${text}</svg>`;
+  }
+
+  // A circuit is { inputs, outputs: [{ name, terms | constant }], pitch?, compact? }.
+  // A term is a literal ("C′") or a gate (["and" | "xor" | "xnor", ...literals]).
+  const litsOf = (term) => (Array.isArray(term) ? term.slice(1) : [term]);
+
+  // Every wire of a circuit: input literals, gate outputs ("a.2") and outputs ("a").
+  function circuitLevels(cfg, inp) {
+    const lv = {};
+    cfg.inputs.forEach((n) => { lv[n] = inp[n]; lv[`${n}′`] = 1 - inp[n]; });
+    cfg.outputs.forEach((o) => {
+      if (o.constant !== undefined) { lv[o.name] = o.constant; return; }
+      const vals = o.terms.map((t, i) => {
+        if (!Array.isArray(t)) return lv[t];
+        const [op, ...xs] = t, v = xs.map((x) => lv[x]);
+        const out = op === "and" ? (v.every(Boolean) ? 1 : 0) : op === "xor" ? v[0] ^ v[1] : 1 - (v[0] ^ v[1]);
+        lv[`${o.name}.${i}`] = out;
+        return out;
+      });
+      lv[o.name] = vals.some(Boolean) ? 1 : 0;
+    });
+    return lv;
+  }
+
+  // Vertical rails (each input and its complement), first-level gates, then an OR per output.
+  function railCircuit(cfg) {
+    const { inputs, outputs, pitch = 22, compact = false } = cfg, used = new Set(outputs.flatMap((o) => (o.terms || []).flatMap(litsOf)));
+    const rail = {}, wires = [], gates = [], labels = [], dots = [], reach = {};
+    let x = 20;
+    inputs.forEach((n) => { rail[n] = x; x += pitch; if (used.has(`${n}′`)) { rail[`${n}′`] = x; x += pitch; } x += 6; });
+    const hasNot = inputs.some((n) => used.has(`${n}′`)), gx = x + 4, most = Math.max(1, ...outputs.map((o) => (o.terms || []).length));
+    const gateW = compact ? 34 : 46, gateH = compact ? 24 : 40, slot = compact ? 28 : 44;
+    const ox = gx + gateW + 14 + 12 * Math.ceil(most / 2), outX = (most > 1 ? ox + 46 : gx + 56) + 26;
+    const W = (net, d) => wires.push(`<path class="wire" data-net="${esc(net)}" d="${d}"/>`);
+    const tap = (lit, y) => { dots.push(`<circle class="dot" data-net="${esc(lit)}" cx="${rail[lit]}" cy="${y}" r="3.5"/>`); reach[lit] = Math.max(reach[lit] || 0, y); };
+    const PINS = compact ? { 2: [6, 18], 3: [4, 12, 20], 4: [3, 9, 15, 21] } : { 2: [10, 30], 3: [8, 20, 32], 4: [5, 15, 25, 35] };
+    let y = hasNot ? 92 : 40;
+
+    outputs.forEach((o) => {
+      if (o.constant !== undefined) { // tied to 0 or 1: no gates, just the fixed level
+        const cy = y + 14;
+        labels.push(`<text x="${gx}" y="${cy + 5}">${o.constant}</text>`);
+        W(o.name, `M${gx + 14} ${cy} H${outX - 6}`);
+        dots.push(`<path class="dot" data-net="${esc(o.name)}" d="M${outX - 8} ${cy - 5} L${outX} ${cy} L${outX - 8} ${cy + 5} Z"/>`);
+        labels.push(`<text x="${outX + 6}" y="${cy + 5}">${esc(o.name)}</text>`);
+        y += 42;
+        return;
+      }
+      const slots = o.terms.map((t) => (Array.isArray(t) ? slot : 18)), height = Math.max(44, slots.reduce((a, b) => a + b, 0));
+      const cy = y + height / 2, n = o.terms.length, gapPin = n <= 2 ? 20 : n === 3 ? 12 : n === 4 ? 10 : 7;
+      let top = y + (height - slots.reduce((a, b) => a + b, 0)) / 2;
+      const routes = o.terms.map((t, i) => {
+        const pin = cy + (i - (n - 1) / 2) * gapPin;
+        if (!Array.isArray(t)) { const wy = top + 9; top += 18; tap(t, wy); return { net: t, sx: rail[t], wy, pin }; }
+        const [op, ...xs] = t, gy = top + (slot - gateH) / 2, wy = gy + gateH / 2, xor = op !== "and", net = n > 1 ? `${o.name}.${i}` : o.name;
+        top += slot;
+        xs.forEach((lit, k) => { const py = gy + PINS[xs.length][k]; tap(lit, py); W(lit, `M${rail[lit]} ${py} H${gx + 2}`); });
+        if (xor) {
+          const bubble = op === "xnor" ? `<circle cx="51" cy="20" r="5"/>` : "";
+          gates.push(`<g class="gate"><path d="M${gx - 5} ${gy} C${gx + 5} ${gy + 10} ${gx + 5} ${gy + 30} ${gx - 5} ${gy + 40}" style="fill:none"/></g>`);
+          gates.push(gate("or", gx + 6, gy).replace("</g>", `${bubble}</g>`));
+        } else if (compact) gates.push(`<g class="gate"><path d="M${gx} ${gy} H${gx + 22} A12 12 0 0 1 ${gx + 22} ${gy + 24} H${gx} Z"/></g>`);
+        else gates.push(gate("and", gx, gy));
+        return { net, sx: gx + (op === "and" ? gateW : op === "xor" ? 52 : 56), wy, pin };
+      });
+      if (n === 1) {
+        const r = routes[0];
+        W(o.name, `M${r.sx} ${r.wy} H${outX - 6}`);
+      } else {
+        const above = routes.filter((r) => r.wy < r.pin), below = routes.filter((r) => r.wy > r.pin).reverse();
+        [above, below].forEach((side) => side.forEach((r, rank) => (r.bx = ox - 8 - 12 * rank)));
+        routes.forEach((r) => W(r.net, r.wy === r.pin ? `M${r.sx} ${r.wy} H${ox + 8}` : `M${r.sx} ${r.wy} H${r.bx} V${r.pin} H${ox + 8}`));
+        gates.push(gate("or", ox, cy - 20));
+        W(o.name, `M${ox + 46} ${cy} H${outX - 6}`);
+      }
+      dots.push(`<path class="dot" data-net="${esc(o.name)}" d="M${outX - 8} ${cy - 5} L${outX} ${cy} L${outX - 8} ${cy + 5} Z"/>`);
+      labels.push(`<text x="${outX + 6}" y="${cy + 5}">${esc(o.name)}</text>`);
+      y += height + 14;
+    });
+
+    inputs.forEach((n) => {
+      const px = rail[n], rn = rail[`${n}′`];
+      labels.push(`<text x="${px}" y="16" text-anchor="middle">${esc(n)}</text>`);
+      W(n, `M${px} 24 V${Math.max(reach[n] || 0, 34)}`);
+      if (rn === undefined) return;
+      if (reach[n] > 34) dots.push(`<circle class="dot" data-net="${esc(n)}" cx="${px}" cy="34" r="3.5"/>`);
+      W(n, `M${px} 34 H${rn} V42`);
+      gates.push(`<g class="gate"><path d="M${rn - 9} 42 L${rn + 9} 42 L${rn} 60 Z"/><circle cx="${rn}" cy="64" r="4"/></g>`);
+      W(`${n}′`, `M${rn} 68 V${reach[`${n}′`]}`);
+      labels.push(`<text class="cc-not" x="${rn + 4}" y="82">${esc(n)}′</text>`);
+    });
+    const wide = Math.max(...outputs.map((o) => o.name.length));
+    return `<svg class="schem rail sim-schem" viewBox="0 0 ${outX + 14 + wide * 10} ${y - 4}" role="img" aria-label="วงจรเกต">${wires.join("")}${dots.join("")}${gates.join("")}${labels.join("")}</svg>`;
+  }
+
+  // One output of a circuit from K-map cubes: a single literal stays a wire, an empty cover or a full cube is a constant.
+  function kmapRailOutput(n, name, cubes) {
+    if (!cubes.length) return { name, constant: 0 };
+    const names = kmapNames(n), lits = (c) => names.flatMap((x, k) => { const b = 1 << (n - 1 - k); return c.m & b ? [] : [c.v & b ? x : `${x}′`]; });
+    if (cubes.some((c) => !lits(c).length)) return { name, constant: 1 };
+    return { name, terms: cubes.map((c) => (lits(c).length === 1 ? lits(c)[0] : ["and", ...lits(c)])) };
+  }
+
   // ---------- Exercises ----------
 
   // Timing-diagram drills: <svg data-exercise=id>, <button data-reveal=id>, <div data-answer=id hidden>.
@@ -627,6 +746,6 @@
 
   global.LK = {
     NOT, AND, OR, NAND, NOR, settle, label, gate, schematic, setLevels, wave, fitStep, tocSpy,
-    steps, pulses, isEdge, simulate, byQ, twoState, ffSymbol, shiftRegister, shifterCircuit, kmapPrimes, kmapPrimeInfo, kmapPowerSet, kmapCover, kmapTerm, kmapSOP, kmapPOS, kmapSvg, kmapNames, inCube, KMAP_COLORS, exercises, ffSim,
+    steps, pulses, isEdge, simulate, byQ, twoState, ffSymbol, shiftRegister, shifterCircuit, kmapPrimes, kmapPrimeInfo, kmapPowerSet, kmapCover, kmapTerm, kmapSOP, kmapPOS, kmapSvg, kmapNames, inCube, KMAP_COLORS, SEG7_HEX, SEG7_GLYPH, seg7, circuitLevels, railCircuit, kmapRailOutput, exercises, ffSim,
   };
 })(window);

@@ -280,6 +280,41 @@ a.topic .topic-no { color: var(--accent); }
 .km-chart td:first-child { text-align: left; font-weight: 600; white-space: nowrap; }
 .km-result { font-family: var(--mono); font-weight: 600; text-align: center; margin: 10px 0 0; }
 .km-example { margin: 20px 0; }
+
+/* Combinational components: 7-segment digits and rail-style circuits */
+.seg7 { display: inline-block; height: auto; vertical-align: middle; }
+.figure svg.seg7 { width: auto; margin: 0; }
+.seg7 polygon { fill: #e9e6df; }
+.seg7 polygon.on { fill: var(--hi); }
+.seg7 text { font-family: var(--mono); font-size: 7px; font-weight: 600; fill: var(--ink); }
+.cc-truth td { padding: 5px 8px; }
+.cc-truth td.off, .tt td.off { color: var(--lo); }
+.cc-seg-title { display: flex; align-items: center; gap: 10px; }
+.cc-digits { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; margin: 16px 0; }
+.cc-digits figure { margin: 0; text-align: center; }
+.cc-digits figcaption { font-size: 14px; color: var(--ink-3); margin-top: 6px; }
+.cc-digits.small { gap: 10px; margin: 8px 0; justify-content: flex-start; }
+.cc-digits.small figcaption { font-family: var(--mono); font-size: 12px; margin-top: 2px; }
+.design-step { margin-top: 10px; }
+.design-step > div { margin-top: 10px; }
+.design-maps { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.design-maps figure { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px; }
+.design-maps svg { display: block; width: 100%; height: auto; }
+.design-maps figcaption { font-family: var(--mono); font-size: 14px; font-weight: 600; text-align: center; margin-top: 6px; }
+.design-circuit svg { max-width: 420px; }
+.cc-sim-title { font-size: 16px; font-weight: 600; margin: 0; }
+.schem.rail text { font-size: 15px; }
+.schem.rail text.cc-not { font-size: 12px; }
+.cc-grid svg.rail { max-width: 460px; margin-inline: auto; }
+.cc-panel.sticky { position: sticky; top: 72px; align-self: start; }
+.cc-panel .sim-inputs { margin-top: 0; }
+.cc-readout { display: flex; gap: 14px; align-items: center; margin-bottom: 12px; }
+.cc-readout-main { min-width: 0; flex: 1; }
+.cc-bits { display: grid; grid-template-columns: repeat(auto-fit, minmax(34px, 1fr)); gap: 6px; margin-top: 12px; }
+.cc-bits span { text-align: center; border: 1px solid var(--line); border-radius: 8px; padding: 4px 2px; }
+.cc-bits i { display: block; font-style: normal; font-family: var(--mono); font-size: 13px; color: var(--ink-3); }
+.cc-bits b { font-family: var(--mono); font-size: 20px; color: var(--lo); }
+.cc-bits b.hi { color: var(--hi); }
 .km-steps { margin: 6px 0 0; padding-left: 0; list-style: none; }
 .km-steps li, .km-terms li { margin: 6px 0; }
 .km-dot { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 8px; }
@@ -548,6 +583,20 @@ a.topic .topic-no { color: var(--accent); }
   .figure.wide svg { min-width: 520px; }
   .figure.reg-fig svg { min-width: 760px; }
   .km-sim-grid, .km-quad { grid-template-columns: minmax(0, 1fr); }
+  .schem.rail text { font-size: 15px; }
+  .schem.rail text.cc-not { font-size: 12px; }
+  /* Clears the sticky contents bar, and stays short enough to leave the circuit in view */
+  .cc-panel.sticky { order: -1; top: 112px; z-index: 5; background: var(--surface); padding-bottom: 6px; }
+  .cc-panel.sticky .cc-readout { margin-bottom: 0; }
+  .cc-panel.sticky .seg7 { width: 42px !important; }
+  .cc-panel.sticky .sim-inputs { gap: 6px; flex-wrap: nowrap; }
+  .cc-panel.sticky .sim-inputs .sw { flex: 1 1 0; min-width: 0; min-height: 44px; padding: 4px 4px 4px 8px; gap: 4px; }
+  .cc-panel.sticky .sim-inputs .sw-val { min-width: 22px; padding: 2px 4px; }
+  .cc-panel.sticky .cc-bits { margin-top: 8px; }
+  .cc-panel.sticky .sim-status { margin: 6px 0 0; padding: 5px 10px; font-size: 14px; }
+  .cc-panel.sticky .actions { margin-top: 6px; }
+  .cc-panel.sticky .actions .btn { flex: 1; min-height: 44px; }
+  .cc-truth th, .cc-truth td { padding: 5px 2px; font-size: 15px; }
   .formula { padding: 18px 8px; }
 
   /* Diagrams scale down with the viewBox, so enlarge their text to stay readable */
@@ -628,6 +677,16 @@ a.topic .topic-no { color: var(--accent); }
   .p-notes { margin: 4px 0 0; padding-left: 1.4em; font-size: 10pt; }
   .p-fig { display: block; max-width: 420px; height: auto; margin-top: 6px; }
   .p-circuit { margin: 6px 0; }
+  .p-item.p-long { break-inside: auto; }
+  .p-item.p-long + .p-item.p-long { break-before: page; }
+  .p-keep { break-inside: avoid; }
+  .p-lines.seven { height: 9.45em; }
+  .p-kmaps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .p-kmaps figure { margin: 0; break-inside: avoid; text-align: center; }
+  .p-kmaps svg { display: block; width: 100%; height: auto; max-width: none !important; }
+  .p-kmaps figcaption { font-size: 9pt; }
+  .p-draw { height: 80mm; border: 1px solid #999; }
+  #print-root svg.rail { display: block; width: auto; max-width: 100%; max-height: 170mm; height: auto; margin: 6px auto; }
   .p-sub { margin: 8px 0 4px; font-size: 10.5pt; font-weight: 600; }
   .p-circuit svg { display: block; width: 100%; height: auto; }
   #print-root .tt { width: auto; font-size: 10pt; background: #fff; }
@@ -653,6 +712,10 @@ a.topic .topic-no { color: var(--accent); }
   #print-root .wave .mark { stroke: #666; }
   #print-root .wave .guide { stroke: #c4c4c4; stroke-dasharray: 2 4; }
   #print-root .wave .unk { fill: #fff; stroke: #000; stroke-dasharray: 3 2; }
+  #print-root .km-group { stroke: #000 !important; fill: none !important; }
+  #print-root .km-cell { fill: #fff; stroke: #777; }
+  #print-root .seg7 polygon { fill: #fff; stroke: #bbb; stroke-width: 0.6; }
+  #print-root .seg7 polygon.on { fill: #000; stroke: #000; }
   #print-root .schem .wire { stroke: #000; }
   #print-root .schem .dot { fill: #000; }
   #print-root .fsm path, #print-root .fsm circle { stroke: #000; }

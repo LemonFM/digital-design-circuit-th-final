@@ -13,6 +13,7 @@
 5. [Asynchronous Inputs (Preset / Clear)](topics/async-inputs.html)
 6. [Register & Shift Register](topics/shift-registers.html)
 7. [Karnaugh Map (K-map)](topics/k-map.html)
+8. [Standard Combinational Components](topics/combinational-components.html) (เน้น 4 บิต to 7-segment แสดง 0–F)
 
 ## แท็บ
 

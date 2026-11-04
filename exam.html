@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <meta name="description" content="แนวข้อสอบ Latches and Flip-Flops แยกปรนัย/อัตนัย และแยกเรื่อง: SR flip-flop, D FF, D FF → JK FF, Input synchronous, JK/T พร้อมเฉลย">
+  <meta name="description" content="แนวข้อสอบ Latches and Flip-Flops, Shift register และ 7-segment แยกปรนัย/อัตนัย และแยกเรื่อง พร้อมเฉลย">
   <title>แนวข้อสอบ · CPE 2423 ครึ่งหลัง</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,7 +24,7 @@
   </div>
 
   <header class="page-head wrap">
-    <p class="eyebrow">บท 06 Latches and Flip-Flops · บท 09 Shift Registers</p>
+    <p class="eyebrow">บท 06 Latches and Flip-Flops · บท 08 Combinational Components · บท 09 Shift Registers</p>
     <h1>แนวข้อสอบ</h1>
     <p class="lead">เลือก <b>ปรนัย</b> หรือ <b>อัตนัย</b> แล้วเลือกเรื่องที่จะซ้อม ปรนัยจะตรวจทันทีที่ตอบ ส่วนอัตนัยให้ลองทำในกระดาษก่อนแล้วค่อยกดดูเฉลย</p>
     <div class="callout tip" style="max-width: 46em;">
@@ -34,6 +34,7 @@
         <li>D FF</li>
         <li>D FF → JK FF</li>
         <li>Input synchronous</li>
+        <li>BCD to 7-segment: ตารางความจริง → K-map → สมการ → วาดวงจร โดยห้ามใช้ exclusive</li>
       </ul>
       <p style="margin: 10px 0 0; font-size: 15px;">"D FF → JK FF" ปกติหมายถึงใช้ D FF สร้าง JK (D = JQ′ + K′Q) แต่เผื่อไว้ว่าอาจหมายถึงทิศกลับ จึงมีแท็บ "JK FF → D FF" (J = D, K = D′) ให้ด้วย · "Input synchronous" ตีความว่าเป็นเรื่อง synchronous input (มีผลที่ขอบ clock) เทียบกับ asynchronous input (Preset/Clear) รวมถึง synchronous reset/enable · โจทย์ทั้งหมดแต่งขึ้นเองเพื่อซ้อม ไม่ใช่ข้อสอบจริง</p>
     </div>
@@ -69,7 +70,7 @@
   <script>
     (function () {
       "use strict";
-      const { NOT, NAND, NOR, settle, simulate, pulses, isEdge, exercises, gate, twoState, wave, schematic, ffSymbol, shiftRegister: shselFig, shifterCircuit } = LK;
+      const { NOT, NAND, NOR, settle, simulate, pulses, isEdge, exercises, gate, twoState, wave, schematic, ffSymbol, shiftRegister: shselFig, shifterCircuit, seg7, SEG7_HEX, SEG7_GLYPH, railCircuit, kmapRailOutput, kmapPrimeInfo, kmapTerm, kmapSOP, kmapSvg, kmapNames } = LK;
 
       const TOPICS = [
         ["sr", "SR flip-flop"],
@@ -79,6 +80,7 @@
         ["sync", "Input synchronous"],
         ["gen", "JK / T / ทั่วไป"],
         ["pipo", "Shift register 4 บิต"],
+        ["seg7", "7-segment 4 บิต"],
       ];
       const TOPIC_NAME = Object.fromEntries(TOPICS);
 
@@ -170,6 +172,17 @@
         { t: "pipo", q: "วงจร s2 s1 s0 (shifter): s2 s1 s0 = 0 1 0, d3–d0 = 1011 ได้ y3–y0 เท่าไร", o: ["0110", "0111", "1101", "1011"], a: 0, e: "ช่อง 2 เลื่อนซ้าย y0 รับค่าจาก MUX ขวา ซึ่ง s2 = 0 ให้ 0" },
         { t: "pipo", q: "วงจร s2 s1 s0 (shifter): s2 s1 s0 = 1 1 0, d3–d0 = 1011 ได้ y3–y0 เท่าไร", o: ["0111", "0110", "1101", "1011"], a: 0, e: "s2 = 1 ทำให้ y0 รับ d3 จึงเป็น rotate left" },
         { t: "pipo", q: "วงจร s2 s1 s0 (shifter): s0 = 1 ได้ผลอย่างไร", o: ["y = d ไม่ว่า s2, s1 เป็นอะไร", "เลื่อนขวาเสมอ", "เลื่อนซ้ายเสมอ", "y = 0000"], a: 0, e: "ช่อง 1 และ 3 ต่อ d ของบิตตัวเองทั้งคู่" },
+        { t: "seg7", q: "จอ common cathode ขีดติดเมื่อ output เป็นเท่าไร", o: ["1", "0", "×", "ขึ้นกับเลขที่แสดง"], a: 0, e: "common cathode ขั้วลบร่วม จึงติดเมื่อ output = 1 ส่วน common anode ติดเมื่อ output = 0" },
+        { t: "seg7", q: "ขีด g ของจอ 7-segment อยู่ตำแหน่งใด", o: ["ขีดกลาง", "ขีดบนสุด", "ขีดล่างสุด", "ขีดขวาบน"], a: 0, e: "a–f ไล่ตามเข็มนาฬิกาจากขีดบน และ g คือขีดกลาง" },
+        { t: "seg7", q: "เลข 7 ติดขีดใดบ้าง", o: ["a, b, c", "a, b, c, f", "b, c", "a, f, g"], a: 0, e: "7 = 1110000" },
+        { t: "seg7", q: "แบบ 0–F รหัส 1011 ขึ้นเป็นรูปอะไร", o: ["b", "8", "d", "A"], a: 0, e: "1011 = 11 = B แต่จอใช้ b ตัวเล็ก" },
+        { t: "seg7", q: "ถ้าต้องการแสดงแค่ A–F ด้วย input 4 บิต รหัส 0000–1001 ใน K-map ควรใส่อะไร", o: ["×", "0", "1", "ค่าของเลขนั้น"], a: 0, e: "รหัสเหล่านี้ไม่ได้ใช้ จึงเป็น don't care เอาไว้ขยายกลุ่ม" },
+        { t: "seg7", q: "ทำไมจอแสดง b และ d เป็นตัวเล็ก", o: ["ตัวใหญ่จะเหมือนเลข 8 และ 0", "ใช้ขีดน้อยกว่าเสมอ", "สไลด์บังคับ", "K-map จะง่ายขึ้น"], a: 0, e: "B และ D ตัวใหญ่บนจอ 7 ขีดไม่ต่างจาก 8 และ 0" },
+        { t: "seg7", q: "ห้ามใช้ XNOR เขียน B ⊙ A ด้วย AND, OR, NOT ได้อย่างไร", o: ["BA + B′A′", "BA′ + B′A", "B + A", "B′ + A′"], a: 0, e: "XNOR เป็น 1 เมื่อทั้งคู่เหมือนกัน" },
+        { t: "seg7", q: "ห้ามใช้ XOR เขียน C ⊕ B ด้วย AND, OR, NOT ได้อย่างไร", o: ["CB′ + C′B", "CB + C′B′", "C + B", "CB"], a: 0, e: "XOR เป็น 1 เมื่อทั้งคู่ต่างกัน" },
+        { t: "seg7", q: "วงจรแปลงรหัส 4 บิตเป็น 7-segment ต้องทำ K-map กี่ตาราง", o: ["7", "4", "1", "16"], a: 0, e: "output มี 7 เส้น เส้นละ 1 ตาราง" },
+        { t: "seg7", q: "แบบ 0–F ขีด e มีสมการที่น้อยที่สุดคืออะไร", o: ["C′A′ + BA′ + DB + DC", "C′A′ + BA′", "D + C + A′", "C′A′ + DB"], a: 0, e: "C′A′ + BA′ คือแบบ BCD ที่มี × ส่วนแบบ 0–F ไม่มี × จึงต้องเพิ่ม DB + DC" },
+        { t: "seg7", q: "จอ common anode แสดงเลข 1 (common cathode คือ 0110000) ต้องส่ง a–g เป็นเท่าไร", o: ["1001111", "0110000", "0000110", "1111111"], a: 0, e: "common anode ติดเมื่อ 0 จึงกลับทุกบิต" },
         { t: "gen", q: "Race-around ของ JK เกิดเมื่อใด", o: ["J = K = 1 และ clock = 1 นานกว่า propagation delay ในแบบ level-triggered", "J = K = 0", "ใช้แบบ edge-triggered", "ClrN = 0"], a: 0, e: "Q toggle วนไปเรื่อย ๆ ตลอดช่วง clock = 1" },
       ];
 
@@ -212,6 +225,13 @@
         ["pipo", "วงจรนี้เลื่อนซ้ายได้", false, "มีแค่ shift right และ rotate right"],
         ["pipo", "Q3–Q0 อ่านได้ตลอดเวลาโดยไม่ต้องรอ clock", true, "ต่อออกขนานอยู่แล้ว"],
         ["pipo", "ทุกบิตใช้ SHSel₁ SHSel₀ ชุดเดียวกัน จึงเลือกโหมดแยกทีละบิตไม่ได้", true, "เลือกพร้อมกันทั้ง register"],
+        ["seg7", "แบบ 0–F ไม่มีช่อง × ใน K-map", true, "ใช้ครบ 16 รหัส"],
+        ["seg7", "ถ้าแสดงแค่ A–F ค่า × จะมี 10 ช่อง", true, "รหัส 0–9 ไม่ได้ใช้"],
+        ["seg7", "วงจรที่ห้ามใช้ exclusive หาสมการจาก K-map ไม่ได้", false, "K-map ให้รูป SOP ซึ่งใช้แค่ AND, OR, NOT อยู่แล้ว"],
+        ["seg7", "แบบ 0–F เลข 6 ต้องติดขีด a", true, "ถ้า a = 0 จะซ้ำกับตัว b"],
+        ["seg7", "เปลี่ยนจาก common cathode เป็น common anode ต้องกลับทุกบิตของ a–g", true, "ขีดติดเมื่อ 0 แทน 1"],
+        ["seg7", "ถ้าทุกช่องของขีดหนึ่งเป็น 1 หรือ × สมการของขีดนั้นคือ 1", true, "จับกลุ่ม 16 ช่องได้ ไม่ต้องใช้เกต"],
+        ["seg7", "BCD 4 บิตมีรหัสที่ใช้จริง 16 แบบ", false, "ใช้จริง 10 แบบ คือ 0–9"],
         ["gen", "T FF ที่ T = 1 ตลอดทำหน้าที่หารความถี่ด้วย 2", true, "Q กลับค่าทุกขอบ"],
         ["gen", "JK = 11 ใน JK flip-flop เป็นสถานะห้ามใช้", false, "คือ Toggle"],
       ].map(([t, q, ans, e]) => ({ t, q, o: ["ถูก", "ผิด"], a: ans ? 0 : 1, e }));
@@ -1071,6 +1091,52 @@
       }
       const notesOf = (it, def) => (it.notes ? it.notes(def.rows) : "") + (def.qnAdded ? QN_NOTE : "");
 
+      // ----- 7-segment design drills: every answer below is solved from the display table -----
+      const SEGS = [..."abcdefg"];
+      const range = (a, b) => Array.from({ length: b - a + 1 }, (_, k) => a + k);
+      const same = (list) => list.map((v) => [v, v]);
+      function segDesign({ title, shown, n = 4, anode = false, note = "" }) {
+        const size = 1 << n, glyphOf = new Map(shown), names = kmapNames(n);
+        const output = (i) => { const row = SEG7_HEX[glyphOf.get(i)]; return anode ? [...row].map((b) => (b === "1" ? "0" : "1")).join("") : row; };
+        const solved = SEGS.map((s, k) => {
+          const ones = range(0, size - 1).filter((i) => glyphOf.has(i) && output(i)[k] === "1"), dcs = range(0, size - 1).filter((i) => !glyphOf.has(i));
+          const info = kmapPrimeInfo(n, ones, dcs), all = info.choices.map((p) => [...info.essential, ...p]);
+          return { s, ones, dcs, terms: all[0], answers: all.map((t) => kmapSOP(n, t)), cells: range(0, size - 1).map((i) => (ones.includes(i) ? "1" : dcs.includes(i) ? "×" : "0")) };
+        });
+        const rows = range(0, size - 1).map((i) => [...i.toString(2).padStart(n, "0")].concat(
+          glyphOf.has(i) ? SEG7_GLYPH[glyphOf.get(i)] : "ไม่ใช้",
+          [...(glyphOf.has(i) ? output(i) : "×××××××")].map((v) => f(v, X))));
+        return {
+          kind: "design", n, shown, note, solved, head: [...names, "แสดง", ...SEGS], rows,
+          circuit: { inputs: names, compact: true, pitch: 20, outputs: solved.map((x) => kmapRailOutput(n, x.s, x.terms)) },
+          q: `${title} จอเป็น <b>${anode ? "common anode (ขีดติดเมื่อ output = 0)" : "common cathode (ขีดติดเมื่อ output = 1)"}</b> แสดงขั้นตอน: หาตารางความจริง → ทำ K-map ทั้ง 7 เส้น → หาสมการ SOP → วาดวงจร โดย<b>ห้ามใช้ exclusive (XOR, XNOR)</b> ใช้ได้แค่ AND, OR, NOT`,
+        };
+      }
+      SUB.seg7 = [
+        segDesign({ title: "ออกแบบวงจร input 4 บิต D C B A ให้แสดง<b>แค่ A–F</b> เมื่อรหัสเป็น 1010–1111 ส่วนรหัส 0000–1001 ไม่ใช้", shown: same(range(10, 15)) }),
+        segDesign({ title: "ออกแบบวงจร input <b>3 บิต</b> C B A ให้แสดง<b>แค่ A–F</b> โดยรหัส 000–101 คือ A, b, C, d, E, F ตามลำดับ ส่วนรหัส 110, 111 ไม่ใช้", n: 3, shown: range(0, 5).map((i) => [i, i + 10]) }),
+        segDesign({ title: "ออกแบบวงจร input 4 บิต D C B A ให้แสดง<b>แค่ A–F</b> เมื่อรหัสเป็น 1010–1111 ส่วนรหัส 0000–1001 ไม่ใช้", anode: true, shown: same(range(10, 15)) }),
+        segDesign({ title: "ออกแบบวงจร <b>BCD</b> D C B A ให้แสดง 0–9 (เลข 6 ติดขีด a และเลข 9 ติดขีด d) ส่วนรหัส 1010–1111 ไม่ใช้", shown: same(range(0, 9)) }),
+        segDesign({ title: "ออกแบบวงจร <b>BCD</b> D C B A ให้แสดง 0–9 (เลข 6 ติดขีด a และเลข 9 ติดขีด d) ส่วนรหัส 1010–1111 ไม่ใช้", anode: true, shown: same(range(0, 9)) }),
+        segDesign({ title: "ออกแบบวงจร input 4 บิต D C B A ให้แสดง<b>ครบ 0–F</b> ทั้ง 16 รหัส ไม่มีรหัสที่ไม่ใช้", shown: same(range(0, 15)) }),
+        segDesign({ title: "ออกแบบวงจร input 4 บิต D C B A ให้แสดง<b>แค่ 0–7</b> ส่วนรหัส 1000–1111 ไม่ใช้", shown: same(range(0, 7)) }),
+        segDesign({ title: "ออกแบบวงจร input 4 บิต D C B A ให้แสดง<b>แค่ 8–F</b> ส่วนรหัส 0000–0111 ไม่ใช้", shown: same(range(8, 15)) }),
+        segDesign({ title: "ออกแบบวงจร input 4 บิต D C B A ให้แสดง<b>เฉพาะค่าคู่</b> 0, 2, 4, 6, 8, A, C, E ส่วนรหัสคี่ไม่ใช้", shown: same(range(0, 15).filter((i) => i % 2 === 0)) }),
+        segDesign({ title: "ออกแบบวงจร input 4 บิต D C B A ให้แสดง<b>เฉพาะค่าคี่</b> 1, 3, 5, 7, 9, b, d, F ส่วนรหัสคู่ไม่ใช้", shown: same(range(0, 15).filter((i) => i % 2 === 1)) }),
+        { kind: "text", q: "เขียน a = D + B + (C ⊙ A) โดยไม่ใช้ exclusive",
+          a: "แทน C ⊙ A = CA + C′A′ ได้ <b>a = D + B + CA + C′A′</b> ใช้ AND 2 ตัว OR 4 input และ NOT 2 ตัว" },
+        { kind: "text", q: "เขียน g = D + (C ⊕ B) + BA′ โดยไม่ใช้ exclusive",
+          a: "แทน C ⊕ B = CB′ + C′B ได้ <b>g = D + CB′ + C′B + BA′</b>" },
+        { kind: "text", q: "ทำไมโจทย์ห้ามใช้ exclusive แล้วขั้นตอน K-map ยังใช้ได้เหมือนเดิม",
+          a: "K-map ให้สมการรูป SOP ซึ่งใช้แค่ AND, OR, NOT อยู่แล้ว เกต exclusive เป็นขั้นย่อเพิ่มหลังจากได้สมการ ถ้าห้ามใช้ก็หยุดที่ SOP ได้เลย" },
+        { kind: "text", q: "โจทย์แสดงแค่ A–F ทำไมใส่ × ที่รหัส 0000–1001 ได้ และได้ประโยชน์อะไร",
+          a: "รหัสเหล่านั้นไม่ถูกใช้ output จึงเป็นอะไรก็ได้ K-map ใช้ × ขยายกลุ่มให้ใหญ่ขึ้น สมการจึงสั้นลง และบางขีดอาจไม่ต้องใช้เกตเลย เช่นขีด e ติดทุกตัว A–F จึงได้ e = 1" },
+        { kind: "text", q: "มีวงจร common cathode อยู่แล้ว ต้องการใช้กับจอ common anode ทำได้กี่วิธี",
+          a: "1) ต่อ NOT ที่ output ทั้ง 7 เส้น · 2) ออกแบบใหม่โดยกลับบิตในตารางความจริงแล้วทำ K-map ใหม่ ซึ่งมักใช้เกตน้อยกว่า ทั้งสองวิธีไม่ต้องใช้ exclusive" },
+        { kind: "text", q: "โจทย์บอกให้ลดเกตให้น้อยที่สุด หลังได้สมการครบ 7 เส้นแล้วทำอะไรได้อีก โดยยังห้ามใช้ exclusive",
+          a: "มองหาเทอม AND ที่ซ้ำกันระหว่างขีด แล้วใช้ AND ตัวเดียวแยกสายไปหลายขีด ถ้าเทอมนั้นมีคำตอบหลายแบบให้เลือกแบบที่ใช้ร่วมกับขีดอื่นได้" },
+      ];
+
       // =====================================================================
       // Rendering
       // =====================================================================
@@ -1154,9 +1220,44 @@
           </div>`;
       }
 
+      // Answers of a design drill, shared by the page and the PDF.
+      const designMaps = (it, cls) => `<div class="${cls}">${it.solved.map((x) => `<figure>${kmapSvg(it.n, x.cells, { groups: x.terms })}<figcaption>${x.s} = ${x.answers[0]}</figcaption></figure>`).join("")}</div>`;
+      const designEq = (it) => `<div class="table-scroll"><table class="tt"><thead><tr><th>ขีด</th><th>สมการ</th><th>แบบอื่นที่น้อยเท่ากัน</th></tr></thead><tbody>${it.solved.map((x) =>
+        `<tr><td>${x.s}</td><td>${x.answers[0]}</td><td>${x.answers.slice(1).join(" · ") || "ไม่มี"}</td></tr>`).join("")}</tbody></table></div>`;
+      function designGates(it) {
+        const outs = it.circuit.outputs, terms = outs.flatMap((o) => o.terms || []), lits = terms.flatMap((t) => (Array.isArray(t) ? t.slice(1) : [t]));
+        const fixed = outs.filter((o) => o.constant !== undefined);
+        return `ใช้ NOT ${new Set(lits.filter((x) => x.endsWith("′"))).size} ตัว · AND ${terms.filter(Array.isArray).length} ตัว · OR ${outs.filter((o) => (o.terms || []).length > 1).length} ตัว · ไม่มี XOR, XNOR` +
+          (fixed.length ? ` · ${fixed.map((o) => `ขีด ${o.name} ต่อค่าคงที่ ${o.constant}`).join(", ")}` : "");
+      }
+      const shownStrip = (it) => `<div class="cc-digits small">${it.shown.map(([code, g]) => `<figure>${seg7(SEG7_HEX[g], { size: 26 })}<figcaption>${code.toString(2).padStart(it.n, "0")}</figcaption></figure>`).join("")}</div>`;
+
+      function designCard(it, n, id) {
+        const step = (key, label, html) => `<div class="design-step"><button class="btn" type="button" data-show="${id}-${key}" data-label="${label}">${label}</button><div id="${id}-${key}" hidden>${html}</div></div>`;
+        return `
+          <div class="fill-card">
+            <div class="q-head"><span class="q-no">${n}</span><span class="q-text">${it.q}</span></div>
+            <p class="fill-sub">รูปที่ต้องแสดง และรหัสของแต่ละรูป</p>${shownStrip(it)}
+            <div data-fill data-note="">
+              <p class="fill-sub">ขั้นที่ 1: ตารางความจริง (รหัสที่ไม่ใช้ใส่ ×)</p>
+              ${fillGrid(it)}
+              <div class="fill-actions">
+                <button class="btn primary" type="button" data-check>ตรวจ</button>
+                <button class="btn" type="button" data-solve>เฉลย</button>
+                <button class="btn" type="button" data-clear>ล้าง</button>
+                <span class="fill-result" aria-live="polite"></span>
+              </div>
+            </div>
+            <p class="fill-sub">ขั้นที่ 2–4: ทำในกระดาษก่อน แล้วค่อยเปิดเฉลยทีละขั้น</p>
+            ${step("k", "เฉลยขั้น 2: K-map", designMaps(it, "design-maps"))}
+            ${step("e", "เฉลยขั้น 3: สมการ", designEq(it))}
+            ${step("c", "เฉลยขั้น 4: วงจร", `<figure class="figure design-circuit">${railCircuit(it.circuit)}</figure><p>${designGates(it)}</p>`)}
+          </div>`;
+      }
+
       function subPanel(t, panel) {
         const items = subOf(t);
-        const groups = [["fill", "เติมตาราง"], ["timing", "Timing diagram"], ["text", "เขียนตอบ / ออกแบบ / พิสูจน์"]];
+        const groups = [["design", "ออกแบบครบขั้นตอน"], ["fill", "เติมตาราง"], ["timing", "Timing diagram"], ["text", "เขียนตอบ / ออกแบบ / พิสูจน์"]];
         const timing = {};
         let n = 0, sec = 0;
         panel.innerHTML = groups.map(([kind, title]) => {
@@ -1165,11 +1266,12 @@
           const body = list.map((it) => {
             const id = `x${++uid}`;
             n++;
+            if (kind === "design") return designCard(it, n, id);
             if (kind === "fill") return fillCard(it, n);
             if (kind === "timing") { timing[id] = it; return timingCard(it, n, id); }
             return textCard(it, n, id);
           }).join("");
-          return `<section><h2><span class="num">${"กขค"[sec++]}</span>${title} (${list.length} ข้อ)</h2>${body}</section>`;
+          return `<section><h2><span class="num">${"กขคง"[sec++]}</span>${title} (${list.length} ข้อ)</h2>${body}</section>`;
         }).join("");
 
         // Timing diagrams need the panel in the document to measure their width.
@@ -1381,6 +1483,10 @@
           ["Register 4 บิต (D FF) ตามสไลด์ 14: 0 คงค่า, 1 Parallel load, 2 Shift right, 3 Rotate right", () => shselFig()],
           ["Shifter 4 บิต s2 s1 s0 (ไม่มี flip-flop): s1 s0 = 0 ขวา, 1 ส่งผ่าน, 2 ซ้าย, 3 ส่งผ่าน · s2 = 0 เติมค่าคงที่, s2 = 1 หมุน", () => shifterCircuit()],
         ],
+        seg7: [
+          ["ชื่อขีด a–g: a บนสุด ไล่ตามเข็มนาฬิกา และ g คือขีดกลาง", () => `<div style="text-align:center;">${seg7("0000000", { size: 96, names: true })}</div>`],
+          ["รูปบนจอ 0–F (เลข 6 ติดขีด a และเลข 9 ติดขีด d)", () => `<div class="cc-digits small">${SEG7_HEX.map((row, k) => `<figure>${seg7(row, { size: 26 })}<figcaption>${SEG7_GLYPH[k]}</figcaption></figure>`).join("")}</div>`],
+        ],
       };
 
       const reviewHTML = (t) => `
@@ -1502,7 +1608,7 @@
         if (showBtn) {
           const target = document.getElementById(showBtn.dataset.show);
           target.hidden = !target.hidden;
-          showBtn.textContent = target.hidden ? "ดูแนวคำตอบ" : "ซ่อน";
+          showBtn.textContent = target.hidden ? showBtn.dataset.label || "ดูแนวคำตอบ" : "ซ่อน";
         }
       });
 
@@ -1513,7 +1619,7 @@
       printRoot.id = "print-root";
       document.body.appendChild(printRoot);
       const PRINT_WIDTH = 660; // px that fit an A4 page with margins
-      const GROUPS = [["fill", "เติมตาราง"], ["timing", "Timing diagram"], ["text", "เขียนตอบ / ออกแบบ / พิสูจน์"]];
+      const GROUPS = [["design", "ออกแบบครบขั้นตอน"], ["fill", "เติมตาราง"], ["timing", "Timing diagram"], ["text", "เขียนตอบ / ออกแบบ / พิสูจน์"]];
       const TYPE_NAME = { obj: "ปรนัย", sub: "อัตนัย" };
 
       const svgOf = (fn, attrs = {}) => {
@@ -1560,6 +1666,15 @@
           if (!group.length) return "";
           return `<h4 class="p-group">${title}</h4>` + group.map(({ it, n }) => {
             let body = "";
+            if (kind === "design") {
+              const blank = `<div class="p-kmaps">${it.solved.map((x) => `<figure>${kmapSvg(it.n, x.cells.map(() => ""))}<figcaption>ขีด ${x.s}</figcaption></figure>`).join("")}</div>`;
+              const block = (title, html) => `<div class="p-keep"><p class="p-sub">${title}</p>${html}</div>`;
+              body = reveal
+                ? block("ขั้นที่ 1: ตารางความจริง", fillTable(it, true)) + block("ขั้นที่ 2: K-map", designMaps(it, "p-kmaps")) + block("ขั้นที่ 3: สมการ", designEq(it)) +
+                  block("ขั้นที่ 4: วงจร", `${railCircuit(it.circuit)}<p class="p-note">${designGates(it)}</p>`)
+                : shownStrip(it) + block("ขั้นที่ 1: ตารางความจริง", fillTable(it, false)) + block("ขั้นที่ 2: K-map", blank) +
+                  block("ขั้นที่ 3: สมการ SOP", `<div class="p-lines seven"></div>`) + block("ขั้นที่ 4: วาดวงจร (AND, OR, NOT)", `<div class="p-draw"></div>`);
+            }
             if (kind === "fill") body = (it.fig && !reveal ? `<div class="p-circuit">${it.fig()}</div>` : "") + (it.control ? `<p class="p-sub">ตาราง control</p>${fillTable(it.control, reveal)}<p class="p-sub">${it.tableName || "ตารางทีละขั้น"}</p>` : "") + fillTable(it, reveal) + (reveal && it.note ? `<p class="p-note">${it.note}</p>` : "");
             if (kind === "timing") {
               const def = defs.get(it) || defs.set(it, it.build()).get(it);
@@ -1573,7 +1688,7 @@
                   (it.circuit ? svgOf((svg) => CIRCUITS[it.circuit].draw(svg), { class: "schem p-fig", viewBox: CIRCUITS[it.circuit].viewBox }) : "")
                 : `<div class="p-lines"></div>`;
             }
-            return `<div class="p-item"><p class="p-q"><b>${n}.</b> ${it.q}</p>${body}</div>`;
+            return `<div class="p-item${kind === "design" ? " p-long" : ""}"><p class="p-q"><b>${n}.</b> ${it.q}</p>${body}</div>`;
           }).join("");
         }).join("");
       }
@@ -1587,7 +1702,7 @@
         const part = (reveal) => parts.map(([type, t]) =>
           `<div class="p-topic-block"><h3 class="p-topic">${TOPIC_NAME[t]} · ${TYPE_NAME[type]}</h3>${type === "obj" ? objPart(t, reveal) : subPart(t, reveal, defs)}</div>`).join("");
         printRoot.innerHTML = `
-          <header class="p-head"><h1>แนวข้อสอบ CPE 2423 ครึ่งหลัง</h1><p>${label} · บท 06 Latches and Flip-Flops · บท 09 Shift Registers · โจทย์แต่งขึ้นเพื่อซ้อม ไม่ใช่ข้อสอบจริง</p></header>
+          <header class="p-head"><h1>แนวข้อสอบ CPE 2423 ครึ่งหลัง</h1><p>${label} · บท 06 Latches and Flip-Flops · บท 08 Combinational Components · บท 09 Shift Registers · โจทย์แต่งขึ้นเพื่อซ้อม ไม่ใช่ข้อสอบจริง</p></header>
           <section class="p-section"><h2>ส่วนที่ 1 · โจทย์</h2>${part(false)}</section>
           <section class="p-section p-answers"><h2>ส่วนที่ 2 · เฉลย</h2>${part(true)}</section>`;
         document.body.classList.add("printing");
