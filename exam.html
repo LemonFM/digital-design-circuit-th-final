@@ -1864,6 +1864,9 @@
       const GROUPS = [["counter", "ออกแบบวงจรนับ"], ["design", "ออกแบบครบขั้นตอน"], ["fill", "เติมตาราง"], ["timing", "Timing diagram"], ["text", "เขียนตอบ / ออกแบบ / พิสูจน์"]];
       const TYPE_NAME = { obj: "ปรนัย", sub: "อัตนัย" }, PART_NAME = { q: "โจทย์", a: "เฉลย" }, PAGE_TITLE = document.title;
 
+      // Real borders, not a gradient: PDF viewers can draw a transparent gradient as a black bar.
+      const answerLines = (n) => `<div class="p-lines">${"<i></i>".repeat(n)}</div>`;
+
       const svgOf = (fn, attrs = {}) => {
         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         for (const [k, val] of Object.entries(attrs)) svg.setAttribute(k, val);
@@ -1912,7 +1915,7 @@
               const box = (title, html) => `<div class="p-keep"><p class="p-sub">${title}</p>${html}</div>`;
               body = reveal
                 ? box("ขั้นที่ 1: State diagram", cntRings(it)) + it.tables.map((t) => box(`ขั้นที่ 2: Next state table · ${t.title}`, fillTable(t, true))).join("") + box("ขั้นที่ 3: K-map", cntMaps(it, "p-kmaps")) + box("สมการ", cntEq(it)) + box("ขั้นที่ 4: วงจร", cntCircuit(it))
-                : cntGiven(it) + box("ขั้นที่ 1: State diagram", `<div class="p-draw short"></div>`) + it.tables.map((t) => box(`ขั้นที่ 2: Next state table · ${t.title}`, fillTable(t, false))).join("") + box("ขั้นที่ 3: K-map", cntMaps(it, "p-kmaps", true)) + box("สมการ", `<div class="p-lines seven"></div>`) + box("ขั้นที่ 4: ออกแบบวงจรเกตที่ต่อเข้า flip-flop", `<div class="p-draw"></div>`);
+                : cntGiven(it) + box("ขั้นที่ 1: State diagram", `<div class="p-draw short"></div>`) + it.tables.map((t) => box(`ขั้นที่ 2: Next state table · ${t.title}`, fillTable(t, false))).join("") + box("ขั้นที่ 3: K-map", cntMaps(it, "p-kmaps", true)) + box("สมการ", answerLines(7)) + box("ขั้นที่ 4: ออกแบบวงจรเกตที่ต่อเข้า flip-flop", `<div class="p-draw"></div>`);
             }
             if (kind === "design") {
               const blank = `<div class="p-kmaps">${it.solved.map((x) => `<figure>${kmapSvg(it.n, x.cells.map(() => ""))}<figcaption>ขีด ${x.s}</figcaption></figure>`).join("")}</div>`;
@@ -1921,7 +1924,7 @@
                 ? block("ขั้นที่ 1: ตารางความจริง", fillTable(it, true)) + block("ขั้นที่ 2: K-map", designMaps(it, "p-kmaps")) + block("ขั้นที่ 3: สมการ", designEq(it)) +
                   block("ขั้นที่ 4: วงจร", `${railCircuit(it.circuit)}<p class="p-note">${designGates(it)}</p>`)
                 : shownStrip(it) + block("ขั้นที่ 1: ตารางความจริง", fillTable(it, false)) + block("ขั้นที่ 2: K-map", blank) +
-                  block("ขั้นที่ 3: สมการ SOP", `<div class="p-lines seven"></div>`) + block("ขั้นที่ 4: วาดวงจร (AND, OR, NOT)", `<div class="p-draw"></div>`);
+                  block("ขั้นที่ 3: สมการ SOP", answerLines(7)) + block("ขั้นที่ 4: วาดวงจร (AND, OR, NOT)", `<div class="p-draw"></div>`);
             }
             if (kind === "fill") body = (it.fig && !reveal ? `<div class="p-circuit">${it.fig()}</div>` : "") + (it.control ? `<p class="p-sub">ตาราง control</p>${fillTable(it.control, reveal)}<p class="p-sub">${it.tableName || "ตารางทีละขั้น"}</p>` : "") + fillTable(it, reveal) + (reveal && it.answerFig ? `<div class="p-circuit">${it.answerFig()}</div>` : "") + (reveal && it.note ? `<p class="p-note">${it.note}</p>` : "");
             if (kind === "timing") {
@@ -1934,7 +1937,7 @@
                 ? `<div class="p-answer">${it.a}</div>` +
                   (it.fsm ? svgOf((svg) => twoState(svg, FSM[it.fsm]), { class: "p-fig" }) : "") +
                   (it.circuit ? svgOf((svg) => CIRCUITS[it.circuit].draw(svg), { class: "schem p-fig", viewBox: CIRCUITS[it.circuit].viewBox }) : "")
-                : `<div class="p-lines"></div>`;
+                : answerLines(5);
             }
             return `<div class="p-item${kind === "design" || kind === "counter" ? " p-long" : ""}"><p class="p-q"><b>${n}.</b> ${it.q}</p>${body}</div>`;
           }).join("");

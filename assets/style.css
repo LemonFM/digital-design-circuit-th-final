@@ -683,7 +683,8 @@ a.topic .topic-no { color: var(--accent); }
   .p-q { margin: 0 0 4px; }
   .p-opts { list-style: none; margin: 0 0 0 1.4em; padding: 0; columns: 2; column-gap: 24px; }
   .p-tf { margin: 0 0 0 1.4em; }
-  .p-lines { height: 6.75em; background: repeating-linear-gradient(transparent 0 1.35em, #c8c8c8 1.35em calc(1.35em + 1px)); }
+  .p-lines { break-inside: avoid; }
+  .p-lines i { display: block; box-sizing: border-box; height: 1.35em; border-bottom: 1px solid #c8c8c8; }
   .p-note, .p-answer { margin: 6px 0 0; font-size: 10.5pt; }
   .p-notes { margin: 4px 0 0; padding-left: 1.4em; font-size: 10pt; }
   .p-fig { display: block; max-width: 420px; height: auto; margin-top: 6px; }
@@ -691,7 +692,6 @@ a.topic .topic-no { color: var(--accent); }
   .p-item.p-long { break-inside: auto; }
   .p-item.p-long + .p-item.p-long { break-before: page; }
   .p-keep { break-inside: avoid; }
-  .p-lines.seven { height: 9.45em; }
   .p-kmaps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
   .p-kmaps figure { margin: 0; break-inside: avoid; text-align: center; }
   .p-kmaps svg { display: block; width: 100%; height: auto; max-width: none !important; }
