@@ -160,13 +160,13 @@
         { t: "gen", q: "Excitation ของ JK: Q 1 → 0 ต้องใช้ J, K เท่าไร", o: ["J = ×, K = 1", "J = 0, K = 1", "J = 1, K = ×", "J = ×, K = 0"], a: 0, e: "ทำได้ทั้ง Reset (01) และ Toggle (11)" },
         { t: "gen", q: "Excitation ของ T: Q 1 → 1 ต้องใช้ T เท่าไร", o: ["0", "1", "×", "Q"], a: 0, e: "ค่าไม่เปลี่ยนจึงได้ T = 0" },
         { t: "gen", q: "Counter แบบ ripple ต่างจาก synchronous counter อย่างไร", o: ["ripple: flip-flop แต่ละตัวใช้ output ของตัวก่อนหน้าเป็น clock", "ripple ใช้ clock ร่วมกันทุกตัว", "synchronous ไม่ใช้ clock", "ไม่ต่างกัน"], a: 0, e: "synchronous counter ใช้ clock ร่วมกันและใช้ logic คุม J, K หรือ T" },
-        { t: "pipo", q: "วงจรสไลด์ 14: SHSel = 0 ที่ขอบ clock register ทำอะไร", o: ["คงค่าเดิม", "Parallel load", "Shift right", "Rotate right"], a: 0, e: "ช่อง 0 ป้อน Q ตัวเองกลับ" },
-        { t: "pipo", q: "วงจรสไลด์ 14: SHSel = 1 ที่ขอบ clock register ทำอะไร", o: ["คงค่าเดิม", "Parallel load", "Shift right", "Rotate right"], a: 1, e: "ช่อง 1 รับ D3–D0" },
-        { t: "pipo", q: "วงจรสไลด์ 14: SHSel = 2 ที่ขอบ clock register ทำอะไร", o: ["คงค่าเดิม", "Parallel load", "Shift right", "Rotate right"], a: 2, e: "ช่อง 2: Q3 รับ Serial_in บิตอื่นรับบิตทางซ้าย" },
-        { t: "pipo", q: "วงจรสไลด์ 14: SHSel = 3 ที่ขอบ clock register ทำอะไร", o: ["คงค่าเดิม", "Parallel load", "Shift right", "Rotate right"], a: 3, e: "ช่อง 3: Q3 รับ Q0 เดิม บิตอื่นรับบิตทางซ้าย" },
-        { t: "pipo", q: "วงจรสไลด์ 14: SHSel = 1, D3–D0 = 1010, Q3–Q0 = 0110 ที่ขอบ clock ได้ Q3–Q0 เท่าไร", o: ["1010", "0110", "0011", "1011"], a: 0, e: "Parallel load รับ D ทั้ง 4 บิต" },
-        { t: "pipo", q: "วงจรสไลด์ 14: SHSel = 2, Serial_in = 1, Q3–Q0 = 0110 ที่ขอบ clock ได้ Q3–Q0 เท่าไร", o: ["1011", "0011", "0110", "1100"], a: 0, e: "Q3 รับ Serial_in = 1 แล้วบิตอื่นเลื่อนขวา: 1, 0, 1, 1" },
-        { t: "pipo", q: "วงจรสไลด์ 14: SHSel = 3, Serial_in = 1, Q3–Q0 = 0110 ที่ขอบ clock ได้ Q3–Q0 เท่าไร", o: ["0011", "1011", "1100", "0110"], a: 0, e: "Rotate ไม่ใช้ Serial_in: Q0 เดิม (0) เข้า Q3" },
+        { t: "pipo", q: "วงจรสไลด์ 14: SHSel₁ SHSel₀ = 00 ที่ขอบ clock register ทำอะไร", o: ["คงค่าเดิม", "Parallel load", "Shift right", "Rotate right"], a: 0, e: "ช่อง 0 ป้อน Q ตัวเองกลับ" },
+        { t: "pipo", q: "วงจรสไลด์ 14: SHSel₁ SHSel₀ = 01 ที่ขอบ clock register ทำอะไร", o: ["คงค่าเดิม", "Parallel load", "Shift right", "Rotate right"], a: 1, e: "ช่อง 1 รับ D3–D0" },
+        { t: "pipo", q: "วงจรสไลด์ 14: SHSel₁ SHSel₀ = 10 ที่ขอบ clock register ทำอะไร", o: ["คงค่าเดิม", "Parallel load", "Shift right", "Rotate right"], a: 2, e: "ช่อง 2: Q3 รับ Serial_in บิตอื่นรับบิตทางซ้าย" },
+        { t: "pipo", q: "วงจรสไลด์ 14: SHSel₁ SHSel₀ = 11 ที่ขอบ clock register ทำอะไร", o: ["คงค่าเดิม", "Parallel load", "Shift right", "Rotate right"], a: 3, e: "ช่อง 3: Q3 รับ Q0 เดิม บิตอื่นรับบิตทางซ้าย" },
+        { t: "pipo", q: "วงจรสไลด์ 14: SHSel₁ SHSel₀ = 01, D3–D0 = 1010, Q3–Q0 = 0110 ที่ขอบ clock ได้ Q3–Q0 เท่าไร", o: ["1010", "0110", "0011", "1011"], a: 0, e: "Parallel load รับ D ทั้ง 4 บิต" },
+        { t: "pipo", q: "วงจรสไลด์ 14: SHSel₁ SHSel₀ = 10, Serial_in = 1, Q3–Q0 = 0110 ที่ขอบ clock ได้ Q3–Q0 เท่าไร", o: ["1011", "0011", "0110", "1100"], a: 0, e: "Q3 รับ Serial_in = 1 แล้วบิตอื่นเลื่อนขวา: 1, 0, 1, 1" },
+        { t: "pipo", q: "วงจรสไลด์ 14: SHSel₁ SHSel₀ = 11, Serial_in = 1, Q3–Q0 = 0110 ที่ขอบ clock ได้ Q3–Q0 เท่าไร", o: ["0011", "1011", "1100", "0110"], a: 0, e: "Rotate ไม่ใช้ Serial_in: Q0 เดิม (0) เข้า Q3" },
         { t: "pipo", q: "วงจรสไลด์ 14: MUX ของบิต Q2 ช่อง 2 ต่อกับอะไร", o: ["Q3", "Q2", "Q1", "D2"], a: 0, e: "เลื่อนขวาจึงรับจากบิตทางซ้าย" },
         { t: "pipo", q: "วงจรสไลด์ 14: MUX ของบิต Q3 ช่อง 3 ต่อกับอะไร", o: ["Q0", "Q3", "Serial_in", "D3"], a: 0, e: "Rotate right วน Q0 กลับเข้า Q3" },
         { t: "pipo", q: "วงจรสไลด์ 14: ช่อง 2 กับช่อง 3 ของ MUX ต่างกันที่บิตไหน", o: ["Q3 บิตเดียว", "Q0 บิตเดียว", "ทุกบิต", "ไม่ต่างกัน"], a: 0, e: "Q2–Q0 รับบิตทางซ้ายเหมือนกัน ต่างแค่ Q3 รับ Serial_in หรือ Q0" },
@@ -249,8 +249,8 @@
         ["sync", "พัลส์ reset สั้น ๆ ที่เกิดระหว่างขอบ clock มีผลกับ synchronous reset", false, "synchronous ดูเฉพาะ ณ ขอบ"],
         ["pipo", "วงจร s2 s1 s0 (shifter) ต้องรอขอบ clock จึงจะได้ค่า y ใหม่", false, "ไม่มี flip-flop และไม่มี clock"],
         ["pipo", "วงจร s2 s1 s0 (shifter): s2 มีผลเฉพาะตอน s0 = 0", true, "s0 = 1 เลือกช่องส่งผ่านซึ่งไม่ผ่าน MUX เล็ก"],
-        ["pipo", "วงจรสไลด์ 14: SHSel = 0 คงค่าได้เพราะ MUX ป้อน Q ตัวเองกลับเข้าขา D", true, "Q⁺ = Q"],
-        ["pipo", "วงจรสไลด์ 14: SHSel = 1 ทำให้ Q เปลี่ยนตาม D ทันทีโดยไม่รอ clock", false, "เปลี่ยนเฉพาะที่ขอบ clock"],
+        ["pipo", "วงจรสไลด์ 14: SHSel₁ SHSel₀ = 00 คงค่าได้เพราะ MUX ป้อน Q ตัวเองกลับเข้าขา D", true, "Q⁺ = Q"],
+        ["pipo", "วงจรสไลด์ 14: SHSel₁ SHSel₀ = 01 ทำให้ Q เปลี่ยนตาม D ทันทีโดยไม่รอ clock", false, "เปลี่ยนเฉพาะที่ขอบ clock"],
         ["pipo", "Rotate right ใช้ Serial_in เข้า Q3", false, "Rotate ใช้ Q0 เข้า Q3"],
         ["pipo", "Shift right ทำให้ค่า Q0 เดิมหลุดออกจาก register", true, "ออกทาง Serial_out"],
         ["pipo", "Rotate right ไม่ทำให้ข้อมูลหาย", true, "Q0 วนกลับเข้า Q3"],
@@ -945,11 +945,12 @@
       };
       // ops: one letter per clock cycle (see shselFig). wiring decides which SHSel value selects each op, so the same
       // sequence gets different codes per question. d: one value throughout (in the question) or one per cycle (a column).
+      const CODE = ["00", "01", "10", "11"];
       const shselDrill = ({ q, ops, wiring, si, d, init = "0000", glitch, pre }) => {
         const shown = Array.isArray(d), codes = [...ops].map((op) => wiring.indexOf(op)), cycles = shown ? d : codes.map(() => d);
-        const mapping = [...wiring].map((op, k) => `${k} = ${OP_NAME[op]}`).join(", ");
+        const mapping = [...wiring].map((op, k) => `${CODE[k]} = ${OP_NAME[op]}`).join(", ");
         return { ...edgeTiming({
-          q: `Register 4 บิต (D FF) ${q}${shown ? "" : ` D3–D0 = ${d} ตลอด`} เริ่ม Q3Q2Q1Q0 = ${init}`, pre: `วงจรข้อนี้ SHSel ${mapping}${pre ? ` · ${pre}` : ""}`, glitch, edge: "rise", init: regFrom(init), fig: () => shselFig(wiring),
+          q: `Register 4 บิต (D FF) ${q}${shown ? "" : ` D3–D0 = ${d} ตลอด`} เริ่ม Q3Q2Q1Q0 = ${init}`, pre: `วงจรข้อนี้ SHSel₁ SHSel₀ ${mapping}${pre ? ` · ${pre}` : ""}`, glitch, edge: "rise", init: regFrom(init), fig: () => shselFig(wiring),
           inputs: { Sel1: codes.map((c) => c >> 1), Sel0: codes.map((c) => c & 1), SI: si, ...Object.fromEntries(REG_D.map((k, n) => [k, cycles.map((v) => +v[n])])) },
           model: (p, i, s) => (isEdge(p, i, "CLK", "rise") ? shselNext(wiring[i.Sel1 * 2 + i.Sel0], i, s) : s),
           show: [S("CLK"), S("Sel1", "SHSel₁"), S("Sel0", "SHSel₀"), S("SI", "Serial_in"), ...(shown ? REG_D.map((k) => S(k)) : []), ...REG.map((k) => O(k))], hide: REG,
@@ -960,7 +961,7 @@
       // What each output takes for each SHSel₁ SHSel₀, as read off that question's circuit.
       const TAKES = { H: ["Q3", "Q2", "Q1", "Q0"], L: ["D3", "D2", "D1", "D0"], S: ["Serial_in", "Q3", "Q2", "Q1"], R: ["Q0", "Q3", "Q2", "Q1"] };
       const controlOf = (wiring) => ({ head: ["SHSel₁", "SHSel₀", "Q3⁺", "Q2⁺", "Q1⁺", "Q0⁺"], rows: [...wiring].map((op, k) => [String(k >> 1), String(k & 1), ...sym(...TAKES[op])]) });
-      const OPS = ["คงค่าเดิม", "Parallel load", "Shift right", "Rotate right"], CODE = ["0", "1", "2", "3"], READ = ["Q3–Q0", "Serial_out"];
+      const OPS = ["คงค่าเดิม", "Parallel load", "Shift right", "Rotate right"], READ = ["Q3–Q0", "Serial_out"];
       const CK = ["0", "1", "3", "4"], WIRE = ["1", "4"];
 
       // ----- combinational shifter/rotator (s2 s1 s0): see shifterCircuit for the meaning of ch, left and right. -----
@@ -1002,24 +1003,24 @@
       ];
 
       SUB.pipo = [
-        { kind: "fill", q: "วงจรตามสไลด์ 14: เติม Operation ของแต่ละค่า SHSel", head: ["SHSel₁", "SHSel₀", "SHSel", "Operation"],
+        { kind: "fill", q: "วงจรตามสไลด์ 14: เติม Operation ของแต่ละค่า SHSel₁ SHSel₀", head: ["SHSel₁", "SHSel₀", "ช่อง MUX", "Operation"],
           rows: [["0", "0", "0", f("คงค่าเดิม", OPS)], ["0", "1", "1", f("Parallel load", OPS)], ["1", "0", "2", f("Shift right", OPS)], ["1", "1", "3", f("Rotate right", OPS)]],
-          note: "SHSel คือ SHSel₁SHSel₀ อ่านเป็นตัวเลข 0–3 ซึ่งก็คือหมายเลขช่องของ MUX · ตารางข้อ 1–8 ใช้วงจรตามสไลด์ 14 ส่วนข้อ 9–18 สลับช่องของ MUX ไม่เหมือนกัน ให้ดูจากรูปของข้อนั้น · ข้อ 19–24 เป็นวงจร shifter s2 s1 s0" },
+          note: "SHSel₁ SHSel₀ เป็นเลขฐานสองของหมายเลขช่อง MUX เช่น 1 0 คือช่อง 2 · ตารางข้อ 1–8 ใช้วงจรตามสไลด์ 14 ส่วนข้อ 9–18 สลับช่องของ MUX ไม่เหมือนกัน ให้ดูจากรูปของข้อนั้น · ข้อ 19–24 เป็นวงจร shifter s2 s1 s0" },
         { kind: "fill", q: "วงจรตามสไลด์ 14: ดูจากรูปแล้วเติมตาราง control", fig: () => shselFig(), ...controlOf("HLSR"),
           note: "แถว 1 0 กับ 1 1 ต่างกันแค่ที่ Q3⁺" },
         { kind: "fill", q: "จากรูปในข้อ 2 เติมว่าแต่ละช่องของ MUX ต่อกับอะไร", head: ["บิต", "ช่อง 0", "ช่อง 1", "ช่อง 2", "ช่อง 3"],
           rows: [["Q3", ...sym("Q3", "D3", "Serial_in", "Q0")], ["Q2", ...sym("Q2", "D2", "Q3", "Q3")], ["Q1", ...sym("Q1", "D1", "Q2", "Q2")], ["Q0", ...sym("Q0", "D0", "Q1", "Q1")]],
           note: "ตารางนี้กับตาราง control คือข้อมูลชุดเดียวกัน แค่เรียงคนละแบบ" },
-        { kind: "fill", q: "เติม Q3⁺–Q0⁺ ที่ขอบ clock", head: ["SHSel", "Serial_in", "D3–D0", "Q3–Q0", "Q3⁺", "Q2⁺", "Q1⁺", "Q0⁺"],
-          rows: [["0", "1", "1010", "0110", ...ans("0110")], ["1", "0", "1010", "0110", ...ans("1010")], ["2", "1", "1010", "0110", ...ans("1011")], ["2", "0", "0000", "1001", ...ans("0100")], ["3", "0", "1111", "1001", ...ans("1100")], ["3", "1", "0000", "0110", ...ans("0011")]],
+        { kind: "fill", q: "เติม Q3⁺–Q0⁺ ที่ขอบ clock", head: ["SHSel₁", "SHSel₀", "Serial_in", "D3–D0", "Q3–Q0", "Q3⁺", "Q2⁺", "Q1⁺", "Q0⁺"],
+          rows: [["0", "0", "1", "1010", "0110", ...ans("0110")], ["0", "1", "0", "1010", "0110", ...ans("1010")], ["1", "0", "1", "1010", "0110", ...ans("1011")], ["1", "0", "0", "0000", "1001", ...ans("0100")], ["1", "1", "0", "1111", "1001", ...ans("1100")], ["1", "1", "1", "0000", "0110", ...ans("0011")]],
           note: "Rotate ไม่ใช้ Serial_in และ D" },
-        { kind: "fill", q: "วงจรตามสไลด์ 14: ต้องการผลลัพธ์นี้ ต้องตั้ง SHSel เป็นเท่าไร", head: ["ต้องการ", "SHSel"],
-          rows: [["คงค่าเดิม", f("0", CODE)], ["รับ D3–D0 ทั้ง 4 บิต", f("1", CODE)], ["ให้ Serial_in เข้า Q3", f("2", CODE)], ["ให้ Q0 วนกลับเข้า Q3", f("3", CODE)]] },
+        { kind: "fill", q: "วงจรตามสไลด์ 14: ต้องการผลลัพธ์นี้ ต้องตั้ง SHSel₁ SHSel₀ เป็นเท่าไร", head: ["ต้องการ", "SHSel₁ SHSel₀"],
+          rows: [["คงค่าเดิม", f("00", CODE)], ["รับ D3–D0 ทั้ง 4 บิต", f("01", CODE)], ["ให้ Serial_in เข้า Q3", f("10", CODE)], ["ให้ Q0 วนกลับเข้า Q3", f("11", CODE)]] },
         { kind: "fill", q: "Q3–Q0 เดิม = 1011, D3–D0 = 0110, Serial_in = 0 ดูผลหลังขอบ clock แล้วบอก Operation", head: ["Q3–Q0 เดิม", "Q3⁺–Q0⁺", "Operation"],
           rows: [["1011", "1011", f("คงค่าเดิม", OPS)], ["1011", "0110", f("Parallel load", OPS)], ["1011", "0101", f("Shift right", OPS)], ["1011", "1101", f("Rotate right", OPS)]],
           note: "Shift right เติม Serial_in = 0 · Rotate เอา Q0 = 1 เข้า Q3" },
-        { kind: "fill", q: "วงจรตามสไลด์ 14: ใช้เป็นแต่ละประเภท ต้องตั้ง SHSel เท่าไร และอ่านจากที่ไหน", head: ["ใช้เป็น", "SHSel ตอนใส่ข้อมูล", "SHSel ตอนเก็บหรือส่งออก", "อ่านจาก"],
-          rows: [["PIPO", f("1", CODE), f("0", CODE), f("Q3–Q0", READ)], ["SIPO", f("2", CODE), f("0", CODE), f("Q3–Q0", READ)], ["PISO", f("1", CODE), f("2", CODE), f("Serial_out", READ)], ["SISO", f("2", CODE), f("2", CODE), f("Serial_out", READ)]],
+        { kind: "fill", q: "วงจรตามสไลด์ 14: ใช้เป็นแต่ละประเภท ต้องตั้ง SHSel₁ SHSel₀ เท่าไร และอ่านจากที่ไหน", head: ["ใช้เป็น", "SHSel₁ SHSel₀ ตอนใส่ข้อมูล", "SHSel₁ SHSel₀ ตอนเก็บหรือส่งออก", "อ่านจาก"],
+          rows: [["PIPO", f("01", CODE), f("00", CODE), f("Q3–Q0", READ)], ["SIPO", f("10", CODE), f("00", CODE), f("Q3–Q0", READ)], ["PISO", f("01", CODE), f("10", CODE), f("Serial_out", READ)], ["SISO", f("10", CODE), f("10", CODE), f("Serial_out", READ)]],
           note: "Serial_out = Q0" },
         { kind: "fill", q: "เทียบการใช้งานแต่ละประเภท: เติมจำนวน clock และจำนวนสายข้อมูล (4 บิต)", head: ["ชนิด", "ใส่ 4 บิตใช้ clock", "อ่านครบใช้ clock เพิ่ม", "สายเข้า", "สายออก"],
           rows: [["SISO", f("4", CK), f("3", CK), f("1", WIRE), f("1", WIRE)], ["SIPO", f("4", CK), f("0", CK), f("1", WIRE), f("4", WIRE)], ["PISO", f("1", CK), f("3", CK), f("4", WIRE), f("1", WIRE)], ["PIPO", f("1", CK), f("0", CK), f("4", WIRE), f("4", WIRE)]],
@@ -1034,28 +1035,28 @@
         shselDrill({ q: "ใช้ครบทุกโหมด (D เปลี่ยนทุกขั้น)", ops: "SLRHSLRS", wiring: "RLHS", si: [1, 0, 0, 1, 0, 1, 1, 0], d: ["0000", "1010", "1111", "0101", "0011", "0110", "1000", "0001"], pre: "ดู D เฉพาะตอน Parallel load" }),
         shselDrill({ q: "เริ่มจากค่าที่ไม่ใช่ศูนย์", ops: "HSRLSSR", wiring: "SHRL", si: [1, 1, 0, 0, 0, 1, 0], d: "1010", init: "0110" }),
         shselDrill({ q: "Shift right สลับกับ Rotate right", ops: "SRSRHLRS", wiring: "HSRL", si: [0, 1, 0, 0, 0, 0, 0, 1], d: "0011", init: "1111" }),
-        shselDrill({ q: "มีพัลส์ SHSel หลอกระหว่างขอบ", ops: "LHSHRH", wiring: "LRSH", si: [1, 1, 1, 1, 1, 1], d: "1010", glitch: { Sel0: [1], Sel1: [1] }, pre: "แถวที่ Ck ไม่ใช่ขอบ Q ไม่เปลี่ยน แม้ SHSel จะเปลี่ยนชั่วขณะ" }),
+        shselDrill({ q: "มีพัลส์ SHSel หลอกระหว่างขอบ", ops: "LHSHRH", wiring: "LRSH", si: [1, 1, 1, 1, 1, 1], d: "1010", glitch: { Sel0: [1], Sel1: [1] }, pre: "แถวที่ Ck ไม่ใช่ขอบ Q ไม่เปลี่ยน แม้ SHSel₁ SHSel₀ จะเปลี่ยนชั่วขณะ" }),
 
         { kind: "text", q: "เขียนสมการ Q3⁺ ถึง Q0⁺ ในรูป SHSel₁, SHSel₀",
           a: "<span class='mono'>Q3⁺ = SHSel₁′SHSel₀′·Q3 + SHSel₁′SHSel₀·D3 + SHSel₁SHSel₀′·Serial_in + SHSel₁SHSel₀·Q0</span> · <span class='mono'>Q2⁺ = SHSel₁′SHSel₀′·Q2 + SHSel₁′SHSel₀·D2 + SHSel₁·Q3</span> · <span class='mono'>Q1⁺ = SHSel₁′SHSel₀′·Q1 + SHSel₁′SHSel₀·D1 + SHSel₁·Q2</span> · <span class='mono'>Q0⁺ = SHSel₁′SHSel₀′·Q0 + SHSel₁′SHSel₀·D0 + SHSel₁·Q1</span> · Q2–Q0 ยุบ 2 เทอมสุดท้ายเหลือ SHSel₁ เพราะช่อง 2 กับ 3 ต่อสายเดียวกัน" },
         { kind: "text", q: "ออกแบบวงจรนี้: ใช้อุปกรณ์อะไร ต่ออย่างไร",
           a: "D FF 4 ตัว และ MUX 4-to-1 4 ตัว ใช้ Clock และ SHSel₁, SHSel₀ ร่วมกันทุกบิต · ช่อง 0 = Q ตัวเอง · ช่อง 1 = D ของบิตนั้น · ช่อง 2 = บิตทางซ้าย (Q3 รับ Serial_in) · ช่อง 3 = บิตทางซ้าย (Q3 รับ Q0) · Serial_out = Q0" },
-        { kind: "text", q: "ทำไมSHSel = 0 จึงคงค่าได้ทั้งที่ D flip-flop รับค่าทุกขอบ",
+        { kind: "text", q: "ทำไม SHSel₁ SHSel₀ = 00 จึงคงค่าได้ทั้งที่ D flip-flop รับค่าทุกขอบ",
           a: "ช่อง 0 ต่อ Q ของตัวเองกลับเข้า D จึงได้ Q⁺ = Q ทุกขอบ · ไม่ต้องหยุด clock ซึ่งเสี่ยงเกิด glitch และ clock skew" },
         { kind: "text", q: "ช่อง 2 กับช่อง 3 ของ MUX ต่างกันอย่างไร และเกิดผลอะไร",
-          a: "ต่างกันแค่บิต Q3: ช่อง 2 รับ Serial_in ส่วนช่อง 3 รับ Q0 · SHSel = 2 จึงรับข้อมูลใหม่และ Q0 เดิมหลุดออก · SHSel = 3 จึงวน Q0 กลับ ข้อมูลไม่หาย" },
-        { kind: "text", q: "โหลด 1011 แล้วใช้SHSel = 2 จำนวน 4 ครั้ง (Serial_in = 0) เขียน Q3–Q0 ทีละขั้น และบอกว่า Serial_out ออกบิตอะไรตามลำดับ",
+          a: "ต่างกันแค่บิต Q3: ช่อง 2 รับ Serial_in ส่วนช่อง 3 รับ Q0 · SHSel₁ SHSel₀ = 10 จึงรับข้อมูลใหม่และ Q0 เดิมหลุดออก · SHSel₁ SHSel₀ = 11 จึงวน Q0 กลับ ข้อมูลไม่หาย" },
+        { kind: "text", q: "โหลด 1011 แล้วใช้ SHSel₁ SHSel₀ = 10 จำนวน 4 ครั้ง (Serial_in = 0) เขียน Q3–Q0 ทีละขั้น และบอกว่า Serial_out ออกบิตอะไรตามลำดับ",
           a: "1011 → 0101 → 0010 → 0001 → 0000 · Serial_out (Q0) เป็น 1, 1, 0, 1 คือ D0, D1, D2, D3 แล้วตามด้วย 0 · ใช้ Load 1 ขอบ + เลื่อน 3 ขอบก็อ่านครบ 4 บิต" },
-        { kind: "text", q: "เริ่ม 0000 ใช้SHSel = 2 ป้อน Serial_in = 1, 0, 1, 1 ทีละขอบ จะได้ Q3–Q0 อย่างไร",
-          a: "1000 → 0100 → 1010 → 1101 · บิตแรกที่เข้า (1) ไปอยู่ที่ Q0 ส่วนบิตสุดท้ายอยู่ที่ Q3 แล้วตั้งSHSel = 0 เพื่อเก็บไว้" },
-        { kind: "text", q: "Q3–Q0 = 1000 ใช้SHSel = 3 จำนวน 4 ครั้ง เขียน Q3–Q0 ทีละขั้น",
+        { kind: "text", q: "เริ่ม 0000 ใช้ SHSel₁ SHSel₀ = 10 ป้อน Serial_in = 1, 0, 1, 1 ทีละขอบ จะได้ Q3–Q0 อย่างไร",
+          a: "1000 → 0100 → 1010 → 1101 · บิตแรกที่เข้า (1) ไปอยู่ที่ Q0 ส่วนบิตสุดท้ายอยู่ที่ Q3 แล้วตั้ง SHSel₁ SHSel₀ = 00 เพื่อเก็บไว้" },
+        { kind: "text", q: "Q3–Q0 = 1000 ใช้ SHSel₁ SHSel₀ = 11 จำนวน 4 ครั้ง เขียน Q3–Q0 ทีละขั้น",
           a: "1000 → 0100 → 0010 → 0001 → 1000 · ครบ 4 ครั้งกลับมาค่าเดิม" },
-        { kind: "text", q: "ถ้าต่อ Serial_in เข้ากับ Q0 แล้วใช้SHSel = 2 จะได้ผลอย่างไร",
-          a: "Q3 รับ Q0 เหมือนกับSHSel = 3 จึงทำงานเป็น Rotate right" },
+        { kind: "text", q: "ถ้าต่อ Serial_in เข้ากับ Q0 แล้วใช้ SHSel₁ SHSel₀ = 10 จะได้ผลอย่างไร",
+          a: "Q3 รับ Q0 เหมือนกับ SHSel₁ SHSel₀ = 11 จึงทำงานเป็น Rotate right" },
         { kind: "text", q: "ถ้า MUX ของ Q3 ช่อง 3 ต่อผิดเป็น Serial_in แทน Q0 จะเกิดอะไร",
-          a: "ช่อง 2 กับ 3 เหมือนกันทุกบิต SHSel = 3 จึงกลายเป็น Shift right และ register หมุนวนไม่ได้" },
+          a: "ช่อง 2 กับ 3 เหมือนกันทุกบิต SHSel₁ SHSel₀ = 11 จึงกลายเป็น Shift right และ register หมุนวนไม่ได้" },
         { kind: "text", q: "ถ้าต่อสายสลับช่อง 1 กับช่อง 2 ของทุกบิต รหัสแต่ละตัวจะทำงานอย่างไร",
-          a: "SHSel = 0 คงค่าเหมือนเดิม · SHSel = 1 กลายเป็น Shift right · SHSel = 2 กลายเป็น Parallel load · SHSel = 3 ยังเป็น Rotate right" },
+          a: "SHSel₁ SHSel₀ = 00 คงค่าเหมือนเดิม · SHSel₁ SHSel₀ = 01 กลายเป็น Shift right · SHSel₁ SHSel₀ = 10 กลายเป็น Parallel load · SHSel₁ SHSel₀ = 11 ยังเป็น Rotate right" },
         { kind: "text", q: "ทำไมวงจร shifter s2 s1 s0 จึงไม่มี clock ต่างจาก register อย่างไร",
           a: "วงจรนี้มีแต่ MUX ซึ่งเป็น combinational ไม่มี flip-flop ค่า y จึงเปลี่ยนทันทีตาม d และ s และเก็บค่าไว้ไม่ได้ ส่วน register มี D flip-flop จึงเปลี่ยนที่ขอบ clock และจำค่าไว้" },
         { kind: "text", q: "วงจร shifter s2 s1 s0: s2 ทำหน้าที่อะไร",
@@ -1073,7 +1074,7 @@
         const edgeAt = new Map(def.opts.marks.map((m) => [m.at, m.text]));
         const bus = inputs.filter((x) => /^(D[0-3]|IN[1-4])$/.test(x.key)), single = inputs.filter((x) => !bus.includes(x) && !x.key.startsWith("Sel"));
         const span = (keys) => `${keys[0]}–${keys.at(-1)}`;
-        const head = ["ขั้น", "Ck", "SHSel", ...single.map((x) => x.name), ...(bus.length ? [span(bus.map((x) => x.key))] : []), span(outs), ...outs.map((k) => `${k}⁺`)];
+        const head = ["ขั้น", "Ck", "SHSel₁", "SHSel₀", ...single.map((x) => x.name), ...(bus.length ? [span(bus.map((x) => x.key))] : []), span(outs), ...outs.map((k) => `${k}⁺`)];
         const rows = [];
         def.rows.forEach((r, t) => {
           const p = def.rows[t - 1], next = def.rows[t + 1];
@@ -1081,7 +1082,7 @@
           const edge = edgeAt.get(t);
           const blip = single.concat(inputs.filter((x) => x.key.startsWith("Sel"))).some((x) => r[x.key] !== p[x.key] && next && next[x.key] === p[x.key]);
           if (!edge && !blip) return;
-          rows.push([edge || "–", edge ? edge[0] : String(r[clk]), String(r.Sel1 * 2 + r.Sel0), ...single.map((x) => String(r[x.key])), ...(bus.length ? [regOf(r, bus.map((x) => x.key))] : []), regOf(p, outs), ...ans(regOf(r, outs))]);
+          rows.push([edge || "–", edge ? edge[0] : String(r[clk]), String(r.Sel1), String(r.Sel0), ...single.map((x) => String(r[x.key])), ...(bus.length ? [regOf(r, bus.map((x) => x.key))] : []), regOf(p, outs), ...ans(regOf(r, outs))]);
         });
         return { kind: "fill", q: `${it.q} · ดูการต่อช่องของ MUX จากรูป เติมตาราง control แล้วเติม ${outs[0]}⁺–${outs.at(-1)}⁺ ทีละขั้น`, head, rows, note: it.pre, fig: it.fig, wiring: it.wiring, control: controlOf(it.wiring) };
       };
