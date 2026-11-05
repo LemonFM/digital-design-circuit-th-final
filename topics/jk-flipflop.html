@@ -71,16 +71,16 @@
         <div class="two-col">
           <div class="table-scroll">
             <table class="tt">
-              <thead><tr><th>J</th><th>K</th><th>Q</th><th>Qnext</th><th>Qnext′</th><th>สถานะ</th></tr></thead>
+              <thead><tr><th>J</th><th>K</th><th>Q</th><th>Q′</th><th>Qnext</th><th>Qnext′</th><th>สถานะ</th></tr></thead>
               <tbody>
-                <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td class="txt" rowspan="2">Hold</td></tr>
-                <tr><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
-                <tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td class="txt" rowspan="2">Reset</td></tr>
-                <tr><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
-                <tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td class="txt" rowspan="2">Set</td></tr>
-                <tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
-                <tr><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td><td class="txt" rowspan="2">Toggle</td></tr>
-                <tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+                <tr><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td class="txt" rowspan="2">Hold</td></tr>
+                <tr><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+                <tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td class="txt" rowspan="2">Reset</td></tr>
+                <tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+                <tr><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td><td class="txt" rowspan="2">Set</td></tr>
+                <tr><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+                <tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td><td class="txt" rowspan="2">Toggle</td></tr>
+                <tr><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
               </tbody>
             </table>
           </div>
@@ -193,12 +193,12 @@
         <div class="two-col">
           <div class="table-scroll">
             <table class="tt">
-              <thead><tr><th>Q</th><th>Qnext</th><th>J</th><th>K</th></tr></thead>
+              <thead><tr><th>Q</th><th>Q′</th><th>Qnext</th><th>Qnext′</th><th>J</th><th>K</th></tr></thead>
               <tbody>
-                <tr><td>0</td><td>0</td><td>0</td><td>×</td></tr>
-                <tr><td>0</td><td>1</td><td>1</td><td>×</td></tr>
-                <tr><td>1</td><td>0</td><td>×</td><td>1</td></tr>
-                <tr><td>1</td><td>1</td><td>×</td><td>0</td></tr>
+                <tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>×</td></tr>
+                <tr><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td><td>×</td></tr>
+                <tr><td>1</td><td>0</td><td>0</td><td>1</td><td>×</td><td>1</td></tr>
+                <tr><td>1</td><td>0</td><td>1</td><td>0</td><td>×</td><td>0</td></tr>
               </tbody>
             </table>
           </div>
@@ -249,12 +249,12 @@
         <div class="formula">Qnext = JQ′ + K′Q<small>JK: 00 Hold · 01 Reset · 10 Set · 11 Toggle</small></div>
         <div class="table-scroll">
           <table class="tt">
-            <thead><tr><th>Q → Qnext</th><th>J</th><th>K</th></tr></thead>
+            <thead><tr><th>Q → Qnext</th><th>Q′ → Qnext′</th><th>J</th><th>K</th></tr></thead>
             <tbody>
-              <tr><td>0 → 0</td><td>0</td><td>×</td></tr>
-              <tr><td>0 → 1</td><td>1</td><td>×</td></tr>
-              <tr><td>1 → 0</td><td>×</td><td>1</td></tr>
-              <tr><td>1 → 1</td><td>×</td><td>0</td></tr>
+              <tr><td>0 → 0</td><td>1 → 1</td><td>0</td><td>×</td></tr>
+              <tr><td>0 → 1</td><td>1 → 0</td><td>1</td><td>×</td></tr>
+              <tr><td>1 → 0</td><td>0 → 1</td><td>×</td><td>1</td></tr>
+              <tr><td>1 → 1</td><td>0 → 0</td><td>×</td><td>0</td></tr>
             </tbody>
           </table>
         </div>

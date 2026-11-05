@@ -71,7 +71,7 @@
   <script>
     (function () {
       "use strict";
-      const { NOT, NAND, NOR, settle, simulate, pulses, isEdge, exercises, gate, twoState, wave, schematic, ffSymbol, shiftRegister: shselFig, shifterCircuit, seg7, SEG7_HEX, SEG7_GLYPH, railCircuit, kmapRailOutput, kmapPrimeInfo, kmapTerm, kmapSOP, kmapSvg, kmapNames, muxArray, muxTree, COUNTER_FF, counterDesign, counterUpDown, counterRing, counterFlipFlops, withFlipFlops, counterChain } = LK;
+      const { NOT, NAND, NOR, settle, simulate, pulses, isEdge, exercises, gate, twoState, wave, schematic, ffSymbol, shiftRegister: shselFig, shifterCircuit, seg7, SEG7_HEX, SEG7_GLYPH, railCircuit, kmapRailOutput, kmapPrimeInfo, kmapTerm, kmapSOP, kmapSvg, kmapNames, muxArray, muxTree, COUNTER_FF, counterDesign, counterUpDown, counterRing, counterFlipFlops, withFlipFlops, withComplements, counterChain } = LK;
 
       const TOPICS = [
         ["sr", "SR flip-flop"],
@@ -1298,7 +1298,8 @@
       const EX_TYPES = ["T", "D", "SR", "JK"], EX_ROWS = [[0, 0], [0, 1], [1, 0], [1, 1]];
       const exPins = (types) => types.flatMap((t) => COUNTER_FF[t].pins);
       const exCells = (types, q, nx) => types.flatMap((t) => [...COUNTER_FF[t].ex(q, nx)].map(String));
-      const exTable = (types) => `<div class="table-scroll"><table class="tt"><thead><tr><th>Q</th><th>Q⁺</th>${exPins(types).map((p) => `<th>${p}</th>`).join("")}</tr></thead><tbody>${EX_ROWS.map(([q, nx]) => `<tr><td>${q}</td><td>${nx}</td>${exCells(types, q, nx).map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+      const exTable = (types) => { const t = withComplements(["Q", "Q⁺", ...exPins(types)], EX_ROWS.map(([q, nx]) => [String(q), String(nx), ...exCells(types, q, nx)]));
+        return `<div class="table-scroll"><table class="tt"><thead><tr>${t.head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${t.rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`; };
       const J = [0, 5, 3, 7, 4], ORDER8 = [0, 1, 2, 3, 4, 5, 6, 7], ALLFF = ["T", "SR", "JK", "D"];
       SUB.cnt = [
         { kind: "fill", q: "ทวนตาราง Q → Q⁺: เติม input ของ flip-flop ทุกชนิด (Q = ค่าเดิม)", head: ["Q", "Q⁺", ...exPins(EX_TYPES)], note: "T = Q ⊕ Q⁺ · D = Q⁺ · × คือเป็นอะไรก็ได้",
@@ -1322,6 +1323,8 @@
         { kind: "text", q: "เทียบจำนวนช่อง × ของ T, SR, JK และ D ในตารางเดียวกัน แบบไหนมักได้สมการสั้นที่สุด",
           a: "JK มี × ทุกแถว (ขาละครึ่งหนึ่ง) รองลงมาคือ SR ส่วน T และ D มี × เฉพาะสถานะที่ไม่ใช้ จึงมักได้สมการ JK สั้นที่สุด แต่แลกกับการมีสองขาต่อ flip-flop" },
       ];
+
+      for (const it of Object.values(SUB).flat()) if (it.kind === "fill") Object.assign(it, withComplements(it.head, it.rows));
 
       // =====================================================================
       // Rendering

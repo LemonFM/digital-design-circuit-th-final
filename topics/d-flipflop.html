@@ -55,10 +55,10 @@
         <div class="two-col">
           <div class="table-scroll">
             <table class="tt">
-              <thead><tr><th>D</th><th>Q</th><th>Qnext</th><th>Qnext′</th></tr></thead>
+              <thead><tr><th>D</th><th>Q</th><th>Q′</th><th>Qnext</th><th>Qnext′</th></tr></thead>
               <tbody>
-                <tr><td>0</td><td>×</td><td>0</td><td>1</td></tr>
-                <tr><td>1</td><td>×</td><td>1</td><td>0</td></tr>
+                <tr><td>0</td><td>×</td><td>×</td><td>0</td><td>1</td></tr>
+                <tr><td>1</td><td>×</td><td>×</td><td>1</td><td>0</td></tr>
               </tbody>
             </table>
           </div>
@@ -88,12 +88,12 @@
         <div class="two-col">
           <div class="table-scroll">
             <table class="tt">
-              <thead><tr><th>E</th><th>D</th><th>Q</th><th>Qnext</th><th>Qnext′</th></tr></thead>
+              <thead><tr><th>E</th><th>D</th><th>Q</th><th>Q′</th><th>Qnext</th><th>Qnext′</th></tr></thead>
               <tbody>
-                <tr><td>0</td><td>×</td><td>0</td><td>0</td><td>1</td></tr>
-                <tr><td>0</td><td>×</td><td>1</td><td>1</td><td>0</td></tr>
-                <tr><td>1</td><td>0</td><td>×</td><td>0</td><td>1</td></tr>
-                <tr><td>1</td><td>1</td><td>×</td><td>1</td><td>0</td></tr>
+                <tr><td>0</td><td>×</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+                <tr><td>0</td><td>×</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+                <tr><td>1</td><td>0</td><td>×</td><td>×</td><td>0</td><td>1</td></tr>
+                <tr><td>1</td><td>1</td><td>×</td><td>×</td><td>1</td><td>0</td></tr>
               </tbody>
             </table>
           </div>
@@ -117,12 +117,12 @@
           <div>
             <div class="table-scroll">
               <table class="tt">
-                <thead><tr><th>D</th><th>Q</th><th>Q⁺</th></tr></thead>
+                <thead><tr><th>D</th><th>Q</th><th>Q′</th><th>Q⁺</th><th>Q⁺′</th></tr></thead>
                 <tbody>
-                  <tr><td>0</td><td>0</td><td>0</td></tr>
-                  <tr><td>0</td><td>1</td><td>0</td></tr>
-                  <tr><td>1</td><td>0</td><td>1</td></tr>
-                  <tr><td>1</td><td>1</td><td>1</td></tr>
+                  <tr><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+                  <tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+                  <tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+                  <tr><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
                 </tbody>
               </table>
             </div>
@@ -171,14 +171,14 @@
         </div>
         <div class="table-scroll">
           <table class="tt">
-            <thead><tr><th>Clk</th><th>D</th><th>Q</th><th>Qnext</th><th>Qnext′</th></tr></thead>
+            <thead><tr><th>Clk</th><th>D</th><th>Q</th><th>Q′</th><th>Qnext</th><th>Qnext′</th></tr></thead>
             <tbody>
-              <tr><td>0</td><td>×</td><td>0</td><td>0</td><td>1</td></tr>
-              <tr><td>0</td><td>×</td><td>1</td><td>1</td><td>0</td></tr>
-              <tr><td>1</td><td>×</td><td>0</td><td>0</td><td>1</td></tr>
-              <tr><td>1</td><td>×</td><td>1</td><td>1</td><td>0</td></tr>
-              <tr><td>↑</td><td>0</td><td>×</td><td>0</td><td>1</td></tr>
-              <tr><td>↑</td><td>1</td><td>×</td><td>1</td><td>0</td></tr>
+              <tr><td>0</td><td>×</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+              <tr><td>0</td><td>×</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+              <tr><td>1</td><td>×</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+              <tr><td>1</td><td>×</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+              <tr><td>↑</td><td>0</td><td>×</td><td>×</td><td>0</td><td>1</td></tr>
+              <tr><td>↑</td><td>1</td><td>×</td><td>×</td><td>1</td><td>0</td></tr>
             </tbody>
           </table>
         </div>
@@ -216,16 +216,16 @@
         <div class="formula">D<sub>FF</sub> = E′Q + ED<small>ยังเปลี่ยนค่าเฉพาะที่ขอบขาขึ้นเหมือนเดิม</small></div>
         <div class="table-scroll">
           <table class="tt">
-            <thead><tr><th>Clk</th><th>E</th><th>D</th><th>Q</th><th>Qnext</th><th>Qnext′</th></tr></thead>
+            <thead><tr><th>Clk</th><th>E</th><th>D</th><th>Q</th><th>Q′</th><th>Qnext</th><th>Qnext′</th></tr></thead>
             <tbody>
-              <tr><td>0</td><td>×</td><td>×</td><td>0</td><td>0</td><td>1</td></tr>
-              <tr><td>0</td><td>×</td><td>×</td><td>1</td><td>1</td><td>0</td></tr>
-              <tr><td>1</td><td>×</td><td>×</td><td>0</td><td>0</td><td>1</td></tr>
-              <tr><td>1</td><td>×</td><td>×</td><td>1</td><td>1</td><td>0</td></tr>
-              <tr><td>↑</td><td>0</td><td>×</td><td>0</td><td>0</td><td>1</td></tr>
-              <tr><td>↑</td><td>0</td><td>×</td><td>1</td><td>1</td><td>0</td></tr>
-              <tr><td>↑</td><td>1</td><td>0</td><td>×</td><td>0</td><td>1</td></tr>
-              <tr><td>↑</td><td>1</td><td>1</td><td>×</td><td>1</td><td>0</td></tr>
+              <tr><td>0</td><td>×</td><td>×</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+              <tr><td>0</td><td>×</td><td>×</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+              <tr><td>1</td><td>×</td><td>×</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+              <tr><td>1</td><td>×</td><td>×</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+              <tr><td>↑</td><td>0</td><td>×</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+              <tr><td>↑</td><td>0</td><td>×</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+              <tr><td>↑</td><td>1</td><td>0</td><td>×</td><td>×</td><td>0</td><td>1</td></tr>
+              <tr><td>↑</td><td>1</td><td>1</td><td>×</td><td>×</td><td>1</td><td>0</td></tr>
             </tbody>
           </table>
         </div>
@@ -248,12 +248,12 @@
         <div class="two-col">
           <div class="table-scroll">
             <table class="tt">
-              <thead><tr><th>Q</th><th>Qnext</th><th>D</th></tr></thead>
+              <thead><tr><th>Q</th><th>Q′</th><th>Qnext</th><th>Qnext′</th><th>D</th></tr></thead>
               <tbody>
-                <tr><td>0</td><td>0</td><td>0</td></tr>
-                <tr><td>0</td><td>1</td><td>1</td></tr>
-                <tr><td>1</td><td>0</td><td>0</td></tr>
-                <tr><td>1</td><td>1</td><td>1</td></tr>
+                <tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+                <tr><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+                <tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td></tr>
+                <tr><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
               </tbody>
             </table>
           </div>

@@ -90,39 +90,39 @@
         <div class="two-col">
           <div class="table-scroll">
             <table class="tt">
-              <thead><tr><th colspan="4">NOR (active-high)</th></tr><tr><th>S</th><th>R</th><th>Q</th><th>Qnext, Qnext′</th></tr></thead>
+              <thead><tr><th colspan="5">NOR (active-high)</th></tr><tr><th>S</th><th>R</th><th>Q</th><th>Q′</th><th>Qnext, Qnext′</th></tr></thead>
               <tbody>
-                <tr><td>0</td><td>0</td><td>0</td><td>0, 1</td></tr>
-                <tr><td>0</td><td>0</td><td>1</td><td>1, 0</td></tr>
-                <tr><td>0</td><td>1</td><td>×</td><td>0, 1</td></tr>
-                <tr><td>1</td><td>0</td><td>×</td><td>1, 0</td></tr>
-                <tr class="bad"><td>1</td><td>1</td><td>×</td><td>0, 0 ✗</td></tr>
+                <tr><td>0</td><td>0</td><td>0</td><td>1</td><td>0, 1</td></tr>
+                <tr><td>0</td><td>0</td><td>1</td><td>0</td><td>1, 0</td></tr>
+                <tr><td>0</td><td>1</td><td>×</td><td>×</td><td>0, 1</td></tr>
+                <tr><td>1</td><td>0</td><td>×</td><td>×</td><td>1, 0</td></tr>
+                <tr class="bad"><td>1</td><td>1</td><td>×</td><td>×</td><td>0, 0 ✗</td></tr>
               </tbody>
             </table>
           </div>
           <div class="table-scroll">
             <table class="tt">
-              <thead><tr><th colspan="4">NAND (active-low)</th></tr><tr><th>S′</th><th>R′</th><th>Q</th><th>Qnext, Qnext′</th></tr></thead>
+              <thead><tr><th colspan="5">NAND (active-low)</th></tr><tr><th>S′</th><th>R′</th><th>Q</th><th>Q′</th><th>Qnext, Qnext′</th></tr></thead>
               <tbody>
-                <tr class="bad"><td>0</td><td>0</td><td>×</td><td>1, 1 ✗</td></tr>
-                <tr><td>0</td><td>1</td><td>×</td><td>1, 0</td></tr>
-                <tr><td>1</td><td>0</td><td>×</td><td>0, 1</td></tr>
-                <tr><td>1</td><td>1</td><td>0</td><td>0, 1</td></tr>
-                <tr><td>1</td><td>1</td><td>1</td><td>1, 0</td></tr>
+                <tr class="bad"><td>0</td><td>0</td><td>×</td><td>×</td><td>1, 1 ✗</td></tr>
+                <tr><td>0</td><td>1</td><td>×</td><td>×</td><td>1, 0</td></tr>
+                <tr><td>1</td><td>0</td><td>×</td><td>×</td><td>0, 1</td></tr>
+                <tr><td>1</td><td>1</td><td>0</td><td>1</td><td>0, 1</td></tr>
+                <tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1, 0</td></tr>
               </tbody>
             </table>
           </div>
           <div class="table-scroll">
             <table class="tt">
-              <thead><tr><th colspan="5">With Enable (NAND)</th></tr><tr><th>E</th><th>S</th><th>R</th><th>Q</th><th>Qnext, Qnext′</th></tr></thead>
+              <thead><tr><th colspan="6">With Enable (NAND)</th></tr><tr><th>E</th><th>S</th><th>R</th><th>Q</th><th>Q′</th><th>Qnext, Qnext′</th></tr></thead>
               <tbody>
-                <tr><td>0</td><td>×</td><td>×</td><td>0</td><td>0, 1</td></tr>
-                <tr><td>0</td><td>×</td><td>×</td><td>1</td><td>1, 0</td></tr>
-                <tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0, 1</td></tr>
-                <tr><td>1</td><td>0</td><td>0</td><td>1</td><td>1, 0</td></tr>
-                <tr><td>1</td><td>0</td><td>1</td><td>×</td><td>0, 1</td></tr>
-                <tr><td>1</td><td>1</td><td>0</td><td>×</td><td>1, 0</td></tr>
-                <tr class="bad"><td>1</td><td>1</td><td>1</td><td>×</td><td>1, 1 ✗</td></tr>
+                <tr><td>0</td><td>×</td><td>×</td><td>0</td><td>1</td><td>0, 1</td></tr>
+                <tr><td>0</td><td>×</td><td>×</td><td>1</td><td>0</td><td>1, 0</td></tr>
+                <tr><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0, 1</td></tr>
+                <tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1, 0</td></tr>
+                <tr><td>1</td><td>0</td><td>1</td><td>×</td><td>×</td><td>0, 1</td></tr>
+                <tr><td>1</td><td>1</td><td>0</td><td>×</td><td>×</td><td>1, 0</td></tr>
+                <tr class="bad"><td>1</td><td>1</td><td>1</td><td>×</td><td>×</td><td>1, 1 ✗</td></tr>
               </tbody>
             </table>
           </div>
@@ -155,53 +155,53 @@
         <div class="tt-grid">
           <div class="table-scroll">
             <table class="tt">
-              <thead><tr><th colspan="6">SR flip-flop</th></tr><tr><th>S</th><th>R</th><th>Q</th><th>Qnext</th><th>Qnext′</th><th>การทำงาน</th></tr></thead>
+              <thead><tr><th colspan="7">SR flip-flop</th></tr><tr><th>S</th><th>R</th><th>Q</th><th>Q′</th><th>Qnext</th><th>Qnext′</th><th>การทำงาน</th></tr></thead>
               <tbody>
-                  <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td class="txt" rowspan="2">Hold</td></tr>
-                  <tr><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
-                  <tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td class="txt" rowspan="2">Reset</td></tr>
-                  <tr><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
-                  <tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td class="txt" rowspan="2">Set</td></tr>
-                  <tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
-                  <tr class="bad"><td>1</td><td>1</td><td>0</td><td>×</td><td>×</td><td class="txt" rowspan="2">ห้ามใช้</td></tr>
-                  <tr class="bad"><td>1</td><td>1</td><td>1</td><td>×</td><td>×</td></tr>
+                  <tr><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td class="txt" rowspan="2">Hold</td></tr>
+                  <tr><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+                  <tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td class="txt" rowspan="2">Reset</td></tr>
+                  <tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+                  <tr><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td><td class="txt" rowspan="2">Set</td></tr>
+                  <tr><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+                  <tr class="bad"><td>1</td><td>1</td><td>0</td><td>1</td><td>×</td><td>×</td><td class="txt" rowspan="2">ห้ามใช้</td></tr>
+                  <tr class="bad"><td>1</td><td>1</td><td>1</td><td>0</td><td>×</td><td>×</td></tr>
               </tbody>
             </table>
           </div>
           <div class="table-scroll">
             <table class="tt">
-              <thead><tr><th colspan="6">JK flip-flop</th></tr><tr><th>J</th><th>K</th><th>Q</th><th>Qnext</th><th>Qnext′</th><th>การทำงาน</th></tr></thead>
+              <thead><tr><th colspan="7">JK flip-flop</th></tr><tr><th>J</th><th>K</th><th>Q</th><th>Q′</th><th>Qnext</th><th>Qnext′</th><th>การทำงาน</th></tr></thead>
               <tbody>
-                  <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td class="txt" rowspan="2">Hold</td></tr>
-                  <tr><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
-                  <tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td class="txt" rowspan="2">Reset</td></tr>
-                  <tr><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
-                  <tr><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td class="txt" rowspan="2">Set</td></tr>
-                  <tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
-                  <tr><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td><td class="txt" rowspan="2">Toggle</td></tr>
-                  <tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+                  <tr><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td class="txt" rowspan="2">Hold</td></tr>
+                  <tr><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+                  <tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td class="txt" rowspan="2">Reset</td></tr>
+                  <tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+                  <tr><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td><td>0</td><td class="txt" rowspan="2">Set</td></tr>
+                  <tr><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+                  <tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td><td class="txt" rowspan="2">Toggle</td></tr>
+                  <tr><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
               </tbody>
             </table>
           </div>
           <div class="table-scroll">
             <table class="tt">
-              <thead><tr><th colspan="5">D flip-flop</th></tr><tr><th>D</th><th>Q</th><th>Qnext</th><th>Qnext′</th><th>การทำงาน</th></tr></thead>
+              <thead><tr><th colspan="6">D flip-flop</th></tr><tr><th>D</th><th>Q</th><th>Q′</th><th>Qnext</th><th>Qnext′</th><th>การทำงาน</th></tr></thead>
               <tbody>
-                  <tr><td>0</td><td>0</td><td>0</td><td>1</td><td class="txt" rowspan="2">Reset (Q⁺ = 0)</td></tr>
-                  <tr><td>0</td><td>1</td><td>0</td><td>1</td></tr>
-                  <tr><td>1</td><td>0</td><td>1</td><td>0</td><td class="txt" rowspan="2">Set (Q⁺ = 1)</td></tr>
-                  <tr><td>1</td><td>1</td><td>1</td><td>0</td></tr>
+                  <tr><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td class="txt" rowspan="2">Reset (Q⁺ = 0)</td></tr>
+                  <tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+                  <tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td><td class="txt" rowspan="2">Set (Q⁺ = 1)</td></tr>
+                  <tr><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
               </tbody>
             </table>
           </div>
           <div class="table-scroll">
             <table class="tt">
-              <thead><tr><th colspan="5">T flip-flop</th></tr><tr><th>T</th><th>Q</th><th>Qnext</th><th>Qnext′</th><th>การทำงาน</th></tr></thead>
+              <thead><tr><th colspan="6">T flip-flop</th></tr><tr><th>T</th><th>Q</th><th>Q′</th><th>Qnext</th><th>Qnext′</th><th>การทำงาน</th></tr></thead>
               <tbody>
-                  <tr><td>0</td><td>0</td><td>0</td><td>1</td><td class="txt" rowspan="2">Hold</td></tr>
-                  <tr><td>0</td><td>1</td><td>1</td><td>0</td></tr>
-                  <tr><td>1</td><td>0</td><td>1</td><td>0</td><td class="txt" rowspan="2">Toggle</td></tr>
-                  <tr><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+                  <tr><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td class="txt" rowspan="2">Hold</td></tr>
+                  <tr><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+                  <tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td><td class="txt" rowspan="2">Toggle</td></tr>
+                  <tr><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
               </tbody>
             </table>
           </div>
@@ -227,12 +227,12 @@
         <p>ใช้ตอนออกแบบ counter และ state machine: รู้ว่า Q ต้องเปลี่ยนเป็นอะไร แล้วหาว่าต้องป้อน input เท่าไร</p>
         <div class="table-scroll">
           <table class="tt">
-            <thead><tr><th>Q → Qnext</th><th>S</th><th>R</th><th>J</th><th>K</th><th>D</th><th>T</th></tr></thead>
+            <thead><tr><th>Q → Qnext</th><th>Q′ → Qnext′</th><th>S</th><th>R</th><th>J</th><th>K</th><th>D</th><th>T</th></tr></thead>
             <tbody>
-              <tr><td>0 → 0</td><td>0</td><td>×</td><td>0</td><td>×</td><td>0</td><td>0</td></tr>
-              <tr><td>0 → 1</td><td>1</td><td>0</td><td>1</td><td>×</td><td>1</td><td>1</td></tr>
-              <tr><td>1 → 0</td><td>0</td><td>1</td><td>×</td><td>1</td><td>0</td><td>1</td></tr>
-              <tr><td>1 → 1</td><td>×</td><td>0</td><td>×</td><td>0</td><td>1</td><td>0</td></tr>
+              <tr><td>0 → 0</td><td>1 → 1</td><td>0</td><td>×</td><td>0</td><td>×</td><td>0</td><td>0</td></tr>
+              <tr><td>0 → 1</td><td>1 → 0</td><td>1</td><td>0</td><td>1</td><td>×</td><td>1</td><td>1</td></tr>
+              <tr><td>1 → 0</td><td>0 → 1</td><td>0</td><td>1</td><td>×</td><td>1</td><td>0</td><td>1</td></tr>
+              <tr><td>1 → 1</td><td>0 → 0</td><td>×</td><td>0</td><td>×</td><td>0</td><td>1</td><td>0</td></tr>
             </tbody>
           </table>
         </div>
@@ -357,14 +357,14 @@
         <div class="two-col">
           <div class="table-scroll">
             <table class="tt">
-              <thead><tr><th>Ck</th><th>D</th><th>Q</th><th>Q⁺</th></tr></thead>
+              <thead><tr><th>Ck</th><th>D</th><th>Q</th><th>Q′</th><th>Q⁺</th><th>Q⁺′</th></tr></thead>
               <tbody>
-                <tr><td>↑</td><td>0</td><td>0</td><td>0</td></tr>
-                <tr><td>↑</td><td>0</td><td>1</td><td>0</td></tr>
-                <tr><td>↑</td><td>1</td><td>0</td><td>1</td></tr>
-                <tr><td>↑</td><td>1</td><td>1</td><td>1</td></tr>
-                <tr><td>0, 1, ↓</td><td>×</td><td>0</td><td class="txt">0 (คงเดิม)</td></tr>
-                <tr><td>0, 1, ↓</td><td>×</td><td>1</td><td class="txt">1 (คงเดิม)</td></tr>
+                <tr><td>↑</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+                <tr><td>↑</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+                <tr><td>↑</td><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+                <tr><td>↑</td><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+                <tr><td>0, 1, ↓</td><td>×</td><td>0</td><td>1</td><td class="txt">0 (คงเดิม)</td><td class="txt">0 (คงเดิม)</td></tr>
+                <tr><td>0, 1, ↓</td><td>×</td><td>1</td><td>0</td><td class="txt">1 (คงเดิม)</td><td class="txt">1 (คงเดิม)</td></tr>
               </tbody>
             </table>
           </div>
@@ -966,7 +966,7 @@
   <script>
     (function () {
       "use strict";
-      const { twoState, ffSymbol, shiftRegister, tocSpy, seg7, SEG7_HEX, SEG7_GLYPH, kmapPrimeInfo, kmapSOP, kmapSvg, muxArray, muxTree, counterChain, counterDesign, counterUpDown, counterRing, COUNTER_FF } = LK;
+      const { twoState, ffSymbol, shiftRegister, tocSpy, seg7, SEG7_HEX, SEG7_GLYPH, kmapPrimeInfo, kmapSOP, kmapSvg, muxArray, muxTree, counterChain, counterDesign, counterUpDown, counterRing, COUNTER_FF, withComplements } = LK;
 
       const FSM = {
         sr: { up: "SR=10", down: "SR=01", loop0: "SR=00, 01", loop1: "SR=00, 10" },
@@ -1022,8 +1022,9 @@
       const TYPES = ["T", "D", "SR", "JK"], design = (seq) => Object.fromEntries(TYPES.map((t) => [t, counterDesign(3, nextOf(seq), t)]));
       const UP = design(JUMP), DOWN = design([...JUMP].reverse());
       const PINS = TYPES.flatMap((t) => COUNTER_FF[t].pins);
-      $("cnt-ex").innerHTML = `<table class="tt"><thead><tr><th>Q</th><th>Q⁺</th>${PINS.map((p) => `<th>${p}</th>`).join("")}</tr></thead><tbody>` +
-        [[0, 0], [0, 1], [1, 0], [1, 1]].map(([q, n]) => `<tr><td>${q}</td><td>${n}</td>${TYPES.flatMap((t) => [...COUNTER_FF[t].ex(q, n)]).map((c) => `<td>${c}</td>`).join("")}</tr>`).join("") + "</tbody></table>";
+      const EX = withComplements(["Q", "Q⁺", ...PINS], [[0, 0], [0, 1], [1, 0], [1, 1]].map(([q, n]) => [String(q), String(n), ...TYPES.flatMap((t) => [...COUNTER_FF[t].ex(q, n)].map(String))]));
+      $("cnt-ex").innerHTML = `<table class="tt"><thead><tr>${EX.head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>` +
+        EX.rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("") + "</tbody></table>";
       $("cnt-rings").innerHTML = [["นับขึ้น", JUMP], ["นับลง", [...JUMP].reverse()]].map(([cap, seq]) => `<figure>${counterRing(seq.map(b3))}<figcaption>${cap}</figcaption></figure>`).join("");
       const halfCells = (r) => (r.next === null ? `<td>× × ×</td><td>× × ×</td>` : `<td>${spaced(r.next)}</td><td>${r.cells.join(" ")}</td>`);
       $("cnt-pair").innerHTML = `<table class="tt" style="white-space:nowrap;"><thead><tr><th rowspan="2">C B A</th><th colspan="2">นับขึ้น</th><th colspan="2">นับลง</th></tr><tr><th>C⁺ B⁺ A⁺</th><th>TC TB TA</th><th>C⁺ B⁺ A⁺</th><th>TC TB TA</th></tr></thead><tbody>` +

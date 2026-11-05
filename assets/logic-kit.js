@@ -868,6 +868,16 @@
     });
   }
 
+  // Tables of one flip-flop show both outputs: Q′ beside Q and Qnext′ beside Qnext. A cell is a string or an { a, c } answer to fill in.
+  const BAR = { 0: "1", 1: "0", Q: "Q′", "Q′": "Q" }, BAR_HEAD = { Q: "Q′", Qnext: "Qnext′", "Q⁺": "Q⁺′" };
+  const barValue = (v) => BAR[v] ?? v;
+  const barCell = (c) => (typeof c === "object" ? { ...c, a: barValue(c.a) } : barValue(c));
+  function withComplements(head, rows) {
+    const at = head.flatMap((h, i) => (BAR_HEAD[h] && head[i + 1] !== BAR_HEAD[h] ? [i] : []));
+    const spread = (list, bar) => list.flatMap((v, i) => (at.includes(i) ? [v, bar(v)] : [v]));
+    return { head: spread(head, (h) => BAR_HEAD[h]), rows: rows.map((r) => spread(r, barCell)) };
+  }
+
   // ---------- Flip-flop simulator ----------
 
   // Interactive clocked element. modes: { key: {
@@ -918,9 +928,10 @@
       $(".sim-inputs").innerHTML =
         M.inputs.map(([key, name]) => `<button class="sw" type="button" data-in="${key}"><span class="sw-name">${label(name)}</span><span class="sw-val"></span></button>`).join("") +
         (M.pulse ? `<button class="btn" type="button" data-pulse>ส่ง clock 1 ลูก (0→1→0)</button>` : "");
+      const table = withComplements(M.head, M.rows);
       $(".sim-table").innerHTML =
-        `<thead><tr>${M.head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>` +
-        M.rows.map((r) => `<tr>${r.map((c, j) => `<td${j === r.length - 1 ? ' class="txt"' : ""}>${c}</td>`).join("")}</tr>`).join("") +
+        `<thead><tr>${table.head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>` +
+        table.rows.map((r) => `<tr>${r.map((c, j) => `<td${j === r.length - 1 ? ' class="txt"' : ""}>${c}</td>`).join("")}</tr>`).join("") +
         "</tbody>";
       render();
     }
@@ -981,6 +992,6 @@
 
   global.LK = {
     NOT, AND, OR, NAND, NOR, settle, label, gate, schematic, setLevels, wave, fitStep, tocSpy,
-    steps, pulses, isEdge, simulate, byQ, twoState, ffSymbol, shiftRegister, shifterCircuit, muxArray, muxTree, counterChain, kmapPrimes, kmapPrimeInfo, kmapPowerSet, kmapCover, kmapTerm, kmapSOP, kmapPOS, kmapSvg, kmapNames, inCube, KMAP_COLORS, SEG7_HEX, SEG7_GLYPH, seg7, circuitLevels, railCircuit, kmapRailOutput, COUNTER_FF, counterDesign, counterUpDown, counterRing, counterFlipFlops, withFlipFlops, exercises, ffSim,
+    steps, pulses, isEdge, simulate, byQ, twoState, ffSymbol, shiftRegister, shifterCircuit, muxArray, muxTree, counterChain, kmapPrimes, kmapPrimeInfo, kmapPowerSet, kmapCover, kmapTerm, kmapSOP, kmapPOS, kmapSvg, kmapNames, inCube, KMAP_COLORS, SEG7_HEX, SEG7_GLYPH, seg7, circuitLevels, railCircuit, kmapRailOutput, COUNTER_FF, counterDesign, counterUpDown, counterRing, counterFlipFlops, withFlipFlops, withComplements, exercises, ffSim,
   };
 })(window);
