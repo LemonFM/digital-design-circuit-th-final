@@ -1287,17 +1287,17 @@
       const seqText = (seq) => [...seq, seq[0]].join(" → ");
       const nextOf = (seq) => Object.fromEntries(seq.map((v, i) => [v, seq[(i + 1) % seq.length]]));
       const binOf = (v, n) => v.toString(2).padStart(n, "0");
-      // Every drill pairs the two directions: mode "pair" designs them separately, "updown" also joins them with sw.
-      function cntDrill({ seq, type, mode = "pair" }) {
+      // Every drill pairs the two directions in one circuit: sw·up + sw′·down, so sw picks the direction.
+      function cntDrill({ seq, type }) {
         const n = Math.max(...seq) > 7 ? 4 : 3, rev = [...seq].reverse(), upD = counterDesign(n, nextOf(seq), type), downD = counterDesign(n, nextOf(rev), type);
-        const sw = mode === "updown", parts = [[sw ? "sw = 1 นับขึ้น" : "นับขึ้น", upD], [sw ? "sw = 0 นับลง" : "นับลง", downD]], ud = sw ? counterUpDown(upD, downD) : null;
+        const parts = [["sw = 1 นับขึ้น", upD], ["sw = 0 นับลง", downD]], ud = counterUpDown(upD, downD);
         const head = [...upD.names, ...upD.names.map((b) => `${b}⁺`), ...upD.bits.flatMap(([b]) => upD.f.pins.map((p) => `${p}${b}`))];
         const row = (r) => [...binOf(r.s, n), ...[...(r.next === null ? "×".repeat(n) : binOf(r.next, n))].map((v) => f(v, X)), ...(r.cells || upD.outputs.map(() => "×")).map((v) => f(v, X))];
         return {
-          kind: "counter", seq, type, mode, n, parts, ud, ff: upD, rings: [[parts[0][0], seq], [parts[1][0], rev]],
+          kind: "counter", seq, type, n, parts, ud, ff: upD, rings: [[parts[0][0], seq], [parts[1][0], rev]],
           tables: parts.map(([title, d]) => ({ title, head, rows: d.rows.map(row) })),
-          circuits: sw ? [["วงจรรวม: sw เลือกทิศ Q ป้อนกลับเข้าเกต ทุกตัวใช้ clock เดียวกัน", ud.circuit]] : parts.map(([title, d]) => [`${title}: Q ป้อนกลับเข้าเกต ทุกตัวใช้ clock เดียวกัน`, d.circuit]),
-          q: `ออกแบบวงจรนับลำดับ <b>${seqText(seq)}</b> ${sw ? "ให้นับได้ทั้งขึ้นและลงในวงจรเดียว โดย sw = 1 นับขึ้นตามลำดับ และ sw = 0 นับย้อนลำดับ" : "ทั้งแบบ<b>นับขึ้น</b>และ<b>นับลง</b> (นับลงคือย้อนลำดับ)"} ด้วย <b>${type} flip-flop</b> แสดง: state diagram → next state table → K-map หาสมการ → วาดวงจร`,
+          circuits: [["วงจรเดียว: sw เลือกทิศ Q ป้อนกลับเข้าเกต ทุกตัวใช้ clock เดียวกัน", ud.circuit]],
+          q: `ออกแบบวงจรนับลำดับ <b>${seqText(seq)}</b> ให้<b>นับขึ้น</b>และ<b>นับลง</b>ได้ในวงจรเดียว โดย sw = 1 นับขึ้นตามลำดับ และ sw = 0 นับย้อนลำดับ ด้วย <b>${type} flip-flop</b> แสดง: state diagram → next state table → K-map หาสมการ → วาดวงจร`,
         };
       }
       // Q → Q⁺ review: which inputs each flip-flop type needs for every transition.
@@ -1311,13 +1311,11 @@
         { kind: "fill", q: "ทวนตาราง Q → Q⁺: เติม input ของ flip-flop ทุกชนิด (Q = ค่าเดิม)", head: ["Q", "Q⁺", ...exPins(EX_TYPES)], note: "T = Q ⊕ Q⁺ · D = Q⁺ · × คือเป็นอะไรก็ได้",
           rows: EX_ROWS.map(([q, nx]) => [String(q), String(nx), ...exCells(EX_TYPES, q, nx).map((v) => f(v, X))]) },
         ...ALLFF.map((type) => cntDrill({ seq: J, type })),
-        ...ALLFF.map((type) => cntDrill({ seq: J, type, mode: "updown" })),
         ...ALLFF.map((type) => cntDrill({ seq: ORDER8, type })),
-        cntDrill({ seq: ORDER8, type: "T", mode: "updown" }),
-        cntDrill({ seq: [0, 1, 2, 3, 4], type: "JK", mode: "updown" }),
+        cntDrill({ seq: [0, 1, 2, 3, 4], type: "JK" }),
         cntDrill({ seq: [1, 3, 7, 6, 2], type: "T" }),
         cntDrill({ seq: [0, 3, 6, 1, 4, 7], type: "SR" }),
-        cntDrill({ seq: [0, 2, 4, 6], type: "D", mode: "updown" }),
+        cntDrill({ seq: [0, 2, 4, 6], type: "D" }),
         cntDrill({ seq: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], type: "JK" }),
         cntDrill({ seq: [0, 9, 3, 12, 6], type: "D" }),
         { kind: "text", q: "ลำดับที่โจทย์ให้มีเลขซ้ำ เช่น 0 → 5 → 0 → 3 ออกแบบด้วย 3 บิตได้หรือไม่ ต้องทำอย่างไร",
@@ -1456,13 +1454,13 @@
       const cntMaps = (it, cls, blank) => it.parts.map(([cap, d]) => (cap ? `<p class="fill-sub">${cap}</p>` : "") + `<div class="${cls}">${d.outputs.map((o) => `<figure>${blank ? kmapSvg(it.n, o.cells.map(() => "")) : kmapSvg(it.n, o.cells, { groups: o.terms })}<figcaption>${blank ? o.name : `${o.name} = ${o.eq}`}</figcaption></figure>`).join("")}</div>`).join("");
       function cntEq(it) {
         const [up, down] = it.parts.map(([, d]) => d), all = (o) => [o.eq, ...o.alts].join(" หรือ ");
-        return `<div class="table-scroll"><table class="tt"><thead><tr><th>ขา</th><th>นับขึ้น</th><th>นับลง</th>${it.ud ? "<th>สมการรวม</th>" : ""}</tr></thead><tbody>` +
-          up.outputs.map((o, i) => `<tr><td>${o.name}</td><td>${all(o)}</td><td>${all(down.outputs[i])}</td>${it.ud ? `<td>${it.ud.text(it.ud.outputs[i])}</td>` : ""}</tr>`).join("") + "</tbody></table></div>";
+        return `<div class="table-scroll"><table class="tt"><thead><tr><th>ขา</th><th>นับขึ้น</th><th>นับลง</th><th>สมการรวม</th></tr></thead><tbody>` +
+          up.outputs.map((o, i) => `<tr><td>${o.name}</td><td>${all(o)}</td><td>${all(down.outputs[i])}</td><td>${it.ud.text(it.ud.outputs[i])}</td></tr>`).join("") + "</tbody></table></div>";
       }
       const cntCircuit = (it) => it.circuits.map(([cap, cfg]) => `<figure class="figure design-circuit">${railCircuit(withFlipFlops(cfg, it.ff))}<figcaption>${cap}</figcaption></figure>`).join("");
 
       // Given with the question: the flip-flops and clock. The gates are what the student designs.
-      const cntGiven = (it) => `<figure class="figure wide cnt-given">${counterFlipFlops(it.ff)}<figcaption>ต่อ output ของวงจรเกตเข้าขาที่ชื่อตรงกัน ทุกตัวใช้ clock เดียวกัน${it.ud ? " · สัญญาณ sw เป็น input ของวงจรเกต" : ""}</figcaption></figure>`;
+      const cntGiven = (it) => `<figure class="figure wide cnt-given">${counterFlipFlops(it.ff)}<figcaption>ต่อ output ของวงจรเกตเข้าขาที่ชื่อตรงกัน ทุกตัวใช้ clock เดียวกัน · สัญญาณ sw เป็น input ของวงจรเกต</figcaption></figure>`;
 
       function counterCard(it, n, id) {
         const step = (key, label, html) => `<div class="design-step"><button class="btn" type="button" data-show="${id}-${key}" data-label="${label}">${label}</button><div id="${id}-${key}" hidden>${html}</div></div>`;
