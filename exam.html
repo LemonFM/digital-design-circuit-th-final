@@ -50,8 +50,13 @@
         <option value="sub">อัตนัยทุกเรื่อง</option>
         <option value="all">ทั้งหมด (ปรนัย + อัตนัย)</option>
       </select>
+      <select id="print-part" aria-label="ส่วนที่จะบันทึก">
+        <option value="both">โจทย์ + เฉลย</option>
+        <option value="q">โจทย์อย่างเดียว</option>
+        <option value="a">เฉลยอย่างเดียว</option>
+      </select>
       <button class="btn primary" type="button" id="print-btn">บันทึก PDF</button>
-      <span class="print-hint">หน้าต่างพิมพ์จะเปิดขึ้น ให้เลือกปลายทางเป็น "Save as PDF" · โจทย์กับเฉลยแยกคนละส่วน · พิมพ์เป็นขาวดำ · ถ้าไม่อยากได้วันที่/ชื่อหน้าที่หัวกระดาษ ให้ปิดตัวเลือก "ส่วนหัวและส่วนท้าย (Headers and footers)"</span>
+      <span class="print-hint">หน้าต่างพิมพ์จะเปิดขึ้น ให้เลือกปลายทางเป็น "Save as PDF" · เลือกโจทย์หรือเฉลยอย่างเดียวได้ เลขข้อของสองไฟล์ตรงกัน · พิมพ์เป็นขาวดำ · ถ้าไม่อยากได้วันที่/ชื่อหน้าที่หัวกระดาษ ให้ปิดตัวเลือก "ส่วนหัวและส่วนท้าย (Headers and footers)"</span>
     </div>
     <div class="exam-nav">
       <div class="type-tabs" role="tablist" aria-label="ประเภทข้อสอบ">
@@ -1857,7 +1862,7 @@
       document.body.appendChild(printRoot);
       const PRINT_WIDTH = 660; // px that fit an A4 page with margins
       const GROUPS = [["counter", "ออกแบบวงจรนับ"], ["design", "ออกแบบครบขั้นตอน"], ["fill", "เติมตาราง"], ["timing", "Timing diagram"], ["text", "เขียนตอบ / ออกแบบ / พิสูจน์"]];
-      const TYPE_NAME = { obj: "ปรนัย", sub: "อัตนัย" };
+      const TYPE_NAME = { obj: "ปรนัย", sub: "อัตนัย" }, PART_NAME = { q: "โจทย์", a: "เฉลย" }, PAGE_TITLE = document.title;
 
       const svgOf = (fn, attrs = {}) => {
         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -1936,7 +1941,7 @@
         }).join("");
       }
 
-      function buildPrint(scope) {
+      function buildPrint(scope, which = "both") {
         const parts = scope === "current" ? [[state.type, state.topic]]
           : TOPICS.flatMap(([t]) => (scope === "all" ? [["obj", t], ["sub", t]] : [[scope, t]]));
         const label = scope === "current" ? `${TYPE_NAME[state.type]} · ${TOPIC_NAME[state.topic]}`
@@ -1944,20 +1949,24 @@
         const defs = new Map(); // build each timing drill once so both parts show the same waveform
         const part = (reveal) => parts.map(([type, t]) =>
           `<div class="p-topic-block"><h3 class="p-topic">${TOPIC_NAME[t]} · ${TYPE_NAME[type]}</h3>${type === "obj" ? objPart(t, reveal) : subPart(t, reveal, defs)}</div>`).join("");
+        const sections = which === "both"
+          ? `<section class="p-section"><h2>ส่วนที่ 1 · โจทย์</h2>${part(false)}</section>
+             <section class="p-section p-answers"><h2>ส่วนที่ 2 · เฉลย</h2>${part(true)}</section>`
+          : `<section class="p-section"><h2>${PART_NAME[which]}</h2>${part(which === "a")}</section>`;
         printRoot.innerHTML = `
           <header class="p-head"><h1>แนวข้อสอบ CPE 2423 ครึ่งหลัง</h1><p>${label} · บท 06 Latches and Flip-Flops · บท 07 Counter · บท 08 Combinational Components · บท 09 Shift Registers · โจทย์แต่งขึ้นเพื่อซ้อม ไม่ใช่ข้อสอบจริง</p></header>
-          <section class="p-section"><h2>ส่วนที่ 1 · โจทย์</h2>${part(false)}</section>
-          <section class="p-section p-answers"><h2>ส่วนที่ 2 · เฉลย</h2>${part(true)}</section>`;
+          ${sections}`;
+        document.title = which === "both" ? PAGE_TITLE : `${PART_NAME[which]} · ${label}`; // the default PDF file name
         document.body.classList.add("printing");
       }
 
       document.getElementById("print-btn").addEventListener("click", () => {
-        buildPrint(document.getElementById("print-scope").value);
+        buildPrint(document.getElementById("print-scope").value, document.getElementById("print-part").value);
         requestAnimationFrame(() => window.print());
       });
       // Ctrl/⌘+P without the button prints the open tab in the same layout.
       window.addEventListener("beforeprint", () => { if (!document.body.classList.contains("printing")) buildPrint("current"); });
-      window.addEventListener("afterprint", () => { document.body.classList.remove("printing"); printRoot.innerHTML = ""; });
+      window.addEventListener("afterprint", () => { document.body.classList.remove("printing"); printRoot.innerHTML = ""; document.title = PAGE_TITLE; });
 
       window.addEventListener("hashchange", () => { parseHash(); show(); });
       parseHash();
