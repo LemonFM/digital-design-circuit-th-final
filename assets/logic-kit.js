@@ -271,7 +271,7 @@
   // channel does, one letter per channel 0–3: H hold (own Q), L load (D), S shift right (bit to the left or Serial_in),
   // R rotate right (bit to the left or Q0). Every signal is a real wire with an arrow at its input end. Wires carry their
   // net for setLevels; `live` also adds a [data-mux] line per MUX for the caller to aim at the selected channel.
-  function shiftRegister(wiring = "HLSR", { live = false } = {}) {
+  function shiftRegister(wiring = "HLSR", { live = false, sel = ["SHSel₁", "SHSel₀"], edge = "rise" } = {}) {
     const INK = 'stroke="#16191d" stroke-width="2"';
     const W = (net, d) => `<path class="wire" data-net="${net}" d="${d}"/>`;
     const DOT = (net, x, y) => `<circle class="dot" data-net="${net}" cx="${x}" cy="${y}" r="3.5"/>`;
@@ -279,8 +279,12 @@
     const ARROW = { r: (x, y) => `M${x} ${y} l-9 -5 v10 z`, u: (x, y) => `M${x} ${y} l-5 9 h10 z` };
     const TIP = (net, dir, x, y) => `<path class="dot" data-net="${net}" d="${ARROW[dir](x, y)}"/>`;
     const xs = [150, 375, 600, 825], last = xs[3], busS1 = 275, busS0 = 290, busClk = 305, wrap = 330;
-    const chY = (op) => 125 + 30 * wiring.indexOf(op), yH = chY("H"), yL = chY("L"), yS = chY("S"), yR = chY("R");
-    let s = W("Q0", `M${last + 185} 170 V${wrap} H${xs[0] - 50} V${yR} H${xs[0]}`) + TIP("Q0", "r", xs[0], yR);
+    const chY = (op, from) => 125 + 30 * wiring.indexOf(op, from), rotates = wiring.includes("R");
+    // Without a rotate channel (slide 16), channel R is a second shift channel fed like channel S.
+    const yH = chY("H"), yL = chY("L"), yS = chY("S"), yR = rotates ? chY("R") : chY("S", wiring.indexOf("S") + 1);
+    let s = rotates
+      ? W("Q0", `M${last + 185} 170 V${wrap} H${xs[0] - 50} V${yR} H${xs[0]}`) + TIP("Q0", "r", xs[0], yR)
+      : W("SI", `M${xs[0] - 20} ${yS} V${yR} H${xs[0]}`) + DOT("SI", xs[0] - 20, yS) + TIP("SI", "r", xs[0], yR);
     s += W("SI", `M${xs[0] - 90} ${yS} H${xs[0]}`) + TIP("SI", "r", xs[0], yS) + TX("Serial_in", xs[0] - 94, yS + 5, "end");
     s += DOT("Q0", last + 185, 170) + W("Q0", `M${last + 185} 170 H${last + 225}`) + TIP("Q0", "r", last + 225, 170) + TX("Serial_out", last + 192, 160);
     xs.forEach((x, i) => {
@@ -293,7 +297,7 @@
       s += W(q, `M${x + 165} 170 H${x + 185} V30`) + W(m, `M${x + 45} 170 H${x + 80}`);
       s += `<rect x="${x + 80}" y="145" width="85" height="100" rx="4" fill="#fff" ${INK}/>` + TX("D", x + 88, 175) + TX(q, x + 157, 175, "end");
       s += `<path d="M${x + 80} 207 L${x + 92} 215 L${x + 80} 223" fill="none" ${INK}/>` + TX("Ck", x + 96, 220);
-      s += TIP(m, "r", x + 80, 170) + TIP("CLK", "r", x + 80, 215) + TIP(q, "u", x + 185, 30) + TX(q, x + 178, 20, "middle");
+      s += TIP(m, "r", x + 80, 170) + (edge === "fall" ? `<circle cx="${x + 75}" cy="215" r="5" fill="#fff" ${INK}/>` : TIP("CLK", "r", x + 80, 215)) + TIP(q, "u", x + 185, 30) + TX(q, x + 178, 20, "middle");
       s += DOT(q, x + 185, 70) + W(q, `M${x + 185} 70 H${x - 12} V${yH} H${x}`) + TIP(q, "r", x, yH);
       s += W(d, `M${x - 26} 28 V${yL} H${x}`) + TIP(d, "r", x, yL) + TX(d, x - 18, 20, "middle");
       if (i) {
@@ -305,7 +309,7 @@
       if (i < 3) s += DOT("S1", x + 14, busS1) + DOT("S0", x + 30, busS0) + DOT("CLK", x + 62, busClk);
     });
     s += W("S1", `M92 ${busS1} H${last + 14}`) + W("S0", `M92 ${busS0} H${last + 30}`) + W("CLK", `M92 ${busClk} H${last + 62}`);
-    s += TX("SHSel₁", 88, busS1 + 5, "end") + TX("SHSel₀", 88, busS0 + 5, "end") + TX("Clock", 88, busClk + 5, "end");
+    s += TX(sel[0], 88, busS1 + 5, "end") + TX(sel[1], 88, busS0 + 5, "end") + TX("Clock", 88, busClk + 5, "end");
     return `<svg class="schem" viewBox="-40 0 1160 ${wrap + 14}" role="img" aria-label="วงจร shift register 4 บิต D flip-flop และ MUX 4 ต่อ 1">${s}</svg>`;
   }
 

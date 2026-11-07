@@ -211,8 +211,37 @@
           </div>
         </div>
 
+        <h3>วงจร PIPO ขา Sh, L <span class="ref">Figure 12-10 Table 12-1 สไลด์ 16</span></h3>
+        <p>นี่คือวงจรในหัวข้อ PIPO ของสไลด์ ใช้ flip-flop ขอบขาลง มีโหมดคงค่า โหลด และเลื่อนขวา <b>ไม่มี Rotate right</b> เมื่อ Sh = 1 จะเลื่อนขวาโดยไม่สนใจ L จึงต่อช่อง 2 กับ 3 เหมือนกัน (สไลด์เรียก Serial_in ว่า SI)</p>
+        <figure class="figure wide reg-fig" id="shl-fig"></figure>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>Sh</th><th>L</th><th>Q3⁺</th><th>Q2⁺</th><th>Q1⁺</th><th>Q0⁺</th><th>Operation</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>0</td><td>Q3</td><td>Q2</td><td>Q1</td><td>Q0</td><td class="txt">คงค่าเดิม</td></tr>
+              <tr><td>0</td><td>1</td><td>D3</td><td>D2</td><td>D1</td><td>D0</td><td class="txt">Parallel load</td></tr>
+              <tr><td>1</td><td>0</td><td>Serial_in</td><td>Q3</td><td>Q2</td><td>Q1</td><td class="txt">Shift right</td></tr>
+              <tr><td>1</td><td>1</td><td>Serial_in</td><td>Q3</td><td>Q2</td><td>Q1</td><td class="txt">Shift right</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mono" style="margin-top:10px;">Q3⁺ = Sh′L′·Q3 + Sh′L·D3 + Sh·Serial_in · Q2⁺ = Sh′L′·Q2 + Sh′L·D2 + Sh·Q3 · Q1⁺ = Sh′L′·Q1 + Sh′L·D1 + Sh·Q2 · Q0⁺ = Sh′L′·Q0 + Sh′L·D0 + Sh·Q1</p>
+        <div class="callout warn">
+          <b>PIPO ไม่จำเป็นต้องมี Rotate</b>
+          PIPO บอกแค่ว่าข้อมูลเข้าและออกขนานพร้อมกัน ส่วน Rotate right เป็นโหมดเสริมของวงจรในหัวข้อถัดไป ซึ่งสไลด์ 14 จัดอยู่ในหัวข้อ "SIPO and PISO"
+        </div>
+        <div class="table-scroll" style="margin-top:12px;">
+          <table class="tt">
+            <thead><tr><th>วงจร</th><th>ขาควบคุม</th><th>ค่า 1 1</th><th>Rotate right</th></tr></thead>
+            <tbody>
+              <tr><td class="txt">สไลด์ 14 (Figure 8.7)</td><td>SHSel₁ SHSel₀</td><td class="txt">Rotate right</td><td class="txt">มี</td></tr>
+              <tr><td class="txt">สไลด์ 16 (Figure 12-10)</td><td>Sh, L</td><td class="txt">Shift right</td><td class="txt">ไม่มี</td></tr>
+            </tbody>
+          </table>
+        </div>
+
         <h3>วงจร SHSel₁ SHSel₀ <span class="ref">Figure 8.7 สไลด์ 14</span></h3>
-        <p>D flip-flop 4 ตัว และ MUX 4-to-1 4 ตัว ใช้ Clock, SHSel₁, SHSel₀ ร่วมกันทุกบิต · ค่า SHSel₁ SHSel₀ อ่านเป็นเลข 0–3 ก็คือหมายเลขช่องของ MUX ที่ถูกเลือก</p>
+        <p>วงจรนี้มีครบทั้งคงค่า โหลด เลื่อนขวา และหมุนขวา จึงใช้เป็น PIPO ได้ด้วยการใช้แค่โหมดคงค่ากับโหลด · D flip-flop 4 ตัว และ MUX 4-to-1 4 ตัว ใช้ Clock, SHSel₁, SHSel₀ ร่วมกันทุกบิต · ค่า SHSel₁ SHSel₀ อ่านเป็นเลข 0–3 ก็คือหมายเลขช่องของ MUX ที่ถูกเลือก</p>
         <figure class="figure wide reg-fig" id="shsel-fig"></figure>
         <div class="table-scroll">
           <table class="tt">
@@ -325,7 +354,7 @@
           </table>
         </div>
         <details class="review" style="margin-top: 16px;">
-          <summary>รูปแบบอื่นในสไลด์ <span>(ไม่ใช้ในแนวข้อสอบ)</span></summary>
+          <summary>รหัสควบคุมของวงจรอื่นในสไลด์</summary>
           <div style="padding: 0 16px 16px;">
             <p>สไลด์ 13 และ 16 ใช้ขาควบคุมคนละชื่อและคนละรหัสกับ SHSel ถ้าเจอให้อ่านตารางของรูปนั้น อย่าเอารหัสมาปนกัน</p>
             <div class="table-scroll">
@@ -344,9 +373,13 @@
       <!-- 9 -->
       <section id="sim">
         <h2><span class="num">9</span>ลองกดวงจร</h2>
-        <p>วงจร SHSel₁ SHSel₀ 4 บิต (Q3 อยู่ซ้ายสุด) ตั้ง SHSel₁, SHSel₀, Serial_in และ D3–D0 แล้วกดส่ง clock</p>
+        <p>เลือกวงจรได้ 2 แบบ: PIPO ตามสไลด์ 16 (Sh, L ขอบขาลง ไม่มี Rotate right) หรือวงจร SHSel₁ SHSel₀ ตามสไลด์ 14 (ขอบขาขึ้น) ทั้งสองแบบเป็น register 4 บิต มี Q3 อยู่ซ้ายสุด ตั้งขาควบคุม, Serial_in และ D3–D0 แล้วกดส่ง clock</p>
         <p>ในวงจร สายสีส้มหนาคือ 1 สายสีเทาคือ 0 · เส้นที่ลากผ่านใน MUX คือช่องที่ถูกเลือก · ค่าที่ออกจาก MUX จะเข้า Q ตอนส่ง clock</p>
         <div class="sim" id="reg-sim">
+          <div class="tabs" role="tablist" aria-label="ชนิดวงจร">
+            <button role="tab" type="button" data-mode="pipo">PIPO (Sh, L)</button>
+            <button role="tab" type="button" data-mode="shsel">SHSel₁ SHSel₀</button>
+          </div>
           <figure class="figure wide reg-fig" style="margin: 0;">
             <div class="reg-live"></div>
             <figcaption class="reg-sel" aria-live="polite"></figcaption>
@@ -547,6 +580,7 @@
         draw("load", "-30 0 790 246", s);
       }
 
+      document.getElementById("shl-fig").innerHTML = shiftRegister("HLSS", { sel: ["Sh", "L"], edge: "fall" }) + "<figcaption>ช่อง 0 = คงค่า · 1 = Parallel load · 2 และ 3 = Shift right · ขอบขาลง · ไม่มีสาย Q0 วนกลับเข้า Q3</figcaption>";
       document.getElementById("shsel-fig").innerHTML = shiftRegister() + "<figcaption>0 = คงค่า · 1 = Parallel load · 2 = Shift right · 3 = Rotate right · จุดดำคือสายเชื่อมกัน ถ้าไม่มีจุดคือแค่ข้ามกัน</figcaption>";
 
       // ---------- exercises ----------
@@ -614,28 +648,38 @@
         });
       }
 
-      // ---------- simulator: the SHSel register (Q3 is the leftmost bit) ----------
+      // ---------- simulator: PIPO of slide 16 and the SHSel register of slide 14 (Q3 is the leftmost bit) ----------
       {
         const root = document.getElementById("reg-sim");
         const $ = (sel) => root.querySelector(sel);
-        const NEXT = [(q) => q, (q, i) => [i.D3, i.D2, i.D1, i.D0], (q, i) => [i.SI, q[0], q[1], q[2]], (q) => [q[3], q[0], q[1], q[2]]];
-        const INPUTS = [["S1", "SHSel₁"], ["S0", "SHSel₀"], ["SI", "Serial_in"], ["D3", "D3"], ["D2", "D2"], ["D1", "D1"], ["D0", "D0"]];
-        let inp, q, hist, log, msg, levels;
-        $(".reg-live").innerHTML = shiftRegister("HLSR", { live: true });
-        const live = $(".reg-live svg");
+        const hold = (q) => q, load = (q, i) => [i.D3, i.D2, i.D1, i.D0], shift = (q, i) => [i.SI, q[0], q[1], q[2]], rotate = (q) => [q[3], q[0], q[1], q[2]];
+        const MODES = {
+          pipo: { wiring: "HLSS", fig: { sel: ["Sh", "L"], edge: "fall" }, names: ["Sh", "L"], fall: true, next: [hold, load, shift, shift], ops: ["คงค่าเดิม", "Parallel load", "Shift right", "Shift right"] },
+          shsel: { wiring: "HLSR", fig: {}, names: ["SHSel₁", "SHSel₀"], fall: false, next: [hold, load, shift, rotate], ops: OPS },
+        };
+        let M, live, inp, q, hist, log, msg, levels;
         const code = () => inp.S1 * 2 + inp.S0;
+        const pair = () => `${M.names.join(" ")} = ${inp.S1} ${inp.S0}`;
         const row = (CLK) => ({ CLK, S1: inp.S1, S0: inp.S0, SI: inp.SI, Q3: q[0], Q2: q[1], Q1: q[2], Q0: q[3] });
         const push = (r) => { hist.push(r); if (hist.length > 24) hist.shift(); };
 
-        $(".sim-inputs").innerHTML = INPUTS.map(([k, n]) => `<button class="sw" type="button" data-in="${k}"><span class="sw-name">${n}</span><span class="sw-val"></span></button>`).join("") +
-          `<button class="btn" type="button" data-pulse>ส่ง clock 1 ลูก (0→1→0)</button>`;
+        function setMode(k) {
+          M = MODES[k];
+          root.querySelectorAll("[role=tab]").forEach((b) => b.setAttribute("aria-selected", b.dataset.mode === k));
+          $(".reg-live").innerHTML = shiftRegister(M.wiring, { live: true, ...M.fig });
+          live = $(".reg-live svg");
+          const inputs = [["S1", M.names[0]], ["S0", M.names[1]], ["SI", "Serial_in"], ["D3", "D3"], ["D2", "D2"], ["D1", "D1"], ["D0", "D0"]];
+          $(".sim-inputs").innerHTML = inputs.map(([key, n]) => `<button class="sw" type="button" data-in="${key}"><span class="sw-name">${n}</span><span class="sw-val"></span></button>`).join("") +
+            `<button class="btn" type="button" data-pulse>ส่ง clock 1 ลูก (0→1→0)</button>`;
+          reset();
+        }
 
         function reset() {
           inp = { S1: 0, S0: 1, SI: 1, D3: 1, D2: 0, D1: 1, D0: 1 };
           q = [0, 0, 0, 0];
           hist = [row(0)];
           log = [];
-          msg = ["ตั้ง SHSel₁ SHSel₀ แล้วกดส่ง clock", ""];
+          msg = [`ตั้ง ${M.names.join(" ")} แล้วกดส่ง clock`, ""];
           render();
         }
 
@@ -647,11 +691,11 @@
           $(".outs").innerHTML = q.map((v, k) => `<div class="out"><span>Q${3 - k}</span><b class="${v ? "hi" : ""}">${v}</b></div>`).join("");
           $(".sim-status").textContent = msg[0];
           $(".sim-status").className = "sim-status" + (msg[1] ? " " + msg[1] : "");
-          $(".sim-table").innerHTML = "<thead><tr><th>#</th><th>SHSel</th><th>ก่อน</th><th>หลัง</th></tr></thead><tbody>" +
+          $(".sim-table").innerHTML = `<thead><tr><th>#</th><th>${M.names.join(" ")}</th><th>ก่อน</th><th>หลัง</th></tr></thead><tbody>` +
             (log.length ? log.slice(-8).map((l) => `<tr><td>${l.n}</td><td>${l.sel}</td><td>${l.before}</td><td>${l.after}</td></tr>`).join("")
               : `<tr><td colspan="4" class="txt">ยังไม่ได้ส่ง clock</td></tr>`) + "</tbody>";
           // Live circuit: colour every net, draw the selected channel through each MUX.
-          const ch = code(), next = NEXT[ch](q, inp);
+          const ch = code(), next = M.next[ch](q, inp);
           live.querySelectorAll("[data-mux]").forEach((el) => {
             const x = +el.dataset.mux;
             el.setAttribute("d", `M${x + 22} ${125 + 30 * ch} L${x + 45} 170`);
@@ -661,28 +705,32 @@
             D3: inp.D3, D2: inp.D2, D1: inp.D1, D0: inp.D0, M0: next[0], M1: next[1], M2: next[2], M3: next[3],
           };
           setLevels(live, levels);
-          $(".reg-sel").textContent = `SHSel₁ = ${inp.S1}, SHSel₀ = ${inp.S0} คือ SHSel = ${ch}: ทุก MUX เลือกช่อง ${ch} (${OPS[ch]}) · ขอบ clock ถัดไปจะได้ Q3–Q0 = ${next.join("")}`;
-          const signals = [{ key: "CLK", name: "CLK" }, { key: "S1", name: "SHSel₁" }, { key: "S0", name: "SHSel₀" }, { key: "SI", name: "Serial_in" }, ...Q4.map((k) => ({ key: k, name: k, out: true }))];
+          $(".reg-sel").textContent = `${pair()}: ทุก MUX เลือกช่อง ${ch} (${M.ops[ch]}) · ${M.fall ? "ขอบขาลง" : "ขอบขาขึ้น"}ถัดไปจะได้ Q3–Q0 = ${next.join("")}`;
+          const signals = [{ key: "CLK", name: "CLK" }, { key: "S1", name: M.names[0] }, { key: "S0", name: M.names[1] }, { key: "SI", name: "Serial_in" }, ...Q4.map((k) => ({ key: k, name: k, out: true }))];
           const svg = $(".sim-wave");
           wave(svg, signals, hist, { step: 28, ticks: false });
           svg.parentElement.scrollLeft = svg.parentElement.scrollWidth;
         }
 
         root.addEventListener("click", (e) => {
+          const tab = e.target.closest("[data-mode]");
+          if (tab) return setMode(tab.dataset.mode);
           const sw = e.target.closest("[data-in]");
           if (sw) {
             inp[sw.dataset.in] ^= 1;
-            msg = [`SHSel = ${code()}: ${OPS[code()]} · Q ยังไม่เปลี่ยนจนกว่าจะส่ง clock`, ""];
+            msg = [`${pair()}: ${M.ops[code()]} · Q ยังไม่เปลี่ยนจนกว่าจะส่ง clock`, ""];
             push(row(0));
             return render();
           }
           if (e.target.closest("[data-pulse]")) {
-            const before = q.join("");
-            q = NEXT[code()](q, inp);
+            const before = q.join(""), next = M.next[code()](q, inp);
+            // Q follows the active edge: on the way up for SHSel, on the way down for slide 16.
+            if (!M.fall) q = next;
             push(row(1));
+            q = next;
             push(row(0));
-            log.push({ n: log.length + 1, sel: code(), before, after: q.join("") });
-            msg = [`ขอบขาขึ้น: ${OPS[code()]} ได้ Q3Q2Q1Q0 = ${q.join("")}`, "set"];
+            log.push({ n: log.length + 1, sel: `${inp.S1} ${inp.S0}`, before, after: q.join("") });
+            msg = [`${M.fall ? "ขอบขาลง" : "ขอบขาขึ้น"}: ${M.ops[code()]} ได้ Q3Q2Q1Q0 = ${q.join("")}`, "set"];
             render();
             // Flash the clock line so the edge is visible on the circuit.
             setLevels(live, { ...levels, CLK: 1 });
@@ -691,7 +739,7 @@
           }
           if (e.target.closest("[data-reset]")) reset();
         });
-        reset();
+        setMode("pipo");
       }
 
       tocSpy(document.querySelector(".toc"));

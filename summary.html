@@ -428,14 +428,37 @@
         </div>
         <div class="callout tip">
           <b>ทำไมต้องมี MUX</b>
-          ถ้าต่อ D ตรงเข้า flip-flop ทุกขอบจะโหลดค่าใหม่ เก็บค่าไว้ไม่ได้ จึงใส่ MUX หน้าขา D ทุกบิตเพื่อเลือกว่าขอบนี้จะคงค่า โหลด เลื่อน หรือหมุน
+          ถ้าต่อ D ตรงเข้า flip-flop ทุกขอบจะโหลดค่าใหม่ เก็บค่าไว้ไม่ได้ จึงใส่ MUX หน้าขา D ทุกบิตเพื่อเลือกว่าขอบนี้จะทำอะไร
+        </div>
+        <h3>วงจร PIPO ขา Sh, L <span class="ref">สไลด์ 16</span></h3>
+        <p>ใช้ flip-flop ขอบขาลง <b>ไม่มี Rotate right</b> เมื่อ Sh = 1 จะเลื่อนขวาโดยไม่สนใจ L</p>
+        <figure class="figure wide reg-fig" id="shl-fig"></figure>
+        <div class="table-scroll">
+          <table class="tt">
+            <thead><tr><th>Sh</th><th>L</th><th>Q3⁺</th><th>Q2⁺</th><th>Q1⁺</th><th>Q0⁺</th><th>Operation</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>0</td><td>Q3</td><td>Q2</td><td>Q1</td><td>Q0</td><td class="txt">คงค่าเดิม</td></tr>
+              <tr><td>0</td><td>1</td><td>D3</td><td>D2</td><td>D1</td><td>D0</td><td class="txt">Parallel load</td></tr>
+              <tr><td>1</td><td>0</td><td>Serial_in</td><td>Q3</td><td>Q2</td><td>Q1</td><td class="txt">Shift right</td></tr>
+              <tr><td>1</td><td>1</td><td>Serial_in</td><td>Q3</td><td>Q2</td><td>Q1</td><td class="txt">Shift right</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-scroll" style="margin-top:12px;">
+          <table class="tt">
+            <thead><tr><th>วงจร</th><th>ขาควบคุม</th><th>ค่า 1 1</th><th>Rotate right</th></tr></thead>
+            <tbody>
+              <tr><td class="txt">สไลด์ 14 (Figure 8.7)</td><td>SHSel₁ SHSel₀</td><td class="txt">Rotate right</td><td class="txt">มี</td></tr>
+              <tr><td class="txt">สไลด์ 16 (Figure 12-10)</td><td>Sh, L</td><td class="txt">Shift right</td><td class="txt">ไม่มี</td></tr>
+            </tbody>
+          </table>
         </div>
       </section>
 
       <!-- 13 -->
       <section id="shsel">
         <h2><span class="num">13</span>วงจร SHSel และตาราง control <span class="ref">สไลด์ 14</span></h2>
-        <p>Register 4 บิต: D flip-flop 4 ตัว และ MUX 4-to-1 4 ตัว ใช้ Clock, SHSel₁, SHSel₀ ร่วมกันทุกบิต</p>
+        <p>วงจรนี้มาจากสไลด์ 14 หัวข้อ "SIPO and PISO" มีครบทุกโหมดจึงใช้เป็น PIPO ได้ และเป็นวงจรเดียวที่มี Rotate right · D flip-flop 4 ตัว และ MUX 4-to-1 4 ตัว ใช้ Clock, SHSel₁, SHSel₀ ร่วมกันทุกบิต</p>
         <figure class="figure wide reg-fig" id="shsel-fig"></figure>
 
         <h3>ตาราง control ของวงจรนี้</h3>
@@ -526,6 +549,7 @@
             <li>แปลง SHSel₁ SHSel₀ สลับหลัก: 1 0 คือ 2 ไม่ใช่ 1</li>
             <li>ใช้ค่าใหม่ของบิตข้าง ๆ ในขอบเดียวกัน (ที่ถูกคือใช้ค่าก่อนขอบทุกบิต)</li>
             <li>Rotate แล้วใส่ Serial_in เข้า Q3 (ที่ถูกคือ Q0 เดิม)</li>
+            <li>ตอบ Sh L = 1 1 ว่า Rotate right (สไลด์ 16 คือ Shift right ส่วน Rotate มีเฉพาะ SHSel₁ SHSel₀ = 1 1 ของสไลด์ 14)</li>
             <li>คิดว่า Q เปลี่ยนตามทันทีตอน SHSel หรือ D เปลี่ยน (ที่ถูกคือเปลี่ยนเฉพาะที่ขอบ clock)</li>
             <li>สับสนทิศ: เลื่อนขวาคือข้อมูลไหลจาก Q3 ไป Q0 และบิตที่หลุดออกคือ Q0</li>
           </ul>
@@ -985,6 +1009,7 @@
         ffSymbol({ left: ["D", { name: "Ck", clk: "rise" }], top: "PreN", bottom: "ClrN", cap: "D FF + Pre/Clr" }),
       ].join("");
 
+      document.getElementById("shl-fig").innerHTML = shiftRegister("HLSS", { sel: ["Sh", "L"], edge: "fall" }) + "<figcaption>ช่อง 0 = คงค่า · 1 = Parallel load · 2 และ 3 = Shift right · ขอบขาลง · ไม่มีสาย Q0 วนกลับเข้า Q3</figcaption>";
       document.getElementById("shsel-fig").innerHTML = shiftRegister() + "<figcaption>0 = คงค่า · 1 = Parallel load · 2 = Shift right · 3 = Rotate right · จุดดำคือสายเชื่อมกัน ถ้าไม่มีจุดคือแค่ข้ามกัน</figcaption>";
       document.getElementById("shsel-example").innerHTML = shiftRegister("RLHS") + "<figcaption>วงจรเดียวกัน แต่ต่อช่องของ MUX สลับกัน</figcaption>";
 
